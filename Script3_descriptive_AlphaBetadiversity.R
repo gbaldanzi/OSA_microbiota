@@ -3,7 +3,7 @@
 
 # Descriptive Statistics continued : script to DESCRIBE alpha and beta-diversity
 
-# This script will calculate alpha diversith and create plots and table describing alpha
+# This script will calculate alpha diversity and create plots and table describing alpha
 #diversity in relation AHI and OSA, as well as other covarites. 
 
 # Descriptive Statistics 
@@ -39,7 +39,7 @@ summary(valid.ahi[,shannon])
 valid.ahi[,mean(shannon), by=OSAcat]
 valid.ahi[,median(shannon), by=OSAcat]
 
-# Compare the Shannon index across two groups using Kruskal-Wallis
+# Compare the Shannon index across two groups using Kruskal-Wallis #### 
 res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
 
 # Scatter plot: Shannon index against AHI 
@@ -147,6 +147,47 @@ p5=pheatmap(BC,main="Heatmap",
 
 ggsave("BC.heatmap", plot = p5, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
+
+# Box plots - BC ####
+BC = as.data.frame(BC)
+BC$SCAPISid = colnames(BC)
+
+# Merging with information on OSA cat 
+a = c("SCAPISid","OSAcat")
+BC2 = merge(BC, valid.ahi[,a,with=F], by="SCAPISid", all=T)
+BC2$OSAcat=factor(BC2$OSAcat, levels=c("no OSA","Mild","Moderate","Severe"))
+
+setDT(BC2)
+
+# Box plot - BC disimilarity between no OSA and the other categories
+a = c(BC2[OSAcat=="no OSA",SCAPISid],"SCAPISid","OSAcat")
+BCnoOSA= BC2[,a,with=F]
+BCnoOSA = BCnoOSA %>% gather(ID, distance, grep("5-", names(BCnoOSA), value = T))
+
+bp1 = ggplot(BCnoOSA, aes(x=OSAcat,y=distance,fill=OSAcat)) +
+  geom_boxplot()+ xlab("Sleep apnea severity") ? 
+  ggtitle("BC between 'no OSA' and other categories")+
+  theme(title = element_text(hjust = .5 , size = 14,),
+        axis.title = element_text(size=12),
+        legend.position = "none")
+
+ggsave('Boxplot_BC_noOSA.png', plot = bp1, path = "/home/baldanzi/Sleep_apnea/Descriptive/",
+       device = "png")
+
+# Box plot - BC disimilarity between Severe and the other categories
+a = c(BC2[OSAcat=="Severe",SCAPISid],"SCAPISid","OSAcat")
+BCsevere= BC2[,a,with=F]
+BCsevere = BCsevere %>% gather(ID, distance, grep("5-", names(BCsevere), value = T))
+
+bp2 = ggplot(BCsevere, aes(x=OSAcat,y=distance,fill=OSAcat)) +
+  geom_boxplot() + xlab("Sleep apnea severity") +
+ggtitle("BC between 'Severe' and other categories")+
+  theme(title = element_text(hjust = .5 , size = 14,),
+        axis.title = element_text(size=12),
+        legend.position = "none")
+
+ggsave('Boxplot_BC_severe.png', plot = bp2, path = "/home/baldanzi/Sleep_apnea/Descriptive/",
+       device = "png")
 
 #-------------------------------------------------------------------------#
 # Beta diversity based on Aitchison distance. ####
@@ -283,3 +324,38 @@ fwrite(atdist_df,"/home/baldanzi/Datasets/sleep_SCAPIS/OSA.aitchison_distmatrix.
 
 # Saving the principal components analysis 
 save(pc.atdist, file = '/home/baldanzi/Datasets/sleep_SCAPIS/pc_aitdist')
+
+
+# Box plots - Aitchison distances ####
+atdist_df$OSAcat = factor(atdist_df$OSAcat, levels=c("no OSA","Mild","Moderate","Severe"))
+
+# Box plot - Ait. Dist. between no OSA and the other categories
+a = c(atdist_df[OSAcat=="no OSA",SCAPISid],"SCAPISid","OSAcat")
+ADnoOSA= atdist_df[,a,with=F]
+ADnoOSA = BCnoOSA %>% gather(ID, distance, grep("5-", names(ADnoOSA), value = T))
+
+bp1 = ggplot(ADnoOSA, aes(x=OSAcat,y=distance,fill=OSAcat)) +
+  geom_boxplot()+ xlab("Sleep apnea severity") ? 
+  ggtitle("Ait. Dist. between 'no OSA' and other categories")+
+  theme(title = element_text(hjust = .5 , size = 14,),
+        axis.title = element_text(size=12),
+        legend.position = "none")
+
+ggsave('Boxplot_AD_noOSA.png', plot = bp1, path = "/home/baldanzi/Sleep_apnea/Descriptive/",
+       device = "png")
+
+# Box plot - Ait. Dist. between Severe and the other categories
+setDT(atdist_df)
+a = c(atdist_df[OSAcat=="Severe",SCAPISid],"SCAPISid","OSAcat")
+ADsevere= atdist_df[,a,with=F]
+ADsevere = ADsevere %>% gather(ID, distance, grep("5-", names(ADsevere), value = T))
+
+bp2 = ggplot(ADsevere, aes(x=OSAcat,y=distance,fill=OSAcat)) +
+  geom_boxplot() + xlab("Sleep apnea severity") +
+  ggtitle("Ait. Dist. between 'Severe' and other categories")+
+  theme(title = element_text(hjust = .5 , size = 14,),
+        axis.title = element_text(size=12),
+        legend.position = "none")
+
+ggsave('Boxplot_AD_severe.png', plot = bp2, path = "/home/baldanzi/Sleep_apnea/Descriptive/",
+       device = "png")

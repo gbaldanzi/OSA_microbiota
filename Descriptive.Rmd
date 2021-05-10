@@ -864,19 +864,24 @@ valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv", header = T)
 
 # Hist shannon diversity 
 phistshannon=ggplot(data=valid.ahi,aes(x=shannon))+
-  geom_histogram()+
-  ggtitle("Histogram - Shannon diversity")
+  geom_histogram(color="black", fill="white") +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle("Histogram - Shannon diversity") +
+  theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5))
 print(phistshannon)
 ```
 <br>
 <br>
+
+### Shannon and AHI
+
 ```{r plotsshannonandahi,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 # Scatter plot shannon and ahi 
 a = cor(valid.ahi$ahi, valid.ahi$shannon, method = "spearman")
 
 pshannonahi = ggplot(data=valid.ahi) + 
   geom_point(aes(x=ahi, y= shannon)) + 
-  ggtitle(paste0("Shannon index and AHI \n Spear. cor.= ",round(a,3))) + 
+  ggtitle(paste0("Shannon index and AHI \n Spearman cor.= ",round(a,3))) + 
   xlab("Apnea-hypopnea index") +
   ylab("Shannon index") +
   geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
@@ -898,15 +903,14 @@ knitr::kable(shannoncor, caption = "Correlation between Shannon diversity and AH
              align = c('l','c','c','c','c')) %>% 
   kable_styling()
 ```
-1. Model 1 = sex, age, plate, received 
-2. Model 2 = + alcohol, smoking, BMI
-3. Model 3 = + PA, education, place birth, fiber intake
-4. Model 4 = + diabetes, hypertension, dyslipidemia, self-reported medication 
+1. Model 1 = sex, age, BMI, smoking, alcohol, plate, received 
+2. Model 2 = + PA, education, place birth, fiber intake, ppi
+3. Model 3 = + diabetes, hypertension, dyslipidemia, self-reported medication 
 
 <br>
 <br>
 ```{r plotsshannonandOSAcat,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
-# Compare the Shannon index across two groups using Kruskal-Wallis
+# Compare the Shannon index across 4 groups using Kruskal-Wallis
 res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
 
 valid.ahi$OSAcat = factor(valid.ahi$OSAcat, levels = c("no OSA", "Mild", "Moderate", "Severe"))
@@ -997,6 +1001,48 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.heatmap.png")
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/AitDist.heatmap.png")
 ```   
 
+
+## Box plots 
+
+### BC {.tabset}
+
+#### Reference: No OSA
+```{r variancebetadiversity, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_BC_noOSA.png")
+```   
+
+&nbsp; 
+
+***
+
+#### Reference: Severe
+```{r variancebetadiversity2, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_BC_severe.png")
+```   
+
+&nbsp; 
+
+***
+
+### Aitchison Dist. {.tabset}
+
+#### Reference: No OSA
+```{r variancebetadiversity3, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_AD_noOSA.png")
+```   
+
+&nbsp; 
+
+***
+
+#### Reference: Severe
+```{r variancebetadiversity4, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_AD_severe.png")
+```   
+
+&nbsp; 
+
+***
 
 ## PERMANOVA BC   
     

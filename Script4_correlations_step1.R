@@ -21,29 +21,30 @@ valid.ahi.dummies = dummy_cols(valid.ahi, select_columns = c("plate","received",
                                                              ,"leisurePA","educat", "placebirth"), 
                                remove_most_frequent_dummy = T, remove_selected_columns = F)
 
-# Transformaitng two-level factor variables into numeric variables 
-a= c("Sex", "diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
+# Transforming two-level factor variables into numeric variables 
+a= c("Sex","ppi", "diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
 valid.ahi.dummies[,(a):=as.data.frame(data.matrix(data.frame(unclass(valid.ahi.dummies[,a, with=F]))))]
 
-# model 1 : adjust for age, sex, plate, and received date
-model1 =  c("age", "Sex", grep("plate_", names(valid.ahi.dummies), value=T), 
+# model 1 : adjust for age + sex + BMI + alcohol + smoking + plate + received 
+model1 =  c("age", "Sex", "BMI", "Alkohol",
+            grep("smokestatus_", names(valid.ahi.dummies), value=T),
+            grep("plate_", names(valid.ahi.dummies), value=T), 
             grep("received_", names(valid.ahi.dummies), value=T))
-# model 2 = model 1 + alcohol + smoking + bmi
-model2 = c(model1, "Alkohol", grep("smokestatus_", names(valid.ahi.dummies), value=T), "BMI")
-# model 3 = model 2 + physical activity + education + country of birth +diet
-model3 = c(model2, grep("leisuraPA", names(valid.ahi.dummies), value=T), 
+# model 2 = model 1 + fiber intake + ppi + physical activity + education + country of birth 
+model2 = c(model1, "Fibrer", "ppi", 
+           grep("leisuraPA_", names(valid.ahi.dummies), value=T),
            grep("educat_", names(valid.ahi.dummies), value=T), 
-           grep("placebirth_", names(valid.ahi.dummies), value=T), "Fibrer")
-# model 4 = model 3 + diabetes + hypertension + medication + OSAtto
-model4 = c(model3,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
+           grep("placebirth_", names(valid.ahi.dummies), value=T))
+# model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
+model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
 
-models = list(model1=model1, model2=model2, model3=model3, model4=model4)
+models = list(model1=model1, model2=model2, model3=model3)
 
-# Partial Spearman correlation loop for all 4 models ####
+# Partial Spearman correlation loop for all 3 models ####
 # pcor.test does not allow missing data
 # Excluding individuals with missing information on covariates 
-sp = data.frame(matrix(ncol=7, nrow=4))
-for(i in 1:4){
+sp = data.frame(matrix(ncol=7, nrow=3))
+for(i in 1:3){
 notexclude = which(apply(valid.ahi.dummies[,models[[i]],with=F], 1, function(x){all(!is.na(x))}))
 temp = pcor.test(valid.ahi.dummies[notexclude,shannon],
                 valid.ahi.dummies[notexclude,ahi],
@@ -55,6 +56,7 @@ names(sp) = c("model", names(temp))
 
 # Saving results for correlation shannon and ahi 
 fwrite(sp, file = paste0(output,"cor.shannon.ahi.tsv"), sep="\t")
+
 
 # Bray-curtis dissimilarity #### 
 
