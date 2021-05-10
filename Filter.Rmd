@@ -1,0 +1,756 @@
+---
+title: "MGS prevalence filter threshold"
+author: "Gabriel Baldanzi"
+date: "`r Sys.time()`"
+output: 
+  html_document:
+    number_sections: TRUE
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 5
+    css: style.css
+---
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1500px !important;
+      width: 1500px !important;
+    }
+    body {
+      max-width: 1500px !important;
+    }
+    ```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cleanenviroment, include=FALSE }
+rm(list=ls())
+```
+
+<!-- load libraries -->
+```{r,include=F}
+library(knitr)
+library(kableExtra)
+library(vegan)
+library(ggplot2)
+library(dplyr)
+library(data.table)
+library(rio)
+library(ggpubr)
+library(tidyr)
+
+```
+
+```{r importdata,include=F}
+#Load the scrambled (random) and the original (real) data 
+setwd('/home/baldanzi/Sleep_apnea/Simulations/')
+
+dades.random=fread("random_data.validsleep.csv",sep=",",header=T, na.strings=c("", NA))
+dades.real=import('/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon.BC_Upp.tsv')
+#,sep=",",header=T, na.strings=c("", NA))
+
+setDF(dades.random)
+setDF(dades.real)
+
+n2=length(na.omit(dades.random$ahi))
+```
+ 
+---
+
+The aim of this document is to help decide on a MGS prevalence filter threshold for the subsequent analysis. In other words, we want to answer the following questions:
+
+1. Will we exclude low prevalence MGS (rare MGS) from our differential abundance analyses?
+2. If yes, which prevalence threshold will we use?
+
+&nbsp; 
+  
+# Study population 
+   
+N = 3206 individuals 
+
+&nbsp; 
+  
+# Main exposure: Apnea Hipopnea Index (AHI)
+
+AHI = average number of apnea events per hour during one night. 
+ 
+AHI is a continuous variable, ranging from zero to 86.2
+
+
+  <span style="color:DarkBlue">**Figure1: **</span>**Histogram of the main exposure - AHI**
+   
+&nbsp;
+   
+```{r histograms, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center'}
+# Histogram AHI
+p1 = ggplot(data = dades.real, aes(x=ahi)) + geom_histogram(color="black", fill="white")  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle("Hist Apnea-hypopnea index (AHI)") +  xlab("") + 
+    theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5))
+
+p1
+
+n3 = length(grep("___", names(dades.real))) # Number of MGS
+```
+
+# Outcome: metagenomic species (MGS)
+
+* The data contain information on `r n3`  MGS   
+   
+* Compositional data with important sparsity  
+
+&nbsp;
+
+## MGS prevalence
+   
+   MGS prevalence is the number of individuals in which a MGS is present   
+      
+<span style="color:DarkBlue">**Figure 2: **</span>**Histogram of MGS prevalence**
+      
+```{r MGSprevalence, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/hist.MGS.prevalence.png")
+```
+  
+Only a few  MGSs are present in a high number of individuals. 
+
+&nbsp;   
+   
+### Number of MGS by different prevalence thresholds 
+   
+   Some MGSs are rare, that means that they are only present in a few number of individuals. 
+
+&nbsp;
+
+<span style="color:DarkBlue">**Figure 3: **</span>**Number of MGS present in the gut microbiota considering different prevalence thresholds**
+   
+   
+    
+```{r mgstable2, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center'}
+# MGS names into a object 
+noms=grep("____",names(dades.real),value=T)
+# Filtering out rare species (Filter based on presence or absence ) ####
+# presence-absence transformation: If a species is present, it becomes 1. If absent, becomes zero
+data_pa <- decostand(x = dades.real[,noms], "pa")
+# calculate sum per species
+  data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
+  data_sum$MGS = rownames(data_sum)
+  cut.offs = c(1,10,20,30,50,100,150,1000,2000)
+# Data set with the MGS divided by how prevalent they are
+  t = sapply(cut.offs, function(x) {nrow(data_sum[data_sum$prevalence>=x,])})
+  t = data.frame(Present=t)
+  t$Threshold = factor(paste0(cut.offs," indiv."),
+                       levels = paste0(cut.offs," indiv."))
+  t$Absent = n3 - t$Present
+  t = t[,c(2,1,3)]
+t_long = gather(t, p_a, numberMGS, Present:Absent, factor_key=T)
+
+absentmgs = data_sum$MGS[data_sum$prevalence==0]
+
+ggplot(t, aes(x=Threshold, y = Present)) +
+  geom_bar(stat = "identity", fill="steelblue") +
+  theme_minimal() + 
+  ggtitle("") +
+  xlab("Prevalence thresholds") + ylab("Number of MGS") +
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5), 
+        axis.title.x = element_text(size=12), 
+        axis.title.y = element_text(size=12),
+        axis.text.x = element_text(angle=45, hjust=1))
+```
+
+
+   
+<br>
+ 
+```{r mgstable3, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center'}
+  knitr::kable(t, caption = "Number of MGS present by prevalence threshold",table.attr = "style='width:50%;'",
+               col.names = c("Threshold", "Above threshold",
+                             "Below threshold")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+ 
+&nbsp; 
+ 
+* `r  absentmgs` is not present in any participant.    
+
+
+  ***
+  
+&nbsp; 
+  
+
+
+## Histograms of relative abudance for MGSs with different prevalences 
+
+&nbsp; 
+
+<span style="color:DarkBlue">**Figure 4: **</span>**Histograms of relative abundance**
+ 
+```{r mgshistograms, echo=FALSE, warning=FALSE,message=FALSE,fig.align='center'} 
+# Histogram of MGS present in between 10 and 20 individuals 
+cut.offs2 = c(1,10,20,30,50,100,150,1000,2000,3206)
+MGS2 = lapply(2:length(cut.offs2), function(x) {data_sum$MGS[data_sum$prevalence>=cut.offs2[x-1] & data_sum$prevalence<cut.offs2[x]]})
+names(MGS2)=paste0("In_",cut.offs,"_",cut.offs2[-1],"_indiv")
+
+ p1 = ggplot(data = dades.real, aes(x=get(MGS2$In_10_20_indiv[5]))) + geom_histogram(color="black", fill="white")  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_10_20_indiv[5],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_10_20_indiv[5]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+   xlim(-.06,.4)+
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+
+ p2 = ggplot(data = dades.real, aes(x=get(MGS2$In_10_20_indiv[20]))) + geom_histogram(color="black", fill="white")  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_10_20_indiv[20],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_10_20_indiv[20]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+   xlim(-.06,.4)+
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+ggarrange(p1,p2, nrow=1)
+
+# Histogram of MGS present in between 20 and 30 individuals 
+ p1 = ggplot(data = dades.real, aes(x=get(MGS2$In_20_30_indiv[5]))) + geom_histogram(color="black", fill="white")  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_20_30_indiv[5],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_20_30_indiv[5]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+   xlim(-.06,.4)+
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+
+ p2 = ggplot(data = dades.real, aes(x=get(MGS2$In_20_30_indiv[20]))) + geom_histogram(color="black", fill="white")  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_20_30_indiv[20],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_20_30_indiv[20]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+   xlim(-.06,.4) +
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+ggarrange(p1,p2, nrow=1)
+
+# Histogram of MGS present in between 150 and 1000 individuals 
+ p1 = ggplot(data = dades.real, aes(x=get(MGS2$In_150_1000_indiv[5]))) + geom_histogram(color="black", fill="white",bins=50)  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_150_1000_indiv[5],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_150_1000_indiv[5]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+   xlim(-.06,.4)+
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+
+ p2 = ggplot(data = dades.real, aes(x=get(MGS2$In_150_1000_indiv[20]))) + geom_histogram(color="black", fill="white",bins=50)  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_150_1000_indiv[20],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_150_1000_indiv[20]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+   xlim(-.06,1) +
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+ggarrange(p1,p2, nrow=1)
+
+# Histogram of MGS present in between 2000 and 3206 individuals 
+ p1 = ggplot(data = dades.real, aes(x=get(MGS2$In_2000_3206_indiv[5]))) + geom_histogram(color="black", fill="white", bins=50)  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_2000_3206_indiv[5],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_2000_3206_indiv[5]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+
+ p2 = ggplot(data = dades.real, aes(x=get(MGS2$In_2000_3206_indiv[20]))) + geom_histogram(color="black", fill="white",bins=50)  +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle( paste0(MGS2$In_2000_3206_indiv[20],"\nPrevalence=",data_sum$prevalence[data_sum$MGS==MGS2$In_2000_3206_indiv[20]]) )+
+  xlab("relative abundance") + ylab("nr of participants") + 
+  theme(plot.title = element_text(size = 12, face = "bold", hjust=0.5))
+ggarrange(p1,p2, nrow=1)
+```
+
+  ---
+&nbsp;    
+  
+&nbsp; 
+  
+# Simulated data   
+
+&nbsp; 
+
+
+## Samples randomly reordered:
+
+Variables were randomly shuffled between observations to create a dataset in which the null hypothesis is true (i.e. AHI are MGS are not correlated). Next, this dataset was used to study how removal of low prevalent MGS would act in the null hypothesis.   
+   
+We plotted the results into a Q-Q plot after using different filters (prevalence thresholds) to remove low prevance MGS.
+
+&nbsp;
+
+&nbsp;
+
+## Adjusted Model  
+
+Partial spearman correlation between AHI and MGSs. 
+
+Covariates: age, sex, BMI, place of birth, shannon index. 
+
+&nbsp;
+
+<span style="color:DarkBlue">**Figure 5: **</span>**QQplot of the correlations between  AHI and MGS after applying different thresholds for minimum MGS prevalence (filter) - model adjusted for age, sex, BMI, place of brith and shannon index**
+  
+  &nbsp;
+
+```{r, echo = FALSE, fig.align='center'}
+#define the function to estimate the lambda
+"estlambda" <- function(data, plot=FALSE, proportion=1.0,
+                        method="regression", filter=TRUE, df=1,... ) {
+  data <- data[which(!is.na(data))]
+  if (proportion>1.0 || proportion<=0)
+    stop("proportion argument should be greater then zero and less than or equal to one")
+  
+  ntp <- round( proportion * length(data) )
+  if ( ntp<1 ) stop("no valid measurements")
+  if ( ntp==1 ) {
+    warning(paste("One measurement, lambda = 1 returned"))
+    return(list(estimate=1.0, se=999.99))
+  }
+  if ( ntp<10 ) warning(paste("number of points is too small:", ntp))
+  if ( min(data)<0 ) stop("data argument has values <0")
+  if ( max(data)<=1 ) {
+    #                        lt16 <- (data < 1.e-16)
+    #                        if (any(lt16)) {
+    #                                    warning(paste("Some probabilities < 1.e-16; set to 1.e-16"))
+    #                                    data[lt16] <- 1.e-16
+    #                        }
+    data <- qchisq(data, 1, lower.tail=FALSE)
+  }
+  if (filter)
+  {
+    data[which(abs(data)<1e-8)] <- NA
+  }
+  data <- sort(data)
+  ppoi <- ppoints(data)
+  ppoi <- sort(qchisq(ppoi, df=df, lower.tail=FALSE))
+  data <- data[1:ntp]
+  ppoi <- ppoi[1:ntp]
+  #           s <- summary(lm(data~offset(ppoi)))$coeff
+  #       bug fix thanks to Franz Quehenberger
+  
+  out <- list()
+  if (method=="regression") {
+    s <- summary( lm(data~0+ppoi) )$coeff
+    out$estimate <- s[1,1]
+    out$se <- s[1,2]
+  } else if (method=="median") {
+    out$estimate <- median(data, na.rm=TRUE)/qchisq(0.5, df)
+    out$se <- NA
+  } else if (method=="KS") {
+    limits <- c(0.5, 100)
+    out$estimate <- estLambdaKS(data, limits=limits, df=df)
+    if ( abs(out$estimate-limits[1])<1e-4 || abs(out$estimate-limits[2])<1e-4 )
+      warning("using method='KS' lambda too close to limits, use other method")
+    out$se <- NA
+  } else {
+    stop("'method' should be either 'regression' or 'median'!")
+  }
+  
+  if (plot) {
+    lim <- c(0, max(data, ppoi,na.rm=TRUE))
+    #                       plot(ppoi,data,xlim=lim,ylim=lim,xlab="Expected",ylab="Observed", ...)
+    oldmargins <- par()$mar
+    par(mar=oldmargins + 0.2)
+    plot(ppoi, data,
+         xlab=expression("Expected " ~ chi^2),
+         ylab=expression("Observed " ~ chi^2),
+         ...)
+    abline(a=0, b=1)
+    abline(a=0, b=out$estimate, col="red")
+    par(mar=oldmargins)
+  }
+  
+  out
+}
+
+ input.path='/home/baldanzi/Sleep_apnea/Simulations/'
+#load the different results from the previous R scaripts (You should change the name of the files for the method you have used)
+  res_spearman_0=import(paste0(input.path,"res_random_spearman_ahi_filter_0.tsv"))
+  res_spearman_10=import(paste0(input.path,"res_random_spearman_ahi_filter_10.tsv"))
+  res_spearman_20=import(paste0(input.path,"res_random_spearman_ahi_filter_20.tsv"))
+  res_spearman_30=import(paste0(input.path,"res_random_spearman_ahi_filter_30.tsv"))
+  res_spearman_50=import(paste0(input.path,"res_random_spearman_ahi_filter_50.tsv"))
+  res_spearman_100=import(paste0(input.path,"res_random_spearman_ahi_filter_100.tsv"))
+  res_spearman_150=import(paste0(input.path,"res_random_spearman_ahi_filter_150.tsv"))
+ 
+  allres = list(filter_0=res_spearman_0,
+                filter_10=res_spearman_10,
+                filter_20=res_spearman_20,
+                filter_30=res_spearman_30,
+                filter_50=res_spearman_50,
+                filter_100=res_spearman_100,
+                filter_150=res_spearman_150)
+  
+  # res_ordinal=import(paste0(input.path,"res_random_ordinal_ahi.tsv"))
+  
+ # res_lm=import(paste(input.path,"res_fastlm.fun_",i,"_m_all_log1p_2020-08-31.tsv",sep=""))
+#  res_boot.lm=import(paste(input.path,"res_fastboot.fun_",i,"_m_all_log1p_2020-08-31.tsv",sep=""))
+#  res_boot.rob=import(paste(input.path,"res_fastrobust_boot.fun_",i,"_m_all_log1p_2020-08-31.tsv",sep=""))
+
+#remove na
+  allres=lapply(allres, na.omit)
+#res_spearman_0=na.omit(res_spearman_0)
+#res_spearman_0=na.omit(res_spearman_30)
+#res_spearman_0=na.omit(res_spearman_50)
+#res_spearman_0=na.omit(res_spearman_100)
+#res_spearman_0=na.omit(res_spearman_150)
+#res_ordinal=na.omit(res_ordinal)
+
+#order the pvalues and estimate the expected pvalues for the different methods
+a=lapply(allres,function(x){sort(x$p.value)})
+ae=lapply(allres,function(x){sort(ppoints(x$p.value))})
+#a=sort(res_spearman$p.value)
+#b=sort(res_ordinal$p.value)
+#ae=sort(ppoints(res_spearman$p.value))
+#be=sort(ppoints(res_ordinal$p.value))
+
+#create a dataframe with the ordered p.values and the expected p.values
+a0 = lapply(1:length(allres),function(x){data.frame(a[[x]],ae[[x]])})
+
+#a0=data.frame(a,ae)
+#b0=data.frame(b,be)
+
+  #identify the maximum number of p.values detected among all the methods
+  max.c=max(as.numeric(lapply(1:length(allres),function(x){nrow(a0[[x]])})))
+
+  #make all the dataframe the same length
+  a0=lapply(1:length(allres),function(x){a0[[x]][1:max.c,]})
+  #a0=a0[1:max.c,]
+  #b0=b0[1:max.c,]
+  
+  #estimate the inflation lambda for each method
+  a.t1=lapply(allres,function(x){round(estlambda(x$p.value)$estimate,3)})
+  #a.t1=round(estlambda(res_spearman$p.value)$estimate,3)
+  #b.t1=round(estlambda(res_ordinal$p.value)$estimate,3)
+  
+  #merge all the method p.values in one data.frame
+  aa=data.frame(a0)
+  colnames(aa) = c("a_0", "ae_0","a_10", "ae_10","a_20","ae_20",
+                   "a_30", "ae_30","a_50", "ae_50","a_100", "ae_100","a_150", "ae_150")
+  #aa=data.frame(a0,b0)
+  
+    #create the qq-plot
+  g1=ggplot(data=aa,)+
+    geom_abline()+
+    geom_point(aes(x=-log10(ae_0),y=-log10(a_0),color="yellow"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_10),y=-log10(a_10),color="deeppink3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_20),y=-log10(a_20),color="aquamarine3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_30),y=-log10(a_30),color="orangered"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_50),y=-log10(a_50),color="steelblue3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_100),y=-log10(a_100),color="indianred3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_150),y=-log10(a_100),color="darkolivegreen"),alpha=0.75)+
+    scale_colour_identity(name="filters",
+                       breaks = c("yellow","deeppink3","aquamarine3","orangered","steelblue3",
+                                  "indianred3","darkolivegreen"),
+                      labels = c(
+                        paste("no_filter (lambda=",a.t1[[1]],")",sep=""),
+                        paste("filter=10 (lambda=",a.t1[[2]],")",sep=""),
+                        paste("filter=20 (lambda=",a.t1[[3]],")",sep=""),
+                        paste("filter=30 (lambda=",a.t1[[4]],")",sep=""),
+                        paste("filter=50 (lambda=",a.t1[[5]],")",sep=""),
+                       paste("filter=100 (lambda=",a.t1[[6]],")",sep=""),
+                       paste("filter=150 (lambda=",a.t1[[7]],")",sep="")
+                       ), guide = "legend")+
+    xlab("-log10(exp.p.value)")+
+    ylab("-log10(obs.p.value)")
+  
+  
+  eval(parse(text=paste("g.","ahi","=g1",sep="")))
+  
+   g2=ggplot(data=aa,)+
+    geom_abline()+
+    geom_point(aes(x=-log10(ae_0),y=-log10(a_0),color="yellow"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_10),y=-log10(a_10),color="deeppink3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_20),y=-log10(a_20),color="aquamarine3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_30),y=-log10(a_30),color="orangered"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_50),y=-log10(a_50),color="steelblue3"),alpha=0.75)+
+    scale_colour_identity(name="filters",
+                       breaks = c("yellow","deeppink3","aquamarine3","orangered","steelblue3"),
+                      labels = c(
+                        paste("no_filter (lambda=",a.t1[[1]],")",sep=""),
+                        paste("filter=10 (lambda=",a.t1[[2]],")",sep=""),
+                        paste("filter=20 (lambda=",a.t1[[3]],")",sep=""),
+                        paste("filter=30 (lambda=",a.t1[[4]],")",sep=""),
+                        paste("filter=50 (lambda=",a.t1[[5]],")",sep="")
+                       ), guide = "legend")+
+    xlab("-log10(exp.p.value)")+
+    ylab("-log10(obs.p.value)")
+  
+  
+  eval(parse(text=paste("g.","ahi2","=g2",sep="")))
+
+```
+
+### Q-Qplot 
+```{r,echo=FALSE, warning=FALSE, fig.align='center', out.width= '80%'}
+g.ahi
+```
+<br>
+    
+    
+```{r,echo=FALSE, warning=FALSE, fig.align='center', out.width= '80%'}
+g.ahi2
+```
+
+&nbsp;
+
+### Number of MGS after filtering 
+    
+      
+```{r, echo=  FALSE, warnings=FALSE, message=FALSE}
+#order the pvalues and estimate the expected pvalues for the different methods
+q.values=lapply(allres,function(x){sort(x$q.value)})
+names_for_df = names(q.values)
+max.c=max(as.numeric(lapply(1:length(allres),function(x){length(q.values[[x]])})))
+q.values=lapply(1:length(allres),function(x){q.values[[x]][1:max.c]})
+df.q.values = data.frame(q.values)
+names(df.q.values) = names_for_df
+t = data.frame(nr_MGS=apply(df.q.values,2,function(x){length(x[!is.na(x)])}),
+               MGS_excluded=apply(df.q.values,2,function(x){length(x[is.na(x)])}),
+              q.value_below_0.05=apply(df.q.values,2,function(x){length(x[x<.05 & !is.na(x)])}))
+knitr::kable(t, caption = "Number of MGS after filtering out low prevanlent MGS",table.attr = "style='width:70%;'") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+## Unadjusted Model 
+
+Spearman correlation between AHI and MGSs. 
+
+Covariates: NULL 
+
+&nbsp;
+
+<span style="color:DarkBlue">**Figure 6: **</span>**QQplot of the correlations between  AHI and MGS after applying different thresholds for minimum MGS prevalence (filter) - unadjusted model**
+  
+  &nbsp;
+
+```{r, echo = FALSE, fig.align='center'}
+#define the function to estimate the lambda
+"estlambda" <- function(data, plot=FALSE, proportion=1.0,
+                        method="regression", filter=TRUE, df=1,... ) {
+  data <- data[which(!is.na(data))]
+  if (proportion>1.0 || proportion<=0)
+    stop("proportion argument should be greater then zero and less than or equal to one")
+  
+  ntp <- round( proportion * length(data) )
+  if ( ntp<1 ) stop("no valid measurements")
+  if ( ntp==1 ) {
+    warning(paste("One measurement, lambda = 1 returned"))
+    return(list(estimate=1.0, se=999.99))
+  }
+  if ( ntp<10 ) warning(paste("number of points is too small:", ntp))
+  if ( min(data)<0 ) stop("data argument has values <0")
+  if ( max(data)<=1 ) {
+    #                        lt16 <- (data < 1.e-16)
+    #                        if (any(lt16)) {
+    #                                    warning(paste("Some probabilities < 1.e-16; set to 1.e-16"))
+    #                                    data[lt16] <- 1.e-16
+    #                        }
+    data <- qchisq(data, 1, lower.tail=FALSE)
+  }
+  if (filter)
+  {
+    data[which(abs(data)<1e-8)] <- NA
+  }
+  data <- sort(data)
+  ppoi <- ppoints(data)
+  ppoi <- sort(qchisq(ppoi, df=df, lower.tail=FALSE))
+  data <- data[1:ntp]
+  ppoi <- ppoi[1:ntp]
+  #           s <- summary(lm(data~offset(ppoi)))$coeff
+  #       bug fix thanks to Franz Quehenberger
+  
+  out <- list()
+  if (method=="regression") {
+    s <- summary( lm(data~0+ppoi) )$coeff
+    out$estimate <- s[1,1]
+    out$se <- s[1,2]
+  } else if (method=="median") {
+    out$estimate <- median(data, na.rm=TRUE)/qchisq(0.5, df)
+    out$se <- NA
+  } else if (method=="KS") {
+    limits <- c(0.5, 100)
+    out$estimate <- estLambdaKS(data, limits=limits, df=df)
+    if ( abs(out$estimate-limits[1])<1e-4 || abs(out$estimate-limits[2])<1e-4 )
+      warning("using method='KS' lambda too close to limits, use other method")
+    out$se <- NA
+  } else {
+    stop("'method' should be either 'regression' or 'median'!")
+  }
+  
+  if (plot) {
+    lim <- c(0, max(data, ppoi,na.rm=TRUE))
+    #                       plot(ppoi,data,xlim=lim,ylim=lim,xlab="Expected",ylab="Observed", ...)
+    oldmargins <- par()$mar
+    par(mar=oldmargins + 0.2)
+    plot(ppoi, data,
+         xlab=expression("Expected " ~ chi^2),
+         ylab=expression("Observed " ~ chi^2),
+         ...)
+    abline(a=0, b=1)
+    abline(a=0, b=out$estimate, col="red")
+    par(mar=oldmargins)
+  }
+  
+  out
+}
+
+ input.path='/home/baldanzi/Sleep_apnea/Simulations/'
+#load the different results from the previous R scaripts (You should change the name of the files for the method you have used)
+  res_spearman_0=import(paste0(input.path,"res_random_spearman_unadj_ahi_filter_0.tsv"))
+  res_spearman_10=import(paste0(input.path,"res_random_spearman_unadj_ahi_filter_10.tsv"))
+  res_spearman_20=import(paste0(input.path,"res_random_spearman_unadj_ahi_filter_20.tsv"))
+  res_spearman_30=import(paste0(input.path,"res_random_spearman_unadj_ahi_filter_30.tsv"))
+  res_spearman_50=import(paste0(input.path,"res_random_spearman_unadj_ahi_filter_50.tsv"))
+  res_spearman_100=import(paste0(input.path,"res_random_spearman_unadj_ahi_filter_100.tsv"))
+  res_spearman_150=import(paste0(input.path,"res_random_spearman_unadj_ahi_filter_150.tsv"))
+ 
+  allres = list(filter_0=res_spearman_0,
+                filter_10=res_spearman_10,
+                filter_20=res_spearman_20,
+                filter_30=res_spearman_30,
+                filter_50=res_spearman_50,
+                filter_100=res_spearman_100,
+                filter_150=res_spearman_150)
+  
+  # res_ordinal=import(paste0(input.path,"res_random_ordinal_ahi.tsv"))
+  
+ # res_lm=import(paste(input.path,"res_fastlm.fun_",i,"_m_all_log1p_2020-08-31.tsv",sep=""))
+#  res_boot.lm=import(paste(input.path,"res_fastboot.fun_",i,"_m_all_log1p_2020-08-31.tsv",sep=""))
+#  res_boot.rob=import(paste(input.path,"res_fastrobust_boot.fun_",i,"_m_all_log1p_2020-08-31.tsv",sep=""))
+
+#remove na
+  allres=lapply(allres, na.omit)
+#res_spearman_0=na.omit(res_spearman_0)
+#res_spearman_0=na.omit(res_spearman_30)
+#res_spearman_0=na.omit(res_spearman_50)
+#res_spearman_0=na.omit(res_spearman_100)
+#res_spearman_0=na.omit(res_spearman_150)
+#res_ordinal=na.omit(res_ordinal)
+
+#order the pvalues and estimate the expected pvalues for the different methods
+a=lapply(allres,function(x){sort(x$p.value)})
+ae=lapply(allres,function(x){sort(ppoints(x$p.value))})
+#a=sort(res_spearman$p.value)
+#b=sort(res_ordinal$p.value)
+#ae=sort(ppoints(res_spearman$p.value))
+#be=sort(ppoints(res_ordinal$p.value))
+
+#create a dataframe with the ordered p.values and the expected p.values
+a0 = lapply(1:length(allres),function(x){data.frame(a[[x]],ae[[x]])})
+
+#a0=data.frame(a,ae)
+#b0=data.frame(b,be)
+
+  #identify the maximum number of p.values detected among all the methods
+  max.c=max(as.numeric(lapply(1:length(allres),function(x){nrow(a0[[x]])})))
+
+  #make all the dataframe the same length
+  a0=lapply(1:length(allres),function(x){a0[[x]][1:max.c,]})
+  #a0=a0[1:max.c,]
+  #b0=b0[1:max.c,]
+  
+  #estimate the inflation lambda for each method
+  a.t1=lapply(allres,function(x){round(estlambda(x$p.value)$estimate,3)})
+  #a.t1=round(estlambda(res_spearman$p.value)$estimate,3)
+  #b.t1=round(estlambda(res_ordinal$p.value)$estimate,3)
+  
+  #merge all the method p.values in one data.frame
+  aa=data.frame(a0)
+  colnames(aa) = c("a_0", "ae_0","a_10", "ae_10","a_20","ae_20",
+                   "a_30", "ae_30","a_50", "ae_50","a_100", "ae_100","a_150", "ae_150")
+  #aa=data.frame(a0,b0)
+  
+    #create the qq-plot
+  g1=ggplot(data=aa,)+
+    geom_abline()+
+    geom_point(aes(x=-log10(ae_0),y=-log10(a_0),color="yellow"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_10),y=-log10(a_10),color="deeppink3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_20),y=-log10(a_20),color="aquamarine3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_30),y=-log10(a_30),color="orangered"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_50),y=-log10(a_50),color="steelblue3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_100),y=-log10(a_100),color="indianred3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_150),y=-log10(a_100),color="darkolivegreen"),alpha=0.75)+
+    scale_colour_identity(name="filters",
+                       breaks = c("yellow","deeppink3","aquamarine3","orangered","steelblue3",
+                                  "indianred3","darkolivegreen"),
+                      labels = c(
+                        paste("no_filter (lambda=",a.t1[[1]],")",sep=""),
+                        paste("filter=10 (lambda=",a.t1[[2]],")",sep=""),
+                        paste("filter=20 (lambda=",a.t1[[3]],")",sep=""),
+                        paste("filter=30 (lambda=",a.t1[[4]],")",sep=""),
+                        paste("filter=50 (lambda=",a.t1[[5]],")",sep=""),
+                       paste("filter=100 (lambda=",a.t1[[6]],")",sep=""),
+                       paste("filter=150 (lambda=",a.t1[[7]],")",sep="")
+                       ), guide = "legend")+
+    xlab("-log10(exp.p.value)")+
+    ylab("-log10(obs.p.value)")
+  
+  
+  eval(parse(text=paste("g.","ahi","=g1",sep="")))
+  
+   g2=ggplot(data=aa,)+
+    geom_abline()+
+    geom_point(aes(x=-log10(ae_0),y=-log10(a_0),color="yellow"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_10),y=-log10(a_10),color="deeppink3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_20),y=-log10(a_20),color="aquamarine3"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_30),y=-log10(a_30),color="orangered"),alpha=0.75)+
+    geom_point(aes(x=-log10(ae_50),y=-log10(a_50),color="steelblue3"),alpha=0.75)+
+    scale_colour_identity(name="filters",
+                       breaks = c("yellow","deeppink3","aquamarine3","orangered","steelblue3"),
+                      labels = c(
+                        paste("no_filter (lambda=",a.t1[[1]],")",sep=""),
+                        paste("filter=10 (lambda=",a.t1[[2]],")",sep=""),
+                        paste("filter=20 (lambda=",a.t1[[3]],")",sep=""),
+                        paste("filter=30 (lambda=",a.t1[[4]],")",sep=""),
+                        paste("filter=50 (lambda=",a.t1[[5]],")",sep="")
+                       ), guide = "legend")+
+    xlab("-log10(exp.p.value)")+
+    ylab("-log10(obs.p.value)")
+  
+  
+  eval(parse(text=paste("g.","ahi2","=g2",sep="")))
+
+```
+
+### QQplot 
+```{r,echo=FALSE, warning=FALSE, fig.align='center', out.width= '80%'}
+g.ahi
+```
+<br>
+    
+    
+```{r,echo=FALSE, warning=FALSE, fig.align='center', out.width= '80%'}
+g.ahi2
+```
+
+&nbsp;
+
+### Number of MGS after filtering 
+   
+      
+```{r, echo=  FALSE, warnings=FALSE, message=FALSE}
+#order the pvalues and estimate the expected pvalues for the different methods
+q.values=lapply(allres,function(x){sort(x$q.value)})
+names_for_df = names(q.values)
+max.c=max(as.numeric(lapply(1:length(allres),function(x){length(q.values[[x]])})))
+q.values=lapply(1:length(allres),function(x){q.values[[x]][1:max.c]})
+df.q.values = data.frame(q.values)
+names(df.q.values) = names_for_df
+t = data.frame(nr_MGS=apply(df.q.values,2,function(x){length(x[!is.na(x)])}),
+               MGS_excluded=apply(df.q.values,2,function(x){length(x[is.na(x)])}),
+              q.value_below_0.05=apply(df.q.values,2,function(x){length(x[x<.05 & !is.na(x)])}))
+knitr::kable(t, caption = "Number of MGS after filtering out low prevalence MGS",table.attr = "style='width:70%;'") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+
+
+
+
+
