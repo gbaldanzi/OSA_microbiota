@@ -265,7 +265,7 @@ p2=pheatmap(atdist_matrix,main="Heatmap",
             annotation_row = annotation,
             annotation_col = annotation)
 
-ggsave("AitDist.heatmap", plot = p2, device = "png", 
+ggsave("AitDist.heatmap.png", plot = p2, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
 # Merge clr-data with valid sleep recordings 

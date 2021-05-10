@@ -9,9 +9,9 @@ output:
     number_sections: TRUE
     toc: true
     toc_float:
-      collapsed: false
+      collapsed: true
       smooth_scroll: false
-    toc_depth: 5
+    toc_depth: 4
     css: style.css
 ---
 ```{css, echo=FALSE}
@@ -23,7 +23,7 @@ output:
       max-width: 1500px !important;
     }
     code.r { /* Code block */
-    font-size: 12pt;
+    font-size: 14pt;
     }
     ```
 
@@ -120,7 +120,7 @@ N  = **`r nr.idnr.valid`**
 Correlation between AHI and ODI in the study pop. = **`r correlation`**   
 <br>
 
-## {.tabset}
+## Monitoring variables {.tabset}
 
 ### Oximetry monitoring 
 
@@ -172,9 +172,11 @@ valid.ahi = merge(dat1,valid.ahi, by = "SCAPISid", all=T, all.x=F, all.y=F)
    
 <br>   
 
-# Study population for main analyses: valid AHI + gut microbiota data 
+# Study population 
 
-Uppsala participants with both valid AHI and gut microbiota data = **`r nrow(valid.ahi)`**   
+The Study population is comprised of Uppsala participants with both valid AHI and gut microbiota data 
+    
+N = **`r nrow(valid.ahi)`**   
    
 <br>  
 
@@ -201,8 +203,10 @@ g = ggplotGrob(p3)
 <br>
 <br> 
 
-## Sleep apnea severity categories
-
+## OSA categories 
+_Sleep apnea severity categories_
+    
+    
 ```{r OSAfreqtable, echo = FALSE, warning = FALSE, message=FALSE}
 #Frequency table by OSA cat 
 a = round(as.data.frame(freq(valid.ahi$OSAcat)),1)
@@ -243,8 +247,8 @@ mylabel <- c("OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol inta
              "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
              "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Diabetes medication",
-             "Hypertension medication", "Dyslipidemia medication", "PPI", "Fiber", "AHI (events/h)", "ODI (events/h)", 
-             "%time Sat=<90%", "ESS",  "CPAP", "Oral appliance")
+             "Hypertension medication", "Dyslipidemia medication", "Fiber", "AHI (events/h)", "ODI (events/h)", 
+             "%time Sat=<90%", "CPAP", "Oral appliance")
 
 j=1
 for(i in names(datatable1)){
@@ -253,9 +257,9 @@ for(i in names(datatable1)){
 }
 
 # Create table 1 
-t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + WaistHip + educat +
+t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                   leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
-                  hypermed + dyslipmed + Fibrer + ahi + odi+ sat90+ ESS+ cpap+ splint + ppi, data= datatable1, 
+                  hypermed + dyslipmed+Fibrer+ ahi+ odi+ sat90+ cpap+ splint, data= datatable1, 
                   include.miss = TRUE, chisq.test.perm = TRUE)
 t1 = createTable(t, hide.no = "no")
 export2md(t1, which.table = "descr", header.labels = c(p.overall = "p-value"), 
@@ -269,11 +273,9 @@ scroll_box( height = "850px")
 
 ***
 
-## BMI and AHI  
+## BMI and AHI  {.tabset}
 
-### {.tabset}
-
-#### Table
+### Table
 
 ```{r bmi, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 valid.ahi$BMIcat = 0
@@ -285,11 +287,13 @@ t = valid.ahi %>% group_by(BMIcat) %>% summarise(N=length(BMIcat), mean_ahi = ro
 knitr::kable(as.data.table(t), caption = "AHI and BMI category",table.attr = "style='width:80%;'") %>% 
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
-<br>   
+
+
+<br>
 
 ***
 
-#### Box plot
+### Box plot
 
 ```{r bmiahiboxplot, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 
@@ -300,11 +304,13 @@ ggplot(valid.ahi, aes(x=BMIcat, y = ahi, fill=BMIcat)) + geom_boxplot() + ggtitl
         axis.text.x = element_text(size=13),
         legend.position = "none")
 ```
-<br>   
+
+
+<br>
 
 ***
 
-#### Scatter plot
+### Scatter plot
 
 ```{r plotsahiandbmi, echo =FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 # AHI by BMI
@@ -419,7 +425,7 @@ reply", and SmokerLab is yes, this information is used instead.*
 
 **Smoking status based on SCAPIS derived variable**
 
-```{r plotsahiandsmoking, echo =FALSE, message=FALSE, warning=FALSE}
+```{r plotsahiandsmoking, echo =FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 
 # AHI and smoking 
 a=table(valid.ahi$smokestatus, useNA = "ifany")
@@ -443,11 +449,11 @@ knitr::kable(as.data.table(t), caption = "AHI by smoking status",table.attr = "s
 
 ***
 
-**Smoking status based on metabolomics data**
+#### Smoking based on metabolome {.tabset}
 
+* 163 individuals are missing information on smoking status.    
 
-163 individuals are missing information on smoking status.    
-One suggested alternative is to use a nicotine metabolite as a proxy. 
+* **One suggested alternative is to use a nicotine metabolite as a proxy of smoking status.** 
    
 
 Smoking-related metabolites:   
@@ -456,29 +462,27 @@ Smoking-related metabolites:
 2. Hydroxycotinine
 3. Cotinine N-oxide
     
- <br>      
-
-```{r nicotine_metabolites1, echo=FALSE, message=FALSE, warning=FALSE}
-nicmet=c("MET_848", "MET_100002717", "MET_100002719")
-nicotine = fread("/home/baldanzi/Datasets/Metabolon/nicotine_metab.csv", header = T, 
-                 na.strings = c("NA",""))
-t = apply(nicotine[,nicmet,with=F], 2, function(x) {sum(is.na(x))})
-t = t(as.data.frame(t))
-rownames(t) = "Missing information"
-knitr::kable(t, caption = "Nr participants with missing",table.attr = "style='width:80%;'", col.names = c("cotinine", "hydroxycotinine", "cotinine N-oxide")) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"))
-```
-   
-   
-**Box plots**  
+<br>    
+    
+##### Box plots
   
-  
+    
 ```{r nicotione_metabolites_boxplots, echo=FALSE, fig.align='center', out.width="50%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine.png")
 #knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokhydroxycotinine.png")
 #knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinineNoxide.png")
-```
-<br>   
+``` 
+
+&nbsp;
+
+<br>
+<br>
+<br>
+
+***
+
+##### Histogram
+
 **Histograms**   
    
       
@@ -486,17 +490,57 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine.png
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_hist.png")
 ```
     
-Zooming at the plot origin     
+Histograms zoomed at the origin:   
     
     
-```{r nicotine_cotinine_hist2, echo=FALSE, fig.align='center', out.width="70%", out.height="60%"}
+```{r nicotine_cotinine_hist2, echo=FALSE, fig.align='center', out.width="50%", out.height="40%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_hist_zoomed.png")
 ```
+
+&nbsp; 
+
+***
+
+##### Missing 
+
+```{r nicotine_metabolites1, echo=FALSE, message=FALSE, warning=FALSE}
+nicmet=c("MET_848", "MET_100002717", "MET_100002719")
+nicotine = fread("/home/baldanzi/Datasets/Metabolon/nicotine_metab.csv", header = T, 
+                 na.strings = c("NA",""))
+t = apply(nicotine[,nicmet,with=F], 2, function(x) {sum(is.na(x))})
+t = t(as.data.frame(t))
+rownames(t) = "Information missing"
+knitr::kable(t, caption = "Nr participants without informaton for the metabolite",table.attr = "style='width:80%;'", col.names = c("cotinine", "hydroxycotinine", "cotinine N-oxide")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
    
-<br>  
+&nbsp;
+
+<br>
+<br>
+<br>
+<br>
+
+***
+
+#### Cotinine - categorical {.tabset}
+
+Cotinine (a nicotine metabolite) can be defined as present or absent in the metabolome based on the min detectable value (min value = 0.0003) or by using a ROC. The ROC can be used to detected an optimal cut-off to distinguish current smokers from non-current smokers
+
+**Cotinine information in those missing information on smokestatus**     
+
+```{r cotinine_smokingstatus_missing, echo=FALSE, message=FALSE, warning=FALSE}
+n1 = sum(is.na(valid.ahi[,smokestatus]))
+n2 = sum(valid.ahi[is.na(smokestatus),SCAPISid] %in% nicotine[!is.na(MET_848),SCAPISid])
+n3 = sum(is.na(nicotine[SCAPISid %in% valid.ahi[is.na(smokestatus),SCAPISid], MET_848]))
+```
+Out of `r n1` individuals with missing smoking status information, `r n2` have information on cotinine and of `r n3` them are missing cotinine information 
+
+<br>
+   
 **Cross tabulations with smoking status**    
-   
-Cotinine cutoff = min value (0.0003)
+    
+##### By min metabolome value
 
 ```{r nicotine_cotinine_ct1,echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 # Cross tabulation Cotinine with min value 
@@ -513,7 +557,11 @@ knitr::kable(t, caption = "Cross tabulation- presence of cotinine vs smoking",ta
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
    
-***      
+&nbsp; 
+
+***
+
+##### ROC
       
 **ROC for Cotinine and current smoker**   
 
@@ -533,9 +581,13 @@ knitr::kable(a, table.attr = "style='width:80%;'") %>%
   kable_styling()
 ```
     
-**Cross tabulations with smoking status**      
+&nbsp; 
 
-Cotinine cutoff based on the ROC
+***    
+    
+##### By min ROC cut-off value    
+    
+Cotinine cut-off based on the ROC
 
 ```{r nicotine_cotinine_ct2,echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 # Cross tabulation Cotinine with ROC cutoff value 
@@ -552,31 +604,45 @@ knitr::kable(t, caption = "Cross tabulation- presence of cotinine vs smoking",ta
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
-<br>  
+&nbsp; 
 
-**Cotinine information in those missing information on smokestatus**     
+***  
 
-```{r cotinine_smokingstatus_missing, echo=FALSE, message=FALSE, warning=FALSE}
-n1 = sum(is.na(valid.ahi[,smokestatus]))
-n2 = sum(valid.ahi[is.na(smokestatus),SCAPISid] %in% nicotine[!is.na(MET_848),SCAPISid])
-n3 = sum(is.na(nicotine[SCAPISid %in% valid.ahi[is.na(smokestatus),SCAPISid], MET_848]))
-```
-Out of `r n1` individuals with missing smoking status information, `r n2` have information on cotinine and of `r n3` them are missing cotinine information 
-   
-   <br>  
+<br>
 
-***   
-   <br>
+#### Cotinine and snus {.tabset}
    
-**Cotinine and snus**   
+Snus may increase the cotinine level for non-smoker and may lead to misclassificaiton of smoking status based on metabolomics data.    
    
-```{r nicotine_cotinine_snus_box, echo=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+##### All participants
+   
+```{r nicotine_cotinine_snus_box, echo=FALSE, fig.align='center', out.width="50%", out.height="50%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/snuscotinine.png")
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/snuscotinine_neversmokers.png")
 ```   
+
+&nbsp; 
+
+*** 
+
+<br>
+
+##### Non-smokers
+
+```{r nicotine_cotinine_snus_box2, echo=FALSE, fig.align='center', out.width="50%", out.height="50%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/snuscotinine_neversmokers.png")
+```    
+
+&nbsp; 
+
+*** 
+
+<br>   
    
-   
-#### Cross tabulation snus and smoking   
+#### Smoking and snus {.tabset}
+
+A considerable proportion of smokers also use snus. 
+
+##### Cross-tabulation  
    
 ```{r smoking_snus_cross.tabulation, echo=FALSE, fig.align='center', message=FALSE, warning=FALSE}
 # Cross tabulation snus and smoking missingness 
@@ -589,7 +655,16 @@ export2md(t1, which.table = "descr",
           format = "html", strip = TRUE, caption = "Snus vs smoking")  %>%
   kable_styling()
 ```
-   
+
+<br>
+
+***
+<br>
+
+##### Missing
+
+Overlap between individuals with missing information for smoking and snus use
+ 
 ```{r smoking_snus_cross.tabulation2, echo=FALSE, fig.align='center', message=FALSE, warning=FALSE}
 t = compareGroups(smoke_missing ~ snus_missing , data = snus_smoking)
 t1 = createTable(t, show.p.overall=F)
@@ -599,7 +674,6 @@ export2md(t1, which.table = "descr",
 ```
 
 <br>
-
 
 ***
 
@@ -722,15 +796,23 @@ n7 = paste0(median(as.numeric(diff),na.rm=T),
 n8 = nrow(valid.ahi[diff2>30,a,with=F]) # 23 had a difference greater than 30 days
 ```
 
-## Interval between sleep recording and metabolomics collection   
-   
+<br>
+
+## Sleep recording and metabolomics 
+    
+Interval between sleep recording and metabolomics collection
+     
 * Missing metabolomics collection date = `r n1`
 * Sleep records and metabolomics collection in the same day = `r n2`
 * Median [IQR] difference in days = `r n4`
 * Individuals with an interval >30days = `r n5`
 
-## Interval between sleep recording and anthropometric collection
+<br>
+
+## Sleep recording and anthropometric collection
    
+Interval between sleep recording and anthropometric collection
+    
 * Missing anthropometric collection date = `r n6`
 * Median [IQR] difference in days = `r n7`
 * Individuals with an interval >30days = `r n8`
@@ -740,11 +822,43 @@ n8 = nrow(valid.ahi[diff2>30,a,with=F]) # 23 had a difference greater than 30 da
 ***
 <br>
 
+# Gut microbiota composition 
+
+<br>
+
+## Taxa abundance by Sleep apnea severity {.tabset} 
+
+<br>
+
+### Phyla  
+
+```{r phylum, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/phyla_abundance_OSAcat.png")
+```
+
+&nbsp;
+
+***
+
+<br>
+
+### Family 
+
+```{r family, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/family_abundance_OSAcat.png")
+```
+
+&nbsp;
+
+***
+
+<br>
+
 # Alpha diversity  
 
 ## Shannon index 
 
-```{r plotsshannon,echo=FALSE, message=FALSE, warning=FALSE}
+```{r plotsshannon,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv", header = T)
 
@@ -756,7 +870,7 @@ print(phistshannon)
 ```
 <br>
 <br>
-```{r plotsshannonandahi,echo=FALSE, message=FALSE, warning=FALSE}
+```{r plotsshannonandahi,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 # Scatter plot shannon and ahi 
 a = cor(valid.ahi$ahi, valid.ahi$shannon, method = "spearman")
 
@@ -773,7 +887,7 @@ print(pshannonahi)
 ```
 <br>
 <br>
-```{r corrshannon, echo=FALSE, message=FALSE, warning=FALSE}
+```{r corrshannon, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 setwd("/home/baldanzi/Sleep_apnea/Results")
 shannoncor = fread("cor.shannon.ahi.tsv", header=T)
 temp = c(4,6)
@@ -791,7 +905,7 @@ knitr::kable(shannoncor, caption = "Correlation between Shannon diversity and AH
 
 <br>
 <br>
-```{r plotsshannonandOSAcat,echo=FALSE, message=FALSE, warning=FALSE}
+```{r plotsshannonandOSAcat,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 # Compare the Shannon index across two groups using Kruskal-Wallis
 res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
 
@@ -800,7 +914,7 @@ valid.ahi$OSAcat = factor(valid.ahi$OSAcat, levels = c("no OSA", "Mild", "Modera
 p3=ggplot(valid.ahi, aes(x=OSAcat, y=shannon)) +
   geom_violin(trim=FALSE, fill="indianred3")+
   geom_boxplot(width=0.1)+
-  ggtitle(paste0("Shannon index by OSA severity - Kruskal-Wallis: p.value=",formatC(res$p.value,format= "e", digits=2)))+
+  ggtitle(paste0("Shannon index by OSA severity \n Kruskal-Wallis: p.value=",formatC(res$p.value,format= "e", digits=2)))+
   scale_x_discrete(labels=paste(names(table(valid.ahi$OSAcat))," (n=",table(valid.ahi$OSAcat),")",sep=""))+
   theme(plot.title = element_text(hjust = 0.5, size = 14),
         axis.title = element_text(size = 13), 
@@ -816,12 +930,29 @@ print(p3)
 
 <br>
 
-# Bray-curtis dissimilarity 
-```{r BCOSA, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+# Beta-diversity 
+
+## PCA biplot {.tabset}
+
+### Bray-curtis dissimilarity 
    
+```{r BCOSA, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
 ```
 
+&nbsp; 
+
+***
+
+### Aitchison distance 
+   
+```{r BCOSA2, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Atdist.OSAcat.png")
+```
+
+&nbsp; 
+
+***
 
 ```{r BC, echo=FALSE, fig.cap="BC by OSA categories", out.width = '100%'}
 
@@ -848,16 +979,28 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
 
 <br>
 
-## Heatmap Bray-curtis dissimilarity   
+## Heatmap {.tabset}
+
+### Bray-curtis dissimilarity   
+     
 ```{r heatmapbcpicture, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
-   
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.heatmap.png")
 ```
 
-<br>
-<br>
+&nbsp; 
 
-## Bray curtis dissimilarity and OSA categories 
+***
+
+### Aitchison distance   
+   
+```{r heatmapbcpicture2, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/AitDist.heatmap.png")
+```   
+
+
+## PERMANOVA BC   
+    
+### OSA severity   
 
 ```{r permanovaOSA, echo =FALSE, message=FALSE, warning=FALSE}
 setwd("/home/baldanzi/Sleep_apnea/Results")
@@ -869,7 +1012,7 @@ knitr::kable(permaOSA[model=="model2",], caption = "OSA and BC - model 2") %>% k
 ```
 ***
 
-## Bray-curtis dissimilartiy and AHI 
+### AHI 
 
 ```{r permanovaAHI, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::kable(perma[model=="model1",], caption = "AHI and BC - model 1") %>% kable_styling()
