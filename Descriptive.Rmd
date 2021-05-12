@@ -27,39 +27,14 @@ output:
     }
     ```
 
-
-# Sleep apnea variables
-<br>    
-
+# Sleep recording 
+   
 ```{r apnealinkpicture, echo=FALSE, fig.align='left', out.width="30%", out.height="30%"}
 knitr::include_graphics("apnealink.jpeg")
 ```
-
+   
 <br>
-<br>
-Variables:   
-    
-1. **AHI** (Apnea-hypopnea index)   
-- Main parameter for OSA diagnosis and severity stratification   
-
-* AHI 5-15 = Mild   
-* AHI 15-30 = Moderate   
-* AHI ≥30 = Severe   
-
-<br>
-2. **ODI** (Oxygen desaturation index)  
-- Alternative variable for OSA diagnosis  
-
-<br>
-3. **Percentage of time with saturation below 90%**  
-- Used for phenotypic characterization of OSA  
-
-<br>   
-
-***
-
-# Sleep recording data
-
+   
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	echo = FALSE,
@@ -174,11 +149,35 @@ valid.ahi = merge(dat1,valid.ahi, by = "SCAPISid", all=T, all.x=F, all.y=F)
 
 # Study population 
 
-The Study population is comprised of Uppsala participants with both valid AHI and gut microbiota data 
+The Study population is comprised of Uppsala participants with both **valid AHI** and **gut microbiota** data 
     
 N = **`r nrow(valid.ahi)`**   
    
 <br>  
+
+# Sleep apnea variables
+
+<br>
+Variables:   
+    
+1. **AHI** (Apnea-hypopnea index)   
+- Main parameter for OSA diagnosis and severity stratification   
+
+* AHI 5-15 = Mild   
+* AHI 15-30 = Moderate   
+* AHI ≥30 = Severe   
+
+<br>
+2. **ODI** (Oxygen desaturation index)  
+- Alternative variable for OSA diagnosis  
+
+<br>
+3. **Percentage of time with saturation below 90%**  
+- Used for phenotypic characterization of OSA  
+
+<br>   
+
+***
 
 ## AHI 
  
@@ -218,6 +217,23 @@ knitr::kable(a, caption = "OSA severity categories", table.attr = "style='width:
 <br>
 <br>
 
+## T90 
+_% of time with oxygen saturation below 90%_     
+
+```{r T90, echo=FALSE, fig.align='center', out.width="50%", out.height="70%"}
+valid.odi = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", sep = "\t")
+valid.odi = valid.odi[!is.na(sat90),]
+n1=nrow(valid.odi)
+```
+     
+`r n1` have valid T90 measurement      
+     
+```{r T902, echo=FALSE, fig.align='center', out.width="50%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/hist.sat90.png")
+```
+
+<br>
+
 ***
 
 # Population characteristics  
@@ -238,7 +254,7 @@ datatable1 = as.data.frame(dat1[,-1])  # Passing data to a new object with the S
 # For the purpose of this table, individuals with missing values for the following variables
 # were included in the "no" category. (only category "yes" is displayed in the table)
 for(i in which(names(datatable1) %in% c('hypertension', 'dyslipidemia', 'diabmed',
-                                'hypermed','dyslipmed', 'cpap', 'splint'))){
+                                'hypermed','dyslipmed', 'ppi','cpap', 'splint'))){
  datatable1[is.na(datatable1[i]),i] = "no"
 }
 
@@ -247,8 +263,8 @@ mylabel <- c("OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol inta
              "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
              "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Diabetes medication",
-             "Hypertension medication", "Dyslipidemia medication", "Fiber", "AHI (events/h)", "ODI (events/h)", 
-             "%time Sat=<90%", "CPAP", "Oral appliance")
+             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber", "AHI (events/h)", "ODI (events/h)", 
+             "%time Sat=<90%", "ESS", "CPAP", "Oral appliance")
 
 j=1
 for(i in names(datatable1)){
@@ -259,7 +275,7 @@ for(i in names(datatable1)){
 # Create table 1 
 t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                   leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
-                  hypermed + dyslipmed+Fibrer+ ahi+ odi+ sat90+ cpap+ splint, data= datatable1, 
+                  hypermed + dyslipmed+ ppi+Fibrer+ ahi+ odi+ sat90+ ESS+ cpap+ splint, data= datatable1, 
                   include.miss = TRUE, chisq.test.perm = TRUE)
 t1 = createTable(t, hide.no = "no")
 export2md(t1, which.table = "descr", header.labels = c(p.overall = "p-value"), 
@@ -467,7 +483,7 @@ Smoking-related metabolites:
 ##### Box plots
   
     
-```{r nicotione_metabolites_boxplots, echo=FALSE, fig.align='center', out.width="50%", out.height="70%"}
+```{r nicotine_metabolites_boxplots, echo=FALSE, fig.align='center', out.width="50%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine.png")
 #knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokhydroxycotinine.png")
 #knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinineNoxide.png")
@@ -685,7 +701,7 @@ export2md(t1, which.table = "descr",
 ```{r plotsahiandalcohol, echo =FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 # AHI and alcohol 
 palkohol = ggplot(data = valid.ahi, aes(x=Alkohol,y=ahi)) + geom_point()  +
-  ggtitle("AHI and alcohol") +  xlab("Alcohol (g/?)") + ylab("AHI") +
+  ggtitle("AHI and alcohol") +  xlab("Alcohol (g/month)") + ylab("AHI") +
       geom_hline(yintercept = 5, color = "red", linetype = "twodash", alpha=.3) + 
   geom_hline(yintercept = 15, color = "red", linetype = "twodash",alpha=.3) + 
   geom_hline(yintercept = 30, color = "red", linetype = "twodash",alpha=.3) +
@@ -879,11 +895,12 @@ print(phistshannon)
 # Scatter plot shannon and ahi 
 a = cor(valid.ahi$ahi, valid.ahi$shannon, method = "spearman")
 
-pshannonahi = ggplot(data=valid.ahi) + 
-  geom_point(aes(x=ahi, y= shannon)) + 
+pshannonahi = ggplot(data=valid.ahi,aes(x=ahi, y= shannon)) + 
+  geom_point() + 
   ggtitle(paste0("Shannon index and AHI \n Spearman cor.= ",round(a,3))) + 
   xlab("Apnea-hypopnea index") +
   ylab("Shannon index") +
+  geom_smooth(method='lm', alpha=.8) +
   geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
   geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
   geom_vline(xintercept = 30, color = "red", linetype = "twodash") +
@@ -903,9 +920,9 @@ knitr::kable(shannoncor, caption = "Correlation between Shannon diversity and AH
              align = c('l','c','c','c','c')) %>% 
   kable_styling()
 ```
-1. Model 1 = sex, age, BMI, smoking, alcohol, plate, received 
-2. Model 2 = + PA, education, place birth, fiber intake, ppi
-3. Model 3 = + diabetes, hypertension, dyslipidemia, self-reported medication 
+1. Model 1 = sex, age, smoking, alcohol, plate, received 
+2. Model 2 = + BMI, PA, education, place birth, fiber intake
+3. Model 3 = + diabetes, hypertension, dyslipidemia, ppi, self-reported medication 
 
 <br>
 <br>
@@ -929,6 +946,14 @@ print(p3)
 ```
 
 <br>
+   
+### Shannon and T90
+
+```{r T90shannon, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="50%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.T90.png")
+```
+
+<br>
 
 ***
 
@@ -938,7 +963,7 @@ print(p3)
 
 ## PCA biplot {.tabset}
 
-### Bray-curtis dissimilarity 
+### Bray-curtis dissimilarity - OSA groups
    
 ```{r BCOSA, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
@@ -948,10 +973,30 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
 
 ***
 
-### Aitchison distance 
+### Aitchison distance - OSA groups 
    
 ```{r BCOSA2, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Atdist.OSAcat.png")
+```
+
+&nbsp; 
+
+***
+
+### Bray-curtis dissimilarity - T90
+   
+```{r BCOSA3, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.T90.png")
+```
+
+&nbsp; 
+
+***
+
+### Aitchison distance - T90
+   
+```{r BCOSA4, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Atdist.T90.png")
 ```
 
 &nbsp; 

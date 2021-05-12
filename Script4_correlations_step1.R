@@ -25,18 +25,18 @@ valid.ahi.dummies = dummy_cols(valid.ahi, select_columns = c("plate","received",
 a= c("Sex","ppi", "diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
 valid.ahi.dummies[,(a):=as.data.frame(data.matrix(data.frame(unclass(valid.ahi.dummies[,a, with=F]))))]
 
-# model 1 : adjust for age + sex + BMI + alcohol + smoking + plate + received 
-model1 =  c("age", "Sex", "BMI", "Alkohol",
+# model 1 : adjust for age + sex + alcohol + smoking + plate + received 
+model1 =  c("age", "Sex", "Alkohol",
             grep("smokestatus_", names(valid.ahi.dummies), value=T),
             grep("plate_", names(valid.ahi.dummies), value=T), 
             grep("received_", names(valid.ahi.dummies), value=T))
-# model 2 = model 1 + fiber intake + ppi + physical activity + education + country of birth 
-model2 = c(model1, "Fibrer", "ppi", 
+# model 2 = model 1 + fiber intake + BMI + physical activity + education + country of birth 
+model2 = c(model1, "Fibrer", "BMI",
            grep("leisuraPA_", names(valid.ahi.dummies), value=T),
            grep("educat_", names(valid.ahi.dummies), value=T), 
            grep("placebirth_", names(valid.ahi.dummies), value=T))
 # model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
-model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
+model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed","ppi")
 
 models = list(model1=model1, model2=model2, model3=model3)
 

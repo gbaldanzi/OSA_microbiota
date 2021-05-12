@@ -117,13 +117,13 @@ path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 ggsave("hist.saturation", plot = p2, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
-ggsave("hist.ahi",plot = p3, device = "png", 
+ggsave("hist.ahi.png",plot = p3, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
-ggsave("hist.odi",plot = p4, device = "png", 
+ggsave("hist.odi.png",plot = p4, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
-ggsave("hist.sat90",plot = p5, device = "png", 
+ggsave("hist.sat90.png",plot = p5, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
 # Uploading phenotype data ####
@@ -259,6 +259,11 @@ valid.ahi$splint = factor(valid.ahi$splint, levels = c(0,1), labels = c("no", "y
 valid.ahi$cpap[is.na(valid.ahi$cpap)] = "no"
 valid.ahi$splint[is.na(valid.ahi$splint)] = "no"
 
+valid.odi$cpap = factor(valid.odi$cpap, levels = c(0,1), labels = c("no", "yes"))
+valid.odi$splint = factor(valid.odi$splint, levels = c(0,1), labels = c("no", "yes"))
+valid.odi$cpap[is.na(valid.odi$cpap)] = "no"
+valid.odi$splint[is.na(valid.odi$splint)] = "no"
+
 # PPI data based on metabolomics measurement
 a = c("SCAPISid","MET_100002725","MET_100002808")
 ppi = metabolon[,a,with=F]
@@ -286,6 +291,7 @@ pheno[,ESS:=as.data.table(apply(pheno[,essvar,with=F], 1,sum))]
 nrow(valid.ahi) # 3301 individuals with valid flow and sat monitoring 
 nrow(pheno) # 5036 Uppsala individuals with phenotype data
 setnames(valid.ahi, "id", "SCAPISid") #renaming the id variable
+setnames(valid.odi, "id", "SCAPISid") #renaming the id variable
 setnames(pheno, "Subject", "SCAPISid") #renaming the id variable
 
 #vali.ahi + pheno
@@ -368,5 +374,9 @@ setnames(nicotine,"cqto015", "snus_ever1mo")
 setwd("/home/baldanzi/Datasets/Metabolon")
 fwrite(nicotine, file = "nicotine_metab.csv", sep=",")
 
-
-
+# Saving valid.odi data 
+valid.odi = merge(valid.odi, pheno, by = "SCAPISid", all.x=T, all.y=F )
+valid.odi = merge(valid.odi, data.MGS, by = "SCAPISid", all=T, all.x=F, all.y=F)
+valid.odi = merge(valid.odi, placebirth, by = "SCAPISid", all.x=T, all.y=F)
+fwrite(valid.odi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", sep = "\t")
+# 3622 individuals have a valid T90 measurement 
