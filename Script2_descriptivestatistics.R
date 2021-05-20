@@ -8,6 +8,7 @@ print(Sys.time())
 
 # Loading packages
 library(tidyverse)
+library(summarytools)
 library(ggpubr)
 library(Hmisc)
 library(compareGroups)
@@ -18,14 +19,17 @@ library(pheatmap)
 library(RColorBrewer)
 library(rio)
 
+
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 
 # Uploading dataset with phenotype variables for initial descriptive statistics 
 load("data_table1")
 
-#Variables are: OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
-# leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
-# hypermed, dyslipmed, PPI, Fibrer, ahi, odi, sat90, ESS, cpap, splint
+#Variables are: SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
+#leisurePA, pob, diabd, hypertension, dyslipidemia, diabmed, 
+#hypermed, dyslipmed, ppi, Fibrer,ESS,apnea_self, apneatto_self,
+#cpap_self, splint_self, apneasurgery_self,
+#ahi, odi, sat90, cpap, splint 
 
 # Variable diagnostics ####
 # Number of individuals 
@@ -50,17 +54,21 @@ datatable1 = as.data.frame(dat1[,-1])  # Passing data to a new object without th
 # For the purpose of this table, individuals with missing values for the following variables
 # were included in the "no" category. (only category "yes" is displayed in the table)
 for(i in which(names(datatable1) %in% c('hypertension', 'dyslipidemia', 'diabmed',
-                                'hypermed','dyslipmed', 'ppi','cpap', 'splint'))){
+                                'hypermed','dyslipmed', 'ppi','apnea_self', 'apneatto_self',
+                                'cpap_self', 'splint_self', 'apneasurgery_self','cpap', 'splint'))){
  datatable1[is.na(datatable1[i]),i] = "no"
 }
 
 #Creating labels for the variables 
 mylabel <- c("OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol intake (g)", 
-             "BMI (kg/m2)", "WHR" ,"Highest education achieved", "Self-reported leisure physical activity", 
+             "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
              "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Diabetes medication",
-             "Hypertension medication", "Dyslipidemia medication", "PPI", "Fiber", "AHI (events/h)", "ODI (events/h)", 
-             "T90%", "ESS", "CPAP", "Oral appliance")
+             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber", "ESS",
+             "Sleep apnea (self-reported)", "Sleep apnea treatment", "CPAP", "Oral appliance",
+             "Surgery",
+             "AHI (events/h)", "ODI (events/h)", 
+             "T90%", "CPAP during examination", "Oral appliance during examination")
 
 j=1
 for(i in names(datatable1)){
@@ -69,10 +77,11 @@ for(i in names(datatable1)){
 }
 
 # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
-t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI +WaistHip+ educat +
-                  leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
-                  hypermed + dyslipmed+ppi+Fibrer+ ahi+ odi+ sat90+ ESS + cpap+ splint,
-                  data= datatable1, 
+t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
+                    leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
+                    hypermed + dyslipmed+ ppi+Fibrer+ESS+apnea_self+apneatto_self+
+                    cpap_self+ splint_self+ apneasurgery_self+ahi+ odi+ sat90+
+                    ESS+ cpap+ splint, data= datatable1, 
                   include.miss = TRUE, chisq.test.perm = TRUE)
 t1 = createTable(t, hide.no = "no")
 t1
@@ -301,7 +310,7 @@ nrow(valid.ahi[diff2>30,a,with=F]) # 23 had a difference greater than 30 days
 #### Missingness #### 
 # Variables of interest 
 listvar = c("educat", "leisurePA", "hypertension","smokestatus", 
-            "diabd", "pob", "Alkohol", "ppi")
+            "diabd", "pob", "Alkohol")
 
 # Selecting 
 contain_missing = which(apply(dat1[,listvar,with=F], 1, function(x){any(is.na(x))}))
@@ -313,17 +322,30 @@ dat1$incomplete_obs = factor(dat1[,incomplete_obs],
                                labels = c("Incomplete obs.", 
                                           "Complete obs."))
 
+## REMOVE THIS ######
+# Add information on alpha-diversity 
+setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+alpha = fread("validsleep_MGS.shannon.BC_Upp.tsv", header = T)
+a=c("SCAPISid","shannon")
+dat1 = merge(dat1,alpha[,a,with=F],by="SCAPISid",all=T)
+#################################################################3
+
+
 # Preparing data for table: Participants characteritics divided by 
 #observation complete or incomplete 
 datafortable = as.data.frame(dat1[,-1]) 
 
 # Labelling variables 
 mylabel <- c("OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol intake (g)", 
-             "BMI (kg/m2)", "Highest education achieved", "Self-reported leisure physical activity", 
+             "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
              "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Diabetes medication",
-             "Hypertension medication", "Dyslipidemia medication", "Fiber", "AHI (events/h)", "ODI (events/h)", 
-             "%time Sat=<90%", "CPAP", "Oral appliance", "Incomplete observation")
+             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber", "ESS",
+             "Sleep apnea (self-reported)", "Sleep apnea treatment", "CPAP", "Oral appliance",
+             "Surgery",
+             "AHI (events/h)", "ODI (events/h)", 
+             "T90%", "CPAP during examination", "Oral appliance during examination","Incomplete observation",
+             "Shannon diversity")
 j=1
 for(i in names(datafortable)){
   label(datafortable[[i]]) <- mylabel[j]
@@ -331,9 +353,9 @@ for(i in names(datafortable)){
 }
 
 # Creating the table 
-t = compareGroups(incomplete_obs ~ ahi + age + Sex + BMI+  Alkohol + smokestatus + educat +
-                    leisurePA + pob + diabd + hypertension, data= datafortable, 
-                  include.miss = TRUE, chisq.test.perm = TRUE)
+t = compareGroups(incomplete_obs ~ ahi + shannon + age + Sex + BMI+  Alkohol + smokestatus + educat +
+                    leisurePA + pob + diabd + hypertension+apnea_self, data= datafortable, 
+                  include.miss = FALSE, chisq.test.perm = TRUE)
 t1 = createTable(t)
 t1
 export2html(t1, file='/home/baldanzi/Sleep_apnea/Descriptive/completVSincompletObs.html', 

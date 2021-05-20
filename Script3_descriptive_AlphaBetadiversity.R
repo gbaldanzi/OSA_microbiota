@@ -10,11 +10,11 @@
 
 # Loading packages
 library(tidyverse)
+library(data.table)
+library(vegan)
 library(Hmisc)
 library(compareGroups)
 library(flextable)
-library(data.table)
-library(vegan)
 library(pheatmap)
 library(RColorBrewer)
 library(robCompositions)
@@ -199,6 +199,37 @@ ggsave('Boxplot_BC_severe.png', plot = bp2, path = "/home/baldanzi/Sleep_apnea/D
        device = "png")
 
 #-------------------------------------------------------------------------#
+# MGS prevalence ####
+
+# MGS prevalence is the number of participants in which a certain MGS is present
+
+# presence-absence transformation:
+# If a species is present, it is transformed to 1
+# If it is absent, it is transformed to zero
+a = grep("____H",names(valid.ahi))
+data_pa <- decostand(x = valid.ahi[,a,with=F], "pa")
+
+# calculate sum per species
+data_sum <- apply(data_pa, 2, sum)
+
+p1 = ggplot(data = as.data.frame(data_sum), aes(x=data_sum)) + 
+  geom_histogram(bins = 70,color="black",fill="white")  +
+  ggtitle("Histogram MGS prevalence") +  
+  xlab(paste("Present in at least 100 indiv: ", 
+             length(data_sum[data_sum>=100])," (",
+             round(length(data_sum[data_sum>=100])/length(data_sum),2)*100,"%)\n",
+             "Present in at least 50 indiv: ",
+             length(data_sum[data_sum>=50])," (",
+             round(length(data_sum[data_sum>=50])/length(data_sum),2)*100,"%)\n",
+             sep="")) + 
+  geom_vline(xintercept = 50, color = "black", linetype = "twodash") + 
+  geom_vline(xintercept = 100, color = "black", linetype = "twodash") +
+  theme(plot.title = element_text(hjust = .5,size = 14,face = "bold"))
+
+ggsave("hist.MGS.prevalence",plot = p1, device = "png", 
+       path = "/home/baldanzi/Sleep_apnea/Descriptive/")
+
+#--------------------------------------------------------------------------#
 # AITCHISON DISTANCE ####
 # Beta diversity based on Aitchison distance. ####
 print("Aitchison distance")
@@ -219,7 +250,7 @@ print("Aitchison distance")
 #sum(count==0)
 # 8142757
 
-# Zeros are replaced with 1 (there were no preivous 1 in the data)
+# Zeros are replaced with 1 (there were no previous 1 in the data)
 #count[count==0]=1
 
 # Central log-transformation of count data 
@@ -587,5 +618,33 @@ p1= pheatmap(atdist_matrix,main="Heatmap",
 
 ggsave("T90.AD.heatmap.png", plot = p1, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
+#----------------------------------------------------------------------------#
 
+# Comparison of relative abudance vs CLR transformed counts ####
 
+#### REMOVE THIS ####
+valid.ahi= fread('validsleep_MGS.shannon.BC_Upp.tsv', head=T)
+load("data_table1")
+a = names(dat1[,-"SCAPISid"])
+valid.ahi[,(a):=NULL]
+valid.ahi = merge(dat1,valid.ahi, by = "SCAPISid", all=T, all.x=F, all.y=F)
+count.clr = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.mgs_clr_count.tsv",sep='\t')
+#---###---###---###---###
+
+# Extracting mgs relative abundances 
+a = grep("___",names(valid.ahi),value=T)
+mgs.ra=as.matrix(valid.ahi[,a,with=F])
+rownames(mgs.ra) = valid.ahi[,SCAPISid]
+
+# Extracting mgs clr 
+a = grep("HG3A",names(count.clr),value=T)
+mgs.clr = as.matrix(count.clr[,a,with=F])
+rownames(mgs.clr) = count.clr[,SCAPISid]
+
+# Correlation between the two mgs transformation by individuals 
+cor.ind=sapply(1:nrow(mgs.clr), function(i){
+  cor(mgs.clr[i,],mgs.ra[i,], method = "spearman")})
+
+summary(cor.ind)
+# Min.    1st Qu.  Median    Mean  3rd Qu.    Max. 
+# 0.9998  0.9999  1.0000   1.0000  1.0000   1.0000 

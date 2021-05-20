@@ -108,8 +108,12 @@ p4 = ggplot(data = valid.odi, aes(x=odi)) + geom_histogram()  +
   ggtitle("Hist Oxygen desaturation index") +  xlab("")
 
 # Histogram Sat90% 
-p5 = ggplot(data = valid.odi, aes(x=sat90)) + geom_histogram()  +
-  ggtitle("Hist % of time with sat≤90%") +  xlab("")
+p5 = ggplot(data = valid.odi, aes(x=sat90)) + 
+  geom_histogram(color="black", fill="lightskyblue2") +
+  geom_density(alpha=.2, fill="#FF6666") +
+  ggtitle("Hist - T90%") +  xlab("") +
+  theme_light()+
+  theme(plot.title= element_text(hjust = 0.5, size = 16,face = "bold"))
 
 ggsave("hist.flow", plot = p1, device = "png", 
 path = "/home/baldanzi/Sleep_apnea/Descriptive/")
@@ -252,6 +256,21 @@ pheno$hypermed = factor(pheno$cqhe035,  levels = c("NO", "YES"), labels = c("no"
 # Self-reported dyslipidemia medication 
 pheno$dyslipmed = factor(pheno$cqhe037,  levels = c("NO", "YES"), labels = c("no", "yes"))
 
+# Self-reported Sleep apnea diagnosis 
+pheno$apnea_self = factor(pheno$cqhe058,  levels = c("NO", "YES"), labels = c("no", "yes"))
+
+# Self-reported Sleep apnea treatment  
+pheno$apneatto_self = factor(pheno$cqhe060,  levels = c("NO", "YES"), labels = c("no", "yes"))
+
+# Self-reported Sleep apnea treatment CPAP
+pheno$cpap_self = ifelse(pheno$cqhe061=="CPAP", "yes", "no")
+
+# Self-reported Sleep apnea treatment Oral appliance 
+pheno$splint_self = ifelse(pheno$cqhe061=="SPLINT", "yes", "no")
+
+# Self-reported Sleep apnea treatment Surgery 
+pheno$apneasurgery_self = ifelse(pheno$cqhe061=="SURGERY", "yes", "no")
+
 # CPAP and Splint data 
 # in the original data, CPAP and Splint only have the values 1 and NA
 valid.ahi$cpap = factor(valid.ahi$cpap, levels = c(0,1), labels = c("no", "yes"))
@@ -264,16 +283,22 @@ valid.odi$splint = factor(valid.odi$splint, levels = c(0,1), labels = c("no", "y
 valid.odi$cpap[is.na(valid.odi$cpap)] = "no"
 valid.odi$splint[is.na(valid.odi$splint)] = "no"
 
-# PPI data based on metabolomics measurement
-a = c("SCAPISid","MET_100002725","MET_100002808")
-ppi = metabolon[,a,with=F]
-ppi[,ppi:=ifelse(MET_100002725>min(MET_100002725,na.rm=T) |
+# Medication data based on metabolomics measurement
+a = c("SCAPISid","MET_100002725","MET_100002808","MET_100002405")
+medication = metabolon[,a,with=F]
+medication[,ppi:=ifelse(MET_100002725>min(MET_100002725,na.rm=T) |
                       MET_100002808>min(MET_100002808,na.rm=T),1,0)]
-ppi[is.na(ppi), ppi:=0]
-ppi[,ppi:=factor(ppi, levels = c(0,1), 
+medication[,metformin:=ifelse(MET_100002405>min(MET_100002405,na.rm=T),1, 0)]
+
+medication[is.na(ppi), ppi:=0]
+medication[,ppi:=factor(ppi, levels = c(0,1), 
                  labels = c("no", "yes"))]
-a = c("SCAPISid","ppi")
-ppi = ppi[,a,with=F]
+medication[is.na(metformin), metformin:=0]
+medication[,metformin:=factor(metformin, levels = c(0,1), 
+                        labels = c("no", "yes"))]
+
+a = c("SCAPISid","ppi","metformin")
+medication = medication[,a,with=F]
 
 # Epworth Sleepiness Scale score ####
 # varibles for the ESS score
@@ -308,8 +333,8 @@ valid.ahi = merge(valid.ahi, placebirth, by = "SCAPISid", all.x=T, all.y=F)
 #valid.ahi + pheno + data.MGS + place of birth + diet 
 #valid.ahi = merge(valid.ahi, diet, by ="SCAPISid", all.x=T, all.y=F)
 
-# ... + ppi 
-valid.ahi = merge(valid.ahi,ppi, by="SCAPISid", all.x=T, all.y=F)
+# ... + medication 
+valid.ahi = merge(valid.ahi,medication, by="SCAPISid", all.x=T, all.y=F)
 
 # ... + metabolon collection date
 valid.ahi=merge(valid.ahi, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
@@ -356,7 +381,9 @@ fwrite(valid.ahi, file = "validsleep.MGS.Upp.tsv", sep = "\t")
 # Saving those variables that were managed in Rds format 
 dat1 = valid.ahi %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
                             leisurePA, pob, diabd, hypertension, dyslipidemia, diabmed, 
-                            hypermed, dyslipmed, ppi, Fibrer, ahi, odi, sat90, ESS, cpap, splint)
+                            hypermed, dyslipmed, ppi, Fibrer,ESS,apnea_self, apneatto_self,
+                            cpap_self, splint_self, apneasurgery_self,
+                            ahi, odi, sat90, cpap, splint)
 save(dat1, file = "data_table1")
 
 
@@ -378,5 +405,9 @@ fwrite(nicotine, file = "nicotine_metab.csv", sep=",")
 valid.odi = merge(valid.odi, pheno, by = "SCAPISid", all.x=T, all.y=F )
 valid.odi = merge(valid.odi, data.MGS, by = "SCAPISid", all=T, all.x=F, all.y=F)
 valid.odi = merge(valid.odi, placebirth, by = "SCAPISid", all.x=T, all.y=F)
+a = c("SCAPISid", "plate", "received", "read.pairs.per.sample", "dna.yield")
+valid.odi = merge(valid.odi, cmvar[,a,with=F], by="SCAPISid", all=F, all.x=T, all.y=F)
+valid.odi = merge(valid.odi,medication, by="SCAPISid", all.x=T, all.y=F)
 fwrite(valid.odi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", sep = "\t")
+
 # 3622 individuals have a valid T90 measurement 

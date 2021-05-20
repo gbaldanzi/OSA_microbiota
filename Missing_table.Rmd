@@ -1,0 +1,132 @@
+---
+title: "Sleep apnea and gut microbiota"
+author: "Gabriel Baldanzi"
+date: " `r Sys.time()` "
+output: 
+  html_document:
+    fig_width: 6
+    fig_height: 4
+    number_sections: false
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 2
+    css: style.css
+---
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1300px !important;
+      width: 1300px !important;
+    }
+    body {
+      max-width: 1300px !important;
+    }
+    code.r { /* Code block */
+    font-size: 14pt;
+    }
+    pre {
+  font-size: 12px
+}
+    ```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+options(width = 20)
+library(grid)
+library(chron)
+library(rio)
+library(Hmisc)
+library(tidyverse)
+library(sjmisc)
+library(summarytools)
+library(janitor)
+library(data.table)
+library(flextable)
+library(kableExtra)
+library(compareGroups)
+library(RColorBrewer)
+library(pROC)
+```
+
+```{r chunk1, message=FALSE, warning=FALSE, include=FALSE}
+rm(list=ls())
+
+# Importing data on valid.ahi
+setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+# Uploading dataset with variables in factor format
+load("data_table1")
+valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv", header = T, na.strings = c("", NA, "NA", " "))
+```
+
+#   Missing values
+
+<br>
+
+### Comparing participants with incomplete vs complete observation   
+     
+   Total study population = 3206
+      
+   
+**Incomplete observations are missing information in at least one of the following variables:**   
+
+* Education = `r sum(is.na(valid.ahi[,educat]))` (`r round(sum(is.na(valid.ahi[,educat]))/3206,3)*100`%)    
+
+* PA = `r sum(is.na(valid.ahi[,leisurePA]))` (`r round(sum(is.na(valid.ahi[,leisurePA]))/3206,3)*100`%) 
+  
+* Smoking = `r sum(is.na(valid.ahi[,smokestatus]))` (`r round(sum(is.na(valid.ahi[,smokestatus]))/3206,3)*100`%)    
+
+* Alcohol (based on the FFQ) = `r sum(is.na(valid.ahi[,Alkohol]))` (`r round(sum(is.na(valid.ahi[,Alkohol]))/3206,3)*100`%)   
+
+* Hypertension diagnosis  = `r sum(is.na(valid.ahi[,hypertension]))` (`r round(sum(is.na(valid.ahi[,hypertension]))/3206,3)*100`%)   
+
+* Diabetes diagnosis = `r sum(is.na(valid.ahi[,diabd]))` (`r round(sum(is.na(valid.ahi[,diabd]))/3206,3)*100`%)     
+
+* Place of birth = `r sum(is.na(valid.ahi[,pob]))` (`r round(sum(is.na(valid.ahi[,pob]))/3206,3)*100`%)  
+  <br>
+   
+```{r missing2, echo = FALSE, warning=FALSE, message=FALSE}   
+ load('/home/baldanzi/Sleep_apnea/Descriptive/completVSincompletObs')
+export2md(t1, which.table = "descr", header.labels = c(p.overall = "p-value"), 
+          format = "html", strip = TRUE) %>% 
+  kable_styling(fixed_thead = T) %>% 
+scroll_box( height = "850px")
+```
+
+<br>
+
+### Variables list 
+
+```{r missing1, echo = FALSE, warning=FALSE, message=FALSE}
+a = c("cpap_self","splint_self","apneasurgery_self","apneatto_self",
+               "apnea_self","SCAPISid","cpap","splint","OSAcat","ahi","cpap","splint","ESS")
+b=which(names(dat1) %in% a)
+dat2 = dat1[,-b,with=F]
+setDF(dat2)
+miss = data.frame(Missing = apply(dat2,2,function(x){sum(is.na(x))}))
+a = apply(dat2,2,function(x){sum(is.na(x))/length(x)})
+var=c("Age", "Sex", "Smoking","Alcohol","BMI","WHR","Education","Physical activity", 
+  "Place of birth", "Diabetes", "Hypertension", "Dyslipidemia",
+  "Diabetes medication","Hypertension medication", "Dyslipidemia medication", 
+  "PPI","Fiber", "ODI","T90%")
+
+misstable = cbind(Variables = var, miss, Percentage = paste0(round(a*100,0)," %"))
+misstable = as.data.frame(misstable %>% arrange(Variables))
+
+knitr::kable(misstable, caption = "Number of missing values by variable", 
+             align = rep('c',3), table.attr = "style='width:60%;'") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Number of individuals having at least one missing value for the covariates
+perrow = apply(dat2, 1, function(x) {any(is.na(x))})
+a = sum(perrow) #278
+```
+
+Individuals having at least one missing value for the covariates above.   
+
+N = **`r a`**   
+
