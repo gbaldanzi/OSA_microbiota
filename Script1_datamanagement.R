@@ -170,32 +170,11 @@ placebirth = placebirth[placebirth$SCAPISid %in% grep("5-",placebirth$SCAPISid, 
 #setnames(diet, "Subject", "SCAPISid")
 
 # Metabolon data ####
-metabolon=fread("/home/baldanzi/Datasets/Metabolon/clean/original/scapis_data_clean.tsv", header=T)
-# Adjusting id for later merging
-setnames(metabolon, "SCAPIS_RID", "id")
-metabolon = merge(metabolon, ids, by = "id", all=T, all.x=T, all.y=F)
-setnames(metabolon, "subject_id", "SCAPISid")
-setcolorder(metabolon, c("SCAPISid", "id"))
-metabolon[is.na(SCAPISid),SCAPISid:=id]
-
-# Saving metabolon data with SCAPIS id 
-fwrite(metabolon, file = "/home/baldanzi/Datasets/Metabolon/clean/scapis_metabolon_scapisid.tsv",
-       sep="\t")
+metabolon=fread("/home/baldanzi/Datasets/Metabolon/clean/metabolon_metadata_scapisid.tsv", header=T)
 
 # Metabolon Metadata - collection date ####
 # Import metabolon metadata 
 
-# adjusting ids 
-#metab_metadata0 = fread('/home/baldanzi/Datasets/Metabolon/clean/original/scapis_metadata_clean.tsv', header=T)
-#ids=fread("/home/baldanzi/Datasets/scapis_idkey/id_conversion.txt", header=T) 
-#setnames(metab_metadata0, "SCAPIS_RID", "id")
-#metab_metadata = merge(metab_metadata0,ids, by="id", all.x = TRUE, all.y=FALSE)
-#metab_metadata[is.na(subject_id),subject_id:=id]
-#metab_metadata[,id:=NULL]
-#setnames(metab_metadata,"subject_id", "SCAPISid")
-#setcolorder(metab_metadata, c("SCAPISid"))
-#fwrite(metab_metadata, file = '/home/baldanzi/Datasets/Metabolon/clean/metabolon_metadata_scapisid.tsv',
-#       sep = "\t")
 metab_metadata=fread('/home/baldanzi/Datasets/Metabolon/clean/metabolon_metadata_scapisid.tsv', header=T)
 a = c("SCAPISid", "COLLECTION_DATE")
 metab_collection_date = metab_metadata[,a,with=F]
@@ -240,6 +219,9 @@ pheno$leisurePA = factor(pheno$leisurePA, levels = c(0,1,2,3),
 pheno$diabd = rec(pheno$Diabetes, rec = "NORMOGLYCEMIA=0; ELEV_HBA1C,IFG=1; KNOWN_DM,NEW_DM=2")
 pheno$diabd = factor(pheno$diabd, levels = c(0,1,2), 
                        labels = c("normoglycemic", "impaired glucose tolerance", "type 2 diabetes" ))
+
+# Fiber adjusted for energy intake 
+pheno[,fiber.kcal:=Fibrer/Energi_kcal]
 
 # Self-reported hypertension variable
 pheno$hypertension = factor(pheno$cqhe034, levels = c("NO", "YES"), labels = c("no", "yes"))
@@ -381,7 +363,7 @@ fwrite(valid.ahi, file = "validsleep.MGS.Upp.tsv", sep = "\t")
 # Saving those variables that were managed in Rds format 
 dat1 = valid.ahi %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
                             leisurePA, pob, diabd, hypertension, dyslipidemia, diabmed, 
-                            hypermed, dyslipmed, ppi, Fibrer,ESS,apnea_self, apneatto_self,
+                            hypermed, dyslipmed, ppi, fiber.kcal,ESS,apnea_self, apneatto_self,
                             cpap_self, splint_self, apneasurgery_self,
                             ahi, odi, sat90, cpap, splint)
 save(dat1, file = "data_table1")

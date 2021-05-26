@@ -51,7 +51,7 @@ PermanovaFunction = function(outcome, exposure, covari, data, distance = "bray",
     formula = as.formula(paste0(outcome,'~',exposure,))
   }
   
-  result <- adonis2(formula,data[a,], by="margin", method = distance ,permutations = 999, parallel = nodes)
+  result <- adonis2(formula,data[a,], by="margin", method = distance ,permutations = 9999, parallel = nodes)
   variables = rownames(result)
   result=as.data.frame(result)
   result[1,"N"]=sum(a)

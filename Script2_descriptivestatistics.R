@@ -27,7 +27,7 @@ load("data_table1")
 
 #Variables are: SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
 #leisurePA, pob, diabd, hypertension, dyslipidemia, diabmed, 
-#hypermed, dyslipmed, ppi, Fibrer,ESS,apnea_self, apneatto_self,
+#hypermed, dyslipmed, ppi, fiber.kcal,ESS,apnea_self, apneatto_self,
 #cpap_self, splint_self, apneasurgery_self,
 #ahi, odi, sat90, cpap, splint 
 
@@ -79,7 +79,7 @@ for(i in names(datatable1)){
 # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
 t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                     leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
-                    hypermed + dyslipmed+ ppi+Fibrer+ESS+apnea_self+apneatto_self+
+                    hypermed + dyslipmed+ ppi+fiber.kcal+ESS+apnea_self+apneatto_self+
                     cpap_self+ splint_self+ apneasurgery_self+ahi+ odi+ sat90+
                     ESS+ cpap+ splint, data= datatable1, 
                   include.miss = TRUE, chisq.test.perm = TRUE)
