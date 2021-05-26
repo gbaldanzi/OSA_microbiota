@@ -954,15 +954,18 @@ print(pshannonahi)
 
 **Partial Spearman Correlation between AHI and Shannon**
    
-```{r corrshannon, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
+```{r corrshannonAHI, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 setwd("/home/baldanzi/Sleep_apnea/Results")
 shannoncor = fread('cor_ahi_alpha.tsv', header=T)
 temp = c(5,6)
 shannoncor = shannoncor[,-temp, with=F]
+name = names(shannoncor)[names(shannoncor)!=covariates]
+shannoncor = shannoncor[,name,with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
 shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
-shannoncor[,p.value:=formatC(p.value,digits = 2, format ="e")]
+shannoncor[3:4,p.value:=round(p.value,digits = 3)]
+shannoncor[1:2,p.value:=formatC(p.value,digits = 2, format ="e")]
 knitr::kable(shannoncor, caption = "Correlation between AHI and Shannon diversity index", 
              align = c('l','c','c','c','c','c')) %>% 
   kable_styling()
@@ -971,7 +974,9 @@ knitr::kable(shannoncor, caption = "Correlation between AHI and Shannon diversit
 1. Model 1 = sex + age + smoking + alcohol + plate + received 
 2. Model 2 = + BMI 
 3. Model 3 = + PA + education + place birth + fiber intake
-4. Model 3_noMedication = removed individuals using PPI, Metformin and self-reported use of anti-hypertension and cholesterol-lowering medication 
+  
+4. Model 3_noMedication = removed medication users 
+(PPI,Metformin,anti-hypertension and cholesterol-lowering) 
 
 <br>
 <br>
@@ -1006,15 +1011,18 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.
 
 **Partial Spearman Correlation between T90% and Shannon**
    
-```{r corrshannon, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
+```{r corrshannonT90, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 setwd("/home/baldanzi/Sleep_apnea/Results")
 shannoncor = fread('cor_t90_alpha.tsv', header=T)
 temp = c(5,6)
 shannoncor = shannoncor[,-temp, with=F]
+name = names(shannoncor)[names(shannoncor)!=covariates]
+shannoncor = shannoncor[,name,with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
 shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
-shannoncor[,p.value:=formatC(p.value,digits = 2, format ="e")]
+shannoncor[3:4,p.value:=round(p.value,digits = 3)]
+shannoncor[1:2,p.value:=formatC(p.value,digits = 2, format ="e")]
 knitr::kable(shannoncor, caption = "Correlation between T90% and Shannon diversity index", 
              align = c('l','c','c','c','c','c')) %>% 
   kable_styling()
@@ -1023,7 +1031,9 @@ knitr::kable(shannoncor, caption = "Correlation between T90% and Shannon diversi
 1. Model 1 = sex + age + smoking + alcohol + plate + received 
 2. Model 2 = + BMI 
 3. Model 3 = + PA + education + place birth + fiber intake
-4. Model 3_noMedication = removed individuals using PPI, Metformin and self-reported use of anti-hypertension and cholesterol-lowering medication 
+  
+4. Model 3_noMedication = removed medication users 
+(PPI,Metformin,anti-hypertension and cholesterol-lowering) 
 
 ***
 
@@ -1201,6 +1211,19 @@ knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 2") %>% kable_styling()
 perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3.tsv')
 perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
 knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 3") %>% kable_styling()
+```
+<br>
+
+***
+
+#### model 3 - no medication
+  
+Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
+  
+```{r permanovaAHI3, echo=FALSE, message=FALSE, warning=FALSE}
+perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed.tsv')
+perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 3 no medication") %>% kable_styling()
 ```
 <br>
 
