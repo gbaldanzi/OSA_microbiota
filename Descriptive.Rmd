@@ -1173,17 +1173,38 @@ knitr::kable(permaOSA[model=="model2",], caption = "OSA and BC - model 2") %>% k
 ```
 ***
 
-### AHI 
-
-```{r permanovaAHI, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::kable(perma[model=="model1",], caption = "AHI and BC - model 1") %>% kable_styling()
-knitr::kable(perma[model=="model2",], caption = "AHI and BC - model 2") %>% kable_styling()
+### AHI {.tabset}
+   
+#### model 1
+   
+```{r permanovaAHI1, echo=FALSE, message=FALSE, warning=FALSE}
+perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1.tsv')
+perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 1") %>% kable_styling()
 ```
 <br>
 
 ***
 
+#### model 2
+```{r permanovaAHI2, echo=FALSE, message=FALSE, warning=FALSE}
+perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2.tsv')
+perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 2") %>% kable_styling()
+```
 <br>
+
+***
+
+#### model 3
+```{r permanovaAHI3, echo=FALSE, message=FALSE, warning=FALSE}
+perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3.tsv')
+perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 3") %>% kable_styling()
+```
+<br>
+
+***
 
 # MGS prevalence 
 ```{r MGSprevalence, echo=FALSE, fig.align='center', out.width="70%", out.height="70%"}
