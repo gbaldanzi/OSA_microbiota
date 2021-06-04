@@ -8,12 +8,12 @@ print(Sys.time())
 
 # Loading packages
 library(tidyverse)
+library(data.table)
 library(summarytools)
 library(ggpubr)
 library(Hmisc)
 library(compareGroups)
 library(flextable)
-library(data.table)
 library(vegan)
 library(pheatmap)
 library(RColorBrewer)
@@ -27,7 +27,7 @@ load("data_table1")
 
 #Variables are: SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
 #leisurePA, pob, diabd, hypertension, dyslipidemia, diabmed, 
-#hypermed, dyslipmed, ppi, fiber.kcal,ESS,apnea_self, apneatto_self,
+#hypermed, dyslipmed, ppi, fiber, EI,ESS,apnea_self, apneatto_self,
 #cpap_self, splint_self, apneasurgery_self,
 #ahi, odi, sat90, cpap, splint 
 
@@ -64,10 +64,9 @@ mylabel <- c("OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol inta
              "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
              "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Diabetes medication",
-             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber", "ESS",
-             "Sleep apnea (self-reported)", "Sleep apnea treatment", "CPAP", "Oral appliance",
-             "Surgery",
-             "AHI (events/h)", "ODI (events/h)", 
+             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber (g/day)","Energy intake",
+             "ESS", "Sleep apnea (self-reported)", "Sleep apnea treatment", "CPAP", "Oral appliance",
+             "Surgery", "AHI (events/h)", "ODI (events/h)", 
              "T90%", "CPAP during examination", "Oral appliance during examination")
 
 j=1
@@ -79,7 +78,7 @@ for(i in names(datatable1)){
 # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
 t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                     leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
-                    hypermed + dyslipmed+ ppi+fiber.kcal+ESS+apnea_self+apneatto_self+
+                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ESS+apnea_self+apneatto_self+
                     cpap_self+ splint_self+ apneasurgery_self+ahi+ odi+ sat90+
                     ESS+ cpap+ splint, data= datatable1, 
                   include.miss = TRUE, chisq.test.perm = TRUE)
@@ -310,7 +309,7 @@ nrow(valid.ahi[diff2>30,a,with=F]) # 23 had a difference greater than 30 days
 #### Missingness #### 
 # Variables of interest 
 listvar = c("educat", "leisurePA", "hypertension","smokestatus", 
-            "diabd", "pob", "Alkohol")
+            "diabd", "pob", "Alkohol", "Fibrer", "Energi_kcal")
 
 # Selecting 
 contain_missing = which(apply(dat1[,listvar,with=F], 1, function(x){any(is.na(x))}))
@@ -340,7 +339,8 @@ mylabel <- c("OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol inta
              "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
              "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Diabetes medication",
-             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber", "ESS",
+             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber (g/day)",
+             "Energy intake","ESS",
              "Sleep apnea (self-reported)", "Sleep apnea treatment", "CPAP", "Oral appliance",
              "Surgery",
              "AHI (events/h)", "ODI (events/h)", 
@@ -353,7 +353,7 @@ for(i in names(datafortable)){
 }
 
 # Creating the table 
-t = compareGroups(incomplete_obs ~ ahi + shannon + age + Sex + BMI+  Alkohol + smokestatus + educat +
+t = compareGroups(incomplete_obs ~ ahi + shannon + age + Sex + BMI+  Alkohol + Fibrer + Energi_kcal + smokestatus + educat +
                     leisurePA + pob + diabd + hypertension+apnea_self, data= datafortable, 
                   include.miss = FALSE, chisq.test.perm = TRUE)
 t1 = createTable(t)

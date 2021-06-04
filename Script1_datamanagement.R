@@ -8,8 +8,10 @@
 # Loading packages
 pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.table)
 
-# Cleaning the environment and importing sleep recording data 
 rm(list=ls())
+
+# Import sleep recording data 
+
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording")
 sleep = fread("Data_Sleep_SCAPIS_Uppsala.csv", header=T, na.strings=c("", "NA"))
 
@@ -170,7 +172,7 @@ placebirth = placebirth[placebirth$SCAPISid %in% grep("5-",placebirth$SCAPISid, 
 #setnames(diet, "Subject", "SCAPISid")
 
 # Metabolon data ####
-metabolon=fread("/home/baldanzi/Datasets/Metabolon/clean/metabolon_metadata_scapisid.tsv", header=T)
+metabolon=fread("/home/baldanzi/Datasets/Metabolon/clean/scapis_metabolon_scapisid.tsv", header=T)
 
 # Metabolon Metadata - collection date ####
 # Import metabolon metadata 
@@ -207,7 +209,7 @@ pheno$educat = factor(pheno$educat, levels = c(0,1,2,3),
 
 # BMI categories 
 pheno$BMIcat = rec(pheno$BMI, rec = "min:24.9=1; 25:29.9=2; 30:max = 3")
-pheno$BMIcat = factor(pheno$BMIcat, levels = c(1,2,3), labels = c("<25","25-30","≥30"))
+pheno$BMIcat = factor(pheno$BMIcat, levels = c(1,2,3), labels = c("<25","25-30",">=30"))
 
 # Self-reported physical activity 
 pheno$leisurePA = rec(pheno$cqpa012, rec = "4=NA; else=copy")
@@ -220,8 +222,36 @@ pheno$diabd = rec(pheno$Diabetes, rec = "NORMOGLYCEMIA=0; ELEV_HBA1C,IFG=1; KNOW
 pheno$diabd = factor(pheno$diabd, levels = c(0,1,2), 
                        labels = c("normoglycemic", "impaired glucose tolerance", "type 2 diabetes" ))
 
-# Fiber adjusted for energy intake 
-pheno[,fiber.kcal:=Fibrer/Energi_kcal]
+# Fiber adjusted for energy intake ####
+# Removing over- and under- reported based on the 3SD of the natural log of Energy intake
+pheno[Energi_kcal<200 | Energi_kcal >8000, Energi_kcal:=NA] # Removing invalid values
+pheno[,log.energi:= log(pheno$Energi_kcal)] # Calculating the log energy intake
+
+# Estimate sd and mean of energy intake
+male.sd <-  sd(pheno[Sex=="male",log.energi],na.rm=T)
+male.mean <- mean(pheno[Sex=="male",log.energi],na.rm=T)
+female.sd <- sd(pheno[Sex=="female",log.energi],na.rm=T)
+female.mean <- mean(pheno[Sex=="female",log.energi],na.rm=T)
+
+# Using 3 sd to categorize over- and under-reporters
+pheno[!is.na(Energi_kcal),energi.reporter:="ok"]
+
+ll <- female.mean-(3*female.sd)
+ul <- female.mean+(3*female.sd)
+pheno[Sex=="female" & log.energi<ll, energi.reporter:="under"]
+pheno[Sex=="female" & log.energi>ul, energi.reporter:="over"]
+
+ll <- male.mean-(3*male.sd)
+ul <- male.mean+(3*male.sd)
+pheno[Sex=="male" & log.energi<ll, energi.reporter:="under"]
+pheno[Sex=="male" & log.energi>ul, energi.reporter:="over"]
+
+# Removing under- or over- reporter
+pheno[,energi.original:=Energi_kcal]
+pheno[energi.reporter!="ok",Energi_kcal:=NA]
+# Consider revising this variable  after excluding those with unreliable FFQ reporting. 
+pheno[,fiber.kcal:=(Fibrer/Energi_kcal)*1000]
+
 
 # Self-reported hypertension variable
 pheno$hypertension = factor(pheno$cqhe034, levels = c("NO", "YES"), labels = c("no", "yes"))
@@ -363,7 +393,7 @@ fwrite(valid.ahi, file = "validsleep.MGS.Upp.tsv", sep = "\t")
 # Saving those variables that were managed in Rds format 
 dat1 = valid.ahi %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
                             leisurePA, pob, diabd, hypertension, dyslipidemia, diabmed, 
-                            hypermed, dyslipmed, ppi, fiber.kcal,ESS,apnea_self, apneatto_self,
+                            hypermed, dyslipmed, ppi, Fibrer, Energi_kcal,ESS,apnea_self, apneatto_self,
                             cpap_self, splint_self, apneasurgery_self,
                             ahi, odi, sat90, cpap, splint)
 save(dat1, file = "data_table1")

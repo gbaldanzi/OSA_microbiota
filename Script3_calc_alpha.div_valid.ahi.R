@@ -8,6 +8,8 @@
 
 # Descriptive Statistics 
 
+rm(list=ls())
+
 # Loading packages
 library(tidyverse)
 library(data.table)
@@ -36,11 +38,13 @@ valid.ahi = merge(dat1,valid.ahi, by = "SCAPISid", all=T, all.x=F, all.y=F)
 a = grep("____",names(valid.ahi),value=T) # vector with MGS names 
 valid.ahi$shannon=diversity(valid.ahi[,a, with=F],index="shannon") #estimating shannon per individual
 
+#fwrite(valid.ahi, file = "validsleep_MGS.shannon.BC_Upp.tsv", sep = "\t")
+
 summary(valid.ahi[,shannon])
 valid.ahi[,mean(shannon), by=OSAcat]
 valid.ahi[,median(shannon), by=OSAcat]
 
-# Compare the Shannon index across two groups using Kruskal-Wallis #### 
+# Compare the Shannon index across groups using Kruskal-Wallis #### 
 res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
 
 # Scatter plot: Shannon index against AHI 
@@ -536,7 +540,7 @@ ggsave("T90.BC.heatmap.png", plot = p5, device = "png",
 # Importing count data:
 count = readRDS('/home/baldanzi/Datasets/MGS/upugut03.mgsCounts.rds')
 
-# Zeros are replaced with 1 (there were no preivous 1 in the data)
+# Zeros are replaced with 1 (there were no previous 1 in the data)
 count[count==0]=1
 
 #To fix some added characters to the names
@@ -562,6 +566,7 @@ count = merge(count, ids, by = "id", all=F, all.x=T,all.y=F)
 count=count[count$SCAPISid %in% valid.odi[,SCAPISid],]
 
 # Merging counts with valid.odi 
+count = count %>% arrange(SCAPISid)
 a = c("SCAPISid", "sat90cat", "sat90", "age", "Sex")
 count=merge(count,valid.odi[,a,with=F], by="SCAPISid",all=F, all.x=F, all.y=T)
 
@@ -577,6 +582,9 @@ print(paste0("time=" ,t1-t0))
 
 # Transform aitchison distances into a matrix
 atdist_matrix=as.matrix(atdist)
+
+# Saving matrix 
+fwrite(atdist_matrix, file = "T90.ADmatrix.csv", sep = ",")
 
 # PCA of Aitchison distances ####
 pc.atdist=prcomp(atdist_matrix)
@@ -620,7 +628,7 @@ ggsave("T90.AD.heatmap.png", plot = p1, device = "png",
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 #----------------------------------------------------------------------------#
 
-# Comparison of relative abudance vs CLR transformed counts ####
+# Comparison of relative abundance vs CLR transformed counts ####
 
 #### REMOVE THIS ####
 valid.ahi= fread('validsleep_MGS.shannon.BC_Upp.tsv', head=T)

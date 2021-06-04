@@ -75,7 +75,6 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
@@ -86,12 +85,12 @@ exposure="ahi"
 outcomes="shannon"
 
 #Covariates 
-# model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","received")
+# model 1 : adjust for age + sex + alcohol + smoking + plate
+model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
 # model 2 = model 1 + BMI 
 model2 <-  c(model1,"BMI")
-# model 3 = model 2 + fiber intake + physical activity + education + country of birth 
-model3 <-  c(model2, "Fibrer", "leisurePA", "educat","placebirth")
+# model 3 = model 2 + fiber intake +energy intake+ physical activity + education + country of birth 
+model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
 # OLD model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
 # OLD model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed","ppi")
 
@@ -127,7 +126,6 @@ nrow(dades) #2318
 a= c("Sex")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
@@ -146,8 +144,95 @@ res.alpha = rbind(res.alpha,res.sa)
 
 fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha.tsv"), sep="\t")
 
+#-----------------------------------------------------------------------------#
+
+# Correlation between AHI and Shannon by BMI group ####
+
+# the correlation between AHI and shannon will be separetely by the 3 BMI groups:
+# <25, >=25 & <30, and >=30.
+
+# Transforming two-level factor variables into numeric variables 
+dades = copy(valid.ahi)
+a= c("Sex")
+dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+
+# Transforming factor variables 
+dades[,plate:=as.factor(dades$plate)]
+dades[,smokestatus:=as.factor(smokestatus)]
+dades[,leisurePA:=as.factor(leisurePA)]
+dades[,educat:=as.factor(educat)]
+dades[,placebirth:=as.factor(placebirth)]
+
+# Preparing exposure, outcomes, and covariates
+exposure="ahi"
+outcomes="shannon"
+
+# By BMI group 
+for(group in unique(valid.ahi[,BMIcat])){
+  dades2 = dades[BMIcat==group,]
 
 
+# Run Spearman correlation for the models.
+res.alpha = lapply(listmodels,function(mod){
+     spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
+names(res.alpha) = c("model1", "model2", "model3")
+  
+res.model1 = res.alpha[[1]]
+res.model2 = res.alpha[[2]]
+res.model3 = res.alpha[[3]]
+
+
+
+res.model1$model= "model1"
+res.model2$model= "model2"
+res.model3$model= "model3"
+
+res.model1$bmi= group
+res.model2$bmi= group
+res.model3$bmi= group
+
+res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3))
+
+names(res.alpha) = c("MGS", "exposure", "cor.coeficient", "p.value", 
+                     "N", "method", "covariates","model","bmi")
+print(res.alpha)
+
+#----------------------------------------------------------------------------#
+print("Sensitivity analysis")
+# Sensitivity analysis - remove individuals who use medication 
+dades = copy(valid.ahi)
+dades <-  dades[dades$ppi == "no",] #60
+dades <-  dades[dades$metformin == "no",] #57 
+dades <-  dades[dades$hypermed == "no",] #593
+dades <-  dades[dades$dyslipmed == "no",] # 239
+nrow(dades) #2318
+
+# Transforming factor variables 
+a= c("Sex")
+dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+dades[,plate:=as.factor(dades$plate)]
+dades[,smokestatus:=as.factor(smokestatus)]
+dades[,leisurePA:=as.factor(leisurePA)]
+dades[,educat:=as.factor(educat)]
+dades[,placebirth:=as.factor(placebirth)]
+
+# BMI group
+dades2 <- dades[BMIcat==group,]
+
+# Spearman correlation 
+res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades2)
+
+res.sa$model= "model3_noMedication"
+res.sa$bmi= group
+
+#naming coluns
+names(res.sa) <- c("MGS", "exposure", "cor.coeficient", "p.value", 
+                   "N", "method", "covariates","model","bmi")
+
+res.alpha = rbind(res.alpha,res.sa)
+
+fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha_bmi",group,".tsv"), sep="\t")
+}
 #-----------------------------------------------------------------------------#
 
 # Correlation between T90% and Shannon ####
@@ -174,7 +259,6 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
@@ -185,12 +269,12 @@ exposure="T90"
 outcomes="shannon"
 
 #Covariates 
-# model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","received")
+# model 1 : adjust for age + sex + alcohol + smoking + plate
+model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
 # model 2 = model 1 + BMI 
 model2 <-  c(model1,"BMI")
-# model 3 = model 2 + fiber intake + physical activity + education + country of birth 
-model3 <-  c(model2, "Fibrer", "leisurePA", "educat","placebirth")
+# model 3 = model 2 + fiber intake +energi intake+ physical activity + education + country of birth 
+model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
 # OLD model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
 # OLD model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed","ppi")
 
@@ -226,7 +310,6 @@ nrow(dades) #2318
 a= c("Sex")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
@@ -248,4 +331,99 @@ fwrite(res.alpha, file = paste0(output,"cor_t90_alpha.tsv"), sep="\t")
 
 #-----------------------------------------------------------------------------#
 
+# Correlation between T90% and Shannon by BMI group ####
 
+# the correlation between AHI and shannon will be separetely by the 3 BMI groups:
+# <25, >=25 & <30, and >=30.
+
+# Importing data
+setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+valid.odi = fread('/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv',
+                  header=T, na.strings=c("", "NA")) 
+setnames(valid.odi, "pob", "placebirth")
+setnames(valid.odi, "sat90", "T90")
+valid.odi = valid.odi[!is.na(T90),]
+
+
+# Calculating alpha-diversity 
+a = grep("____",names(valid.odi),value=T) # vector with MGS names 
+valid.odi$shannon=diversity(valid.odi[,a, with=F],index="shannon") #estimating shannon per individual
+
+# Transforming two-level factor variables into numeric variables 
+dades = copy(valid.odi)
+a= c("Sex")
+dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+
+# Transforming factor variables 
+dades[,plate:=as.factor(dades$plate)]
+dades[,smokestatus:=as.factor(smokestatus)]
+dades[,leisurePA:=as.factor(leisurePA)]
+dades[,educat:=as.factor(educat)]
+dades[,placebirth:=as.factor(placebirth)]
+
+# Preparing exposure, outcomes, and covariates
+exposure="T90"
+outcomes="shannon"
+
+#By BMI group
+for(group in unique(valid.ahi[,BMIcat])){
+
+dades2 = dades[BMIcat==group,]
+  
+# Run Spearman correlation for the models.
+res.alpha = lapply(listmodels,function(mod){
+  spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
+names(res.alpha) = c("model1", "model2", "model3")
+
+res.model1 = res.alpha[[1]]
+res.model2 = res.alpha[[2]]
+res.model3 = res.alpha[[3]]
+
+res.model1$model= "model1"
+res.model2$model= "model2"
+res.model3$model= "model3"
+
+res.model1$bmi= group
+res.model2$bmi= group
+res.model3$bmi= group
+
+res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3))
+
+names(res.alpha) = c("MGS", "exposure", "cor.coeficient", "p.value", 
+                     "N", "method", "covariates","model","bmi")
+#----------------------------------------------------------------------------#
+print("Sensitivity analysis (no medication users) correlation T90% and Shannon Index")
+# Sensitivity analysis - remove individuals who use medication 
+dades = copy(valid.odi)
+dades <-  dades[dades$ppi == "no",] #60
+dades <-  dades[dades$metformin == "no",] #57 
+dades <-  dades[dades$hypermed == "no",] #593
+dades <-  dades[dades$dyslipmed == "no",] # 239
+nrow(dades) #2318
+
+# Transforming factor variables 
+a= c("Sex")
+dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+dades[,plate:=as.factor(dades$plate)]
+dades[,smokestatus:=as.factor(smokestatus)]
+dades[,leisurePA:=as.factor(leisurePA)]
+dades[,educat:=as.factor(educat)]
+dades[,placebirth:=as.factor(placebirth)]
+
+dades2 = dades[BMIcat==group,]
+
+# Spearman correlation 
+res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades2)
+
+res.sa$model= "model3_noMedication"
+res.sa$bmi= group
+
+#naming coluns
+names(res.sa) <- c("MGS", "exposure", "cor.coeficient", "p.value", 
+                   "N", "method", "covariates","model","bmi")
+
+res.alpha = rbind(res.alpha,res.sa)
+
+#Saving results 
+fwrite(res.alpha, file = paste0(output,"cor_t90_alpha_bmi",group,".tsv"), sep="\t")
+}

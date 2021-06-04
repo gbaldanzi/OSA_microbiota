@@ -29,6 +29,19 @@ valid.odi = valid.odi[!is.na(T90),]
 a = grep("____",names(valid.odi),value=T) # vector with MGS names 
 valid.odi$shannon=diversity(valid.odi[,a, with=F],index="shannon") #estimating shannon per individual
 
+#Calculating  MGS prevalence ####
+noms=grep("____",names(valid.odi),value=T)
+# presence-absence transformation: If a species is present, it becomes 1. If absent, becomes zero
+data_pa <- decostand(x = valid.odi[,noms,with=F], "pa")
+# calculate sum per species
+data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
+data_sum$MGS = rownames(data_sum)
+a = data_sum$MGS[data_sum$prevalence<5] #16 MGS are only present in less than 5 individuals
+a = data_sum$MGS[data_sum$prevalence<1] # Bacteroidales_sp.____HG3A.1976 is not present in any participant
+
+# Removing Bacteroidales_sp.____HG3A.1976 from the dataset 
+valid.odi <- valid.odi[ , -a, with=F]  # 1984 MGS remaining 
+
 # Transforming two-level factor variables into numeric variables 
 dades = copy(valid.odi)
 #a= c("Sex","ppi", "diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
@@ -37,7 +50,6 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
@@ -90,11 +102,11 @@ outcomes=grep("___",names(valid.odi),value=T)
 
 #Covariates 
 # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","received","shannon")
+model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 # model 2 = model 1 + BMI 
 model2 <-  c(model1,"BMI")
-# model 3 = model 2 + fiber intake + physical activity + education + country of birth 
-model3 <-  c(model2, "Fibrer", "leisurePA", "educat","placebirth")
+# model 3 = model 2 + fiber intake + Energy intake+ physical activity + education + country of birth 
+model3 <-  c(model2, "Fibrer","Energi_kcal" ,"leisurePA", "educat","placebirth")
 # OLD model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
 # OLD model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed","ppi")
 
@@ -107,8 +119,11 @@ clusterEvalQ(c1, library(data.table))
 clusterEvalQ(c1, library(ppcor))
 clusterEvalQ(c1, library(fastDummies))
 clusterExport(c1, c("exposure","outcomes", "dades", "model1", "model2", "model3","spearman.function"))
+t0 = Sys.time()
 step1 = parLapply(c1, listmodels,function(mod){
   spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades)})
+t1 = Sys.time()
+print(t1-t0)
 names(step1) = c("model1", "model2", "model3")
 step1 = lapply(step1,function(x){x[order(x$q.value),]})
 
@@ -141,7 +156,6 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
@@ -151,7 +165,10 @@ dades[,placebirth:=as.factor(placebirth)]
 res = data.frame(matrix(ncol=7, nrow=1985))
 
 # Spearman correlation 
+t0 <-  Sys.time()
 res = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades)
+t1 <- Sys.time()
+print(t1-t0)
 
 res$model= "model3_noMedication"
 
@@ -165,3 +182,127 @@ step1.res = rbind(step1.res,res)
 
 fwrite(step1.res, file = paste0(output,"cor_t90_mgs.tsv"), sep="\t")
 
+#----------------------------------------------------------------------------#
+
+# Correlation stratified by BMI group 
+
+# Transforming two-level factor variables into numeric variables 
+dades = copy(valid.odi)
+#a= c("Sex","ppi", "diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
+a= c("Sex")
+dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+
+# Transforming factor variables 
+dades[,plate:=as.factor(dades$plate)]
+dades[,smokestatus:=as.factor(smokestatus)]
+dades[,leisurePA:=as.factor(leisurePA)]
+dades[,educat:=as.factor(educat)]
+dades[,placebirth:=as.factor(placebirth)]
+
+# By BMI group 
+for(group in unique(valid.odi[,BMIcat])){
+  
+  dades2 = dades[BMIcat==group,]
+  
+  # Preparing parallelism
+  c1 = makeCluster(3)
+  clusterEvalQ(c1, library(vegan))
+  clusterEvalQ(c1, library(data.table))
+  clusterEvalQ(c1, library(ppcor))
+  clusterEvalQ(c1, library(fastDummies))
+  clusterExport(c1, c("exposure","outcomes", "dades2", "model1", "model2", "model3","spearman.function"))
+  t0 = Sys.time()
+  step1 = parLapply(c1, listmodels,function(mod){
+    spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
+  t1 = Sys.time()
+  print(t1-t0)
+  names(step1) = c("model1", "model2", "model3")
+  step1 = lapply(step1,function(x){x[order(x$q.value),]})
+  
+  res.model1 = step1[[1]]
+  res.model2 = step1[[2]]
+  res.model3 = step1[[3]]
+  
+  res.model1$model= "model1"
+  res.model2$model= "model2"
+  res.model3$model= "model3"
+  
+  res.model1$bmi= group
+  res.model2$bmi= group
+  res.model3$bmi= group
+  
+  step1.res = as.data.table(rbind(res.model1, res.model2, res.model3))
+  stopCluster(c1)
+  
+  names(step1.res) = c("MGS", "exposure", "cor.coeficient", "p.value", 
+                       "N", "method", "covariates","q.value","model","bmi")
+  
+  
+  # Sensitivity analysis - remove individuals who use medication 
+  dades <-  copy(valid.odi)
+  dades <-  dades[ppi == "no",] #60
+  dades <-  dades[metformin == "no",] #57 
+  dades <-  dades[hypermed == "no",] #593
+  dades <-  dades[dyslipmed == "no",] # 239
+  nrow(dades) #2318
+  
+  # Transforming two-level factor variables into numeric variables 
+  a= c("Sex")
+  dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+  
+  # Transforming factor variables 
+  dades[,plate:=as.factor(dades$plate)]
+  dades[,smokestatus:=as.factor(smokestatus)]
+  dades[,leisurePA:=as.factor(leisurePA)]
+  dades[,educat:=as.factor(educat)]
+  dades[,placebirth:=as.factor(placebirth)]
+  
+  #Prepare data.frame data will receive the results 
+  res = data.frame(matrix(ncol=7, nrow=1984))
+  
+  # Correlation by BMI group
+  dades2 = dades[BMIcat==group,]
+  
+  # Spearman correlation 
+  t0 <-  Sys.time()
+  res = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades2)
+  t1 <- Sys.time()
+  print(t1-t0)
+  
+  res$model= "model3_noMedication"
+  
+  res$bmi <- group
+  
+  # Sort by q.value 
+  res <- res[order(res$q.value),]
+  #naming coluns
+  names(res) <- c("MGS", "exposure", "cor.coeficient", "p.value", 
+                  "N", "method", "covariates","q.value","model","bmi")
+  
+  step1.res = rbind(step1.res,res)
+  
+  fwrite(step1.res, file = paste0(output,"cor_t90_mgs_bmi",group,".tsv"), sep="\t")
+}
+
+#-----------------------------------------------------------------------------
+
+# Merging results with taxonomy information #### 
+
+taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+setnames(taxonomy,"maintax_mgs","MGS")
+
+dades <- fread(paste0(output,"cor_t90_mgs.tsv"))
+dades <- merge(dades, taxonomy, by="MGS", all.x=T)
+fwrite(dades, file=paste0(output,"cor_t90_mgs.tsv"))
+
+dades <- fread(paste0(output,"cor_t90_mgs_bmi<25.tsv"))
+dades <- merge(dades, taxonomy, by="MGS", all.x=T)
+fwrite(dades, file=paste0(output,"cor_t90_mgs_bmi<25.tsv"))
+
+dades <- fread(paste0(output,"cor_t90_mgs_bmi25-30.tsv"))
+dades <- merge(dades, taxonomy, by="MGS", all.x=T)
+fwrite(dades, file=paste0(output,"cor_t90_mgs_bmi25-30.tsv"))
+
+dades <- fread(paste0(output,"cor_t90_mgs_bmi>=30.tsv"))
+dades <- merge(dades, taxonomy, by="MGS", all.x=T)
+fwrite(dades, file=paste0(output,"cor_t90_mgs_bmi>=30.tsv"))
