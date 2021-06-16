@@ -16,7 +16,7 @@
 # File model 3 after removing medication users - permanova_model3_nomed_ahi_ad.tsv
 
 # Loading packages 
-pacman::p_load(data.table, vegan, ggplot2,parallel)
+# pacman::p_load(data.table, vegan, ggplot2,parallel)
 
 rm(list = ls())
 output = "/home/baldanzi/Sleep_apnea/Results/"
@@ -24,7 +24,7 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv",header=T, na.strings=c("", "NA")) 
+valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 setnames(valid.ahi, "pob", "placebirth")
 
 # Importing AD matrix 

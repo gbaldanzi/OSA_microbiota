@@ -4,19 +4,19 @@
 # Inferential Statistics 
 
 # This code will investigate the beta-diversity (Bray Curtis Dissimilarity and 
-# Aitchison distance) in relation to AHI and T90% in 3 different models. 
+# Aitchison distance) in relation to OSA severity categories in 3 different models. 
 # Analysis are run using a PERMANOVA approach
 
 #parallel nodes (1 for each model). Therefore, this code requires at least 3 nodes. 
 
 # Results saved at the folder: "/home/baldanzi/Sleep_apnea/Results/"
-# File model 1 - permanova_model1.tsv
-# File model 2 - permanova_model2.tsv
-# File model 3 - permanova_model3.tsv
-# File model 3 after removing medication users - permanova_model3_nomed.tsv
+# File model 1 - permanova_model1_osa_ad.tsv
+# File model 2 - permanova_model2_osa_ad.tsv
+# File model 3 - permanova_model3_osa_ad.tsv
+# File model 3 after removing medication users - permanova_model3_nomed_osa_ad.tsv
 
 # Loading packages 
-pacman::p_load(data.table, vegan, ggplot2,parallel)
+#pacman::p_load(data.table, vegan, ggplot2,parallel)
 
 rm(list = ls())
 output = "/home/baldanzi/Sleep_apnea/Results/"
@@ -24,23 +24,26 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv",header=T, na.strings=c("", "NA")) 
+valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 setnames(valid.ahi, "pob", "placebirth")
 
-# Importing BC matrix 
-BC = fread('OSA.BCmatrix.csv', header=T, sep = ',')
-BC = as.matrix(BC)
-row.names(BC) = colnames(BC)
+# Importing AD matrix 
+print("Import AD matrix")
+AD <-  fread('OSA.aitchison_distmatrix.csv', header=T, sep = ',')
+a <-  AD[,SCAPISid]
+AD[,c("SCAPISid","OSAcat"):=NULL]
+AD <- as.matrix(AD)
+rownames(AD) <- a
 
 # The PERMANOVA function 
-PermanovaFunction = function(outcome, exposure, covari, data, distance = "bray", nodes = 1){
+PermanovaFunction = function(outcome, exposure, covari, data, distance = "euclidean", nodes = 1){
   require(vegan)
   require(parallel)
   require(data.table)
   if(!any(class(data) %in% "data.table")){setDT(data)}
   if(nrow(data)==0){stop("Data has nrow == 0")}
   if(ncol(data)==0){stop("Data has ncol == 0")}
-  if(!any(class(get(outcome)) %in% c("matrix"))){stop("outcome should be a matrix ")}
+  if(!any(class(get(outcome)) %in% c("matrix"))){stop("outcome should be a matrix")}
   if(length(exposure) != 1){stop("exposure should have length == 1 ")}
   
   # Permanova from vegan package cannot handle missing information 
@@ -66,62 +69,65 @@ PermanovaFunction = function(outcome, exposure, covari, data, distance = "bray",
 
 # Transforming two-level factor variables into numeric variables 
 dades = copy(valid.ahi)
-a= c("Sex","ppi", "diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
+a= c("Sex")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
 dades[,placebirth:=as.factor(placebirth)]
 
-# Making sure that BC and dades have the same order of observations 
-dades = dades[match(rownames(BC),dades$SCAPISid),]
+# Making sure that AD and dades have the same order of observations 
+print("Match order of observations")
+print(nrow(dades))
+dades = dades[match(rownames(AD),dades$SCAPISid),]
+print(nrow(dades))
 
 # Outcome - character name (length=1) with matrix distance 
-outc = "BC"
+
+outc = "AD"
 
 # Main Exposure - character name (length=1)
-expo = "ahi"
+expo = "OSAcat"
 
 #Covariates 
 # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
 model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
 # model 2 = model 1 + BMI 
 model2 <-  c(model1,"BMI")
-# model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth 
+# model 3 = model 2 + fiber intake + energy intake+physical activity + education + country of birth 
 model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
 
 # Runing PERMANOVA in parallel ####
+print("prepare paralallel")
 set.seed(123)
 nod=16   # Number of workers to be used 
 cl = makeCluster(nod)
 clusterExport(cl, varlist = c("outc","expo","dades","model1","model2","model3"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
-print("PERMANOVA AHI and BC - Model1")
-print(" ")
+print("run models:1-3")
+print("model1")
 res1 = PermanovaFunction(outcome = outc, exposure = expo, covari = model1, data = dades, nodes = nod)
-print("PERMANOVA AHI and BC - Model2")
-print(" ")
+print("model2")
 res2 = PermanovaFunction(outcome = outc, exposure = expo, covari = model2, data = dades, nodes = nod)
-print("PERMANOVA AHI and BC - Model3")
-print(" ")
+print("model3")
 res3 = PermanovaFunction(outcome = outc, exposure = expo, covari = model3, data = dades, nodes = nod)
 
 stopCluster(cl)
 
 # Saving result
-fwrite(res1, file = paste0(output,"permanova_model1.tsv"), sep="\t")
-fwrite(res2, file = paste0(output,"permanova_model2.tsv"), sep="\t")
-fwrite(res3, file = paste0(output,"permanova_model3.tsv"), sep="\t")
+fwrite(res1, file = paste0(output,"permanova_model1_osa_ad.tsv"), sep="\t")
+fwrite(res2, file = paste0(output,"permanova_model2_osa_ad.tsv"), sep="\t")
+fwrite(res3, file = paste0(output,"permanova_model3_osa_ad.tsv"), sep="\t")
 
 
 
 #---------------------------------------------------------------------------#
 # Sensitivity analysis excluding medication users 
+print("Sensitivity analysis")
 
 # Sensitivity analysis - remove individuals who use medication 
 dades <-  copy(valid.ahi)
@@ -137,27 +143,25 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
 dades[,smokestatus:=as.factor(smokestatus)]
 dades[,leisurePA:=as.factor(leisurePA)]
 dades[,educat:=as.factor(educat)]
 dades[,placebirth:=as.factor(placebirth)]
 
-# Making sure that BC and dades have the same observations 
-BC = as.data.frame(BC) # Transform BC from matrix to data.frame
+# Making sure that AD and dades have the same observations 
+AD = as.data.frame(AD) # Transform AD from matrix to data.frame
 cols = dades[,SCAPISid] # Pass the dades observations ids to a vector
-BC = BC[,cols] # Only keep the BC columns that correspond to dades observations
-BC$SCAPISid = rownames(BC) # Creates a BC variable with the rownames(BC) 
-BC = BC[BC$SCAPISid %in% dades[,SCAPISid], ] # Exclude BC rows that are not present in dades 
-BC$SCAPISid = NULL # Exclude the SCAPISid column 
+AD = AD[,cols] # Only keep the AD columns that correspond to dades observations
+AD$SCAPISid = rownames(AD) # Creates a AD variable with the rownames(AD) 
+AD = AD[AD$SCAPISid %in% dades[,SCAPISid], ] # Exclude AD rows that are not present in dades 
+AD$SCAPISid = NULL # Exclude the SCAPISid column 
 
-BC = as.matrix(BC) # Transform BC back to a matrix
+AD = as.matrix(AD) # Transform AD back to a matrix
 
-dades = dades[match(rownames(BC),dades$SCAPISid),]  # Makes that BC and dades are in the same order
+dades = dades[match(rownames(AD),dades$SCAPISid),]  # Makes that AD and dades are in the same order
 
 # Runing PERMANOVA in parallel ####
-print("PERMANOVA AHI and BC - Model3 No Medication users")
-print(" ")
+print("Running PERMANOVA for model with no medication")
 set.seed(123)
 nod=16   # Number of workers to be used 
 cl = makeCluster(nod)
@@ -169,4 +173,4 @@ res3.nomed = PermanovaFunction(outcome = outc, exposure = expo, covari = model3,
 stopCluster(cl)
 
 # Saving results 
-fwrite(res3.nomed, file = paste0(output,"permanova_model3_nomed.tsv"), sep="\t")
+fwrite(res3.nomed, file = paste0(output,"permanova_model3_nomed_osa_ad.tsv"), sep="\t")

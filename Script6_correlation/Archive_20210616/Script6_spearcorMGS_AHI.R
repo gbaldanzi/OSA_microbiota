@@ -20,7 +20,7 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv",header=T, na.strings=c("", "NA")) 
+valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 setnames(valid.ahi, "pob", "placebirth")
 
 #Calculating  MGS prevalence ####
@@ -30,23 +30,19 @@ data_pa <- decostand(x = valid.ahi[,noms,with=F], "pa")
 # calculate sum per species
 data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
 data_sum$MGS = rownames(data_sum)
-a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
 a = data_sum$MGS[data_sum$prevalence<1] # Bacteroidales_sp.____HG3A.1976 is not present in any participant
+a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
 
 # Removing Bacteroidales_sp.____HG3A.1976 from the dataset 
-valid.ahi <- valid.ahi[ , -a, with=F]  # 1984 MGS remaining 
+valid.ahi <- valid.ahi[ , -a, with=F] 
 
 # Transforming two-level factor variables into numeric variables 
 dades = copy(valid.ahi)
-a= c("Sex")
+a= c("Sex", "diabmed","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
-# Transforming factor variables 
+# Transforming characters to factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,smokestatus:=as.factor(smokestatus)]
-dades[,leisurePA:=as.factor(leisurePA)]
-dades[,educat:=as.factor(educat)]
-dades[,placebirth:=as.factor(placebirth)]
 
 #Spearman correlation function ####
 spearman.function = function(x1, x2, covari=NULL, data){
@@ -100,32 +96,35 @@ model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 model2 <-  c(model1,"BMI")
 # model 3 = model 2 + fiber intake+ Energi intake + physical activity + education + country of birth 
 model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
+model4 <-  c(model3, "diabmed","hypermed","dyslipmed","ppi")
 # OLD model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
 # OLD model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed","ppi")
 
-listmodels=list(model1,model2,model3)
+listmodels=list(model1,model2,model3, model4)
 
 # Preparing parallelism
-c1 = makeCluster(3)
+c1 = makeCluster(4)
 clusterEvalQ(c1, library(vegan))
 clusterEvalQ(c1, library(data.table))
 clusterEvalQ(c1, library(ppcor))
 clusterEvalQ(c1, library(fastDummies))
-clusterExport(c1, c("exposure","outcomes", "dades", "model1", "model2", "model3","spearman.function"))
+clusterExport(c1, c("exposure","outcomes", "dades", "model1", "model2", "model3", "model4","spearman.function"))
 step1 = parLapply(c1, listmodels,function(mod){
   spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades)})
-names(step1) = c("model1", "model2", "model3")
+names(step1) = c("model1", "model2", "model3", "model4")
 step1 = lapply(step1,function(x){x[order(x$q.value),]})
 
 res.model1 = step1[[1]]
 res.model2 = step1[[2]]
 res.model3 = step1[[3]]
+res.model4 = step1[[4]]
 
 res.model1$model= "model1"
 res.model2$model= "model2"
 res.model3$model= "model3"
+res.model4$model= "model4"
 
-step1.res = as.data.table(rbind(res.model1, res.model2, res.model3))
+step1.res = as.data.table(rbind(res.model1, res.model2, res.model3, res.model4))
 stopCluster(c1)
 
 names(step1.res) = c("MGS", "exposure", "cor.coeficient", "p.value", 
@@ -141,16 +140,11 @@ dades <-  dades[dyslipmed == "no",] # 239
 nrow(dades) #2318
 
 # Transforming two-level factor variables into numeric variables 
-a= c("Sex")
+a= c("Sex", "diabmed","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,received:=as.factor(dades$received)]
-dades[,smokestatus:=as.factor(smokestatus)]
-dades[,leisurePA:=as.factor(leisurePA)]
-dades[,educat:=as.factor(educat)]
-dades[,placebirth:=as.factor(placebirth)]
 
 #Prepare data.frame data will receive the results 
 res = data.frame(matrix(ncol=7, nrow=1985))
@@ -158,7 +152,7 @@ res = data.frame(matrix(ncol=7, nrow=1985))
 # Spearman correlation 
 res = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades)
 
-res$model= "model3_noMedication"
+res$model= "SA"
 
 # Sort by q.value 
 res <- res[order(res$q.value),]
@@ -176,15 +170,11 @@ fwrite(step1.res, file = paste0(output,"cor_ahi_mgs.tsv"), sep="\t")
 
 # Transforming two-level factor variables into numeric variables 
 dades = copy(valid.ahi)
-a= c("Sex")
+a= c("Sex", "diabmed","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,smokestatus:=as.factor(smokestatus)]
-dades[,leisurePA:=as.factor(leisurePA)]
-dades[,educat:=as.factor(educat)]
-dades[,placebirth:=as.factor(placebirth)]
 
 # By BMI group 
 print("By BMI group")
@@ -193,34 +183,37 @@ for(group in unique(valid.ahi[,BMIcat])){
   dades2 = dades[BMIcat==group,]
 print(group)
 # Preparing parallelism
-c1 = makeCluster(3)
+c1 = makeCluster(4)
 clusterEvalQ(c1, library(vegan))
 clusterEvalQ(c1, library(data.table))
 clusterEvalQ(c1, library(ppcor))
 clusterEvalQ(c1, library(fastDummies))
-clusterExport(c1, c("exposure","outcomes", "dades2", "model1", "model2", "model3","spearman.function"))
+clusterExport(c1, c("exposure","outcomes", "dades2", "model1", "model2", "model3", "model4","spearman.function"))
 t0 = Sys.time()
 step1 = parLapply(c1, listmodels,function(mod){
   spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
 t1 = Sys.time()
 print(t1-t0)
 
-names(step1) = c("model1", "model2", "model3")
+names(step1) = c("model1", "model2", "model3", "model4")
 step1 = lapply(step1,function(x){x[order(x$q.value),]})
 
 res.model1 = step1[[1]]
 res.model2 = step1[[2]]
 res.model3 = step1[[3]]
+res.model4 = step1[[4]]
 
 res.model1$model= "model1"
 res.model2$model= "model2"
 res.model3$model= "model3"
+res.model4$model= "model4"
 
 res.model1$bmi= group
 res.model2$bmi= group
 res.model3$bmi= group
+res.model4$bmi= group
 
-step1.res = as.data.table(rbind(res.model1, res.model2, res.model3))
+step1.res = as.data.table(rbind(res.model1, res.model2, res.model3, res.model4))
 stopCluster(c1)
 
 names(step1.res) = c("MGS", "exposure", "cor.coeficient", "p.value", 
@@ -237,15 +230,11 @@ dades <-  dades[dyslipmed == "no",] # 239
 nrow(dades) #2318
 
 # Transforming two-level factor variables into numeric variables 
-a= c("Sex")
+a= c("Sex", "diabmed","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,smokestatus:=as.factor(smokestatus)]
-dades[,leisurePA:=as.factor(leisurePA)]
-dades[,educat:=as.factor(educat)]
-dades[,placebirth:=as.factor(placebirth)]
 
 # By BMI group 
   dades2 = dades[BMIcat==group,]
@@ -257,7 +246,7 @@ dades[,placebirth:=as.factor(placebirth)]
 # Spearman correlation 
   res = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades2)
 
-  res$model= "model3_noMedication"
+  res$model= "SA"
   res$bmi = group 
 
 # Sort by q.value 

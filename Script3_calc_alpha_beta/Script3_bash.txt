@@ -1,0 +1,21 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 24:00:00
+#SBATCH -J script3
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+cd /proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512
+
+ml R_packages
+Rscript Script3.main.R
+
+echo ""
+echo "Now running the Rmarkdown"
+echo ""
+
+
+Rscript -e 'rmarkdown::render("Descrip.Rmd")'

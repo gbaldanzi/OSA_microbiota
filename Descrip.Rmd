@@ -28,11 +28,6 @@ output:
     pre {
   font-size: 12px
     }
-    div.tocify {
-  width: 20%;
-  max-width: 300px;
-  max-height: 85%;
-    }
     .tocify-header {
     text-indent: initial;
 }
@@ -42,19 +37,12 @@ output:
 }
     ```
 
-# Sleep recording 
-   
-```{r apnealinkpicture, echo=FALSE, fig.align='left', out.width="30%", out.height="30%"}
-knitr::include_graphics("apnealink.jpeg")
-```
-   
-<br>
-   
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	echo = FALSE,
 	message = FALSE,
-	warning = FALSE
+	warning = FALSE, 
+	fig.align = 'center'
 )
 options(width = 20)
 library(grid)
@@ -71,7 +59,16 @@ library(kableExtra)
 library(compareGroups)
 library(RColorBrewer)
 library(pROC)
+library(DT)
 ```
+
+# Sleep recording 
+   
+```{r apnealinkpicture, echo=FALSE, fig.align='left', out.width="30%", out.height="30%"}
+knitr::include_graphics("apnealink.jpeg")
+```
+   
+<br>
 
 ```{r chunk1, message=FALSE, warning=FALSE, include=FALSE}
 rm(list=ls())
@@ -215,7 +212,7 @@ Variables:
 # Histogram AHI
 p3 = ggplot(data = valid.ahi, aes(x=ahi)) + 
   geom_histogram(color="black", fill="lightskyblue2") +
-  geom_density(alpha=.2, fill="#FF6666") +
+  geom_density(alpha=.3, fill="#FF6666") +
   ggtitle("Hist Apnea-hypopnea index (AHI)") +  xlab("") + 
   geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
   geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
@@ -514,7 +511,7 @@ knitr::kable(as.data.table(t), caption = "AHI by smoking status",table.attr = "s
 
 ***
 
-##### T90 {-}
+##### T90% {-}
 
 ```{r plotsahiandsmoking2, echo =FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 
@@ -523,7 +520,7 @@ valid.odi$smokestatus = factor(valid.odi$smokestatus,levels = c("never","former"
 a=table(valid.odi$smokestatus, useNA = "ifany")
 psmoke = ggplot(data = valid.odi, aes(y=sat90)) + 
   geom_boxplot(aes(x=smokestatus, fill=smokestatus))  +
-  ggtitle("T90 and smoking") +  xlab("Smoking status") + ylab("T90") +
+  ggtitle("T90% and smoking") +  xlab("Smoking status") + ylab("T90%") +
   theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5), 
         axis.title = element_text(size = 13, face = "bold"),
         axis.text.x = element_text(size=13),
@@ -533,7 +530,7 @@ print(psmoke)
 
 # Create table of t90 by smokestatus 
 t = valid.odi %>% group_by(smokestatus) %>% summarise(N=length(sat90), median_t90 = round(median(sat90),1), mean_t90 = mean(sat90), sd_t90 = round(sd(sat90),1))
-knitr::kable(as.data.table(t), caption = "T90 by smoking status",table.attr = "style='width:80%;'") %>% 
+knitr::kable(as.data.table(t), caption = "T90% by smoking status",table.attr = "style='width:80%;'") %>% 
   kable_styling(bootstrap_options = c("striped", "hover"))
 ``` 
 
@@ -842,8 +839,8 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/family_abundance
 ## Shannon index 
 
 ```{r plotsshannon,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv", header = T)
+setwd("/home/baldanzi/Datasets/sleep_SCAPIS/")
+valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 
 # Hist shannon diversity 
 phistshannon=ggplot(data=valid.ahi,aes(x=shannon))+
@@ -888,8 +885,8 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
-shannoncor[2:4,p.val:=as.character(round(p.value,digits = 3))]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
+shannoncor[2:nrow(shannoncor),p.val:=as.character(round(p.value,digits = 3))]
 shannoncor[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -908,7 +905,7 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
 shannoncor[,p.val:=round(p.value,digits = 3)]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -925,7 +922,7 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
 shannoncor[,p.val:=round(p.value,digits = 3)]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -942,7 +939,7 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
 shannoncor[,p.val:=round(p.value,digits = 3)]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -954,9 +951,9 @@ knitr::kable(shannoncor, caption = "Correlation between T90% and Shannon diversi
 1. Model 1 = sex + age + smoking + alcohol + plate 
 2. Model 2 = + BMI 
 3. Model 3 = + PA + education + place birth + fiber intake + energy intake
+4. Model 4 = + PPI + metformin + antihypertensive + cholesterol-lowering 
   
-4. Model 3_noMedication = removed medication users 
-(PPI,Metformin,anti-hypertension and cholesterol-lowering) 
+5. SA = Model 3 but removed medication users 
 
 <br>
 <br>
@@ -982,7 +979,7 @@ print(p3)
 
 <br>
    
-### Shannon and T90 
+### Shannon and T90% 
 
 ```{r T90shannon, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="50%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.T90.png")
@@ -1001,8 +998,8 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
-shannoncor[2:4,p.val:=as.character(round(p.value,digits = 3))]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
+shannoncor[2:nrow(shannoncor),p.val:=as.character(round(p.value,digits = 3))]
 shannoncor[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -1020,8 +1017,8 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
-shannoncor[2:4,p.val:=as.character(round(p.value,digits = 3))]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
+shannoncor[2:nrow(shannoncor),p.val:=as.character(round(p.value,digits = 3))]
 shannoncor[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -1039,8 +1036,8 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
-shannoncor[2:4,p.val:=as.character(round(p.value,digits = 3))]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
+shannoncor[2:nrow(shannoncor),p.val:=as.character(round(p.value,digits = 3))]
 shannoncor[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -1057,8 +1054,8 @@ temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
 setnames(shannoncor, "exposure", "Var 2")
-shannoncor[,cor.coeficient:=round(cor.coeficient,3)]
-shannoncor[2:4,p.val:=as.character(round(p.value,digits = 3))]
+shannoncor[,cor.coefficient:=round(cor.coefficient,3)]
+shannoncor[2:nrow(shannoncor),p.val:=as.character(round(p.value,digits = 3))]
 shannoncor[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 shannoncor[,p.value:=NULL]
 setcolorder(shannoncor,c("model"))
@@ -1071,9 +1068,10 @@ knitr::kable(shannoncor, caption = "Correlation between T90% and Shannon diversi
 1. Model 1 = sex + age + smoking + alcohol + plate 
 2. Model 2 = + BMI 
 3. Model 3 = + PA + education + place birth + fiber intake + energy intake
+4. Model 4 = + PPI + metformin + antihypertensive + cholesterol-lowerring
   
 4. Model 3_noMedication = removed medication users 
-(PPI,Metformin,anti-hypertension and cholesterol-lowering) 
+(PPI,Metformin,antihypertensive and cholesterol-lowering) 
 
 ***
 
@@ -1081,14 +1079,52 @@ knitr::kable(shannoncor, caption = "Correlation between T90% and Shannon diversi
 
 # Beta-diversity 
 
-## PCA biplot {.tabset}
+## PCoA biplot {.tabset}
 
 ### Bray-curtis dissimilarity - OSA groups {-}
    
 ```{r BCOSA, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
+
+perma_OSA_BC1 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_bc.tsv')
+perma_OSA_BC2 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_bc.tsv')
+perma_OSA_BC3 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_bc.tsv')
+perma_OSA_BC4 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_osa_bc.tsv')
+perma_OSA_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_bc.tsv')
+
+n1 = perma_OSA_BC1[variables =="OSAcat", 'Pr(>F)']
+n2 = perma_OSA_BC2[variables =="OSAcat", 'Pr(>F)']
+n3 = perma_OSA_BC3[variables =="OSAcat", 'Pr(>F)']
+n4 = perma_OSA_BC4[variables =="OSAcat", 'Pr(>F)']
+nsa = perma_OSA_BCsa[variables =="OSAcat", 'Pr(>F)']
+
+perma_AHI_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_bc.tsv')
+perma_AHI_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_bc.tsv')
+perma_AHI_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_bc.tsv')
+perma_AHI_BC4= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_ahi_bc.tsv')
+perma_AHI_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed.tsv')
+
+x1 = perma_AHI_BC1[variables =="ahi", 'Pr(>F)']
+x2 = perma_AHI_BC2[variables =="ahi", 'Pr(>F)']
+x3 = perma_AHI_BC3[variables =="ahi", 'Pr(>F)']
+x4 = perma_AHI_BC4[variables =="ahi", 'Pr(>F)']
+xsa = perma_AHI_BCsa[variables =="ahi", 'Pr(>F)']
 ```
 
+PERMANOVA for OSA groups     
+ * model 1 - p-value = `r n1`   
+ * model 2 - p-value = `r n2`   
+ * model 3 - p-value = `r n3`    
+ * model 4 - p-value = `r n4`
+ * sens analysis  - p-value = `r nsa`    
+    
+PERMANOVA for AHI     
+ * model 1 - p-value = `r x1`        
+ * model 2 - p-value = `r x2`    
+ * model 3 - p-value = `r x3`   
+ * model 4 - p-value = `r x4`  
+ * sens analysis - p-value = `r xsa`      
+    
 &nbsp; 
 
 ***
@@ -1097,27 +1133,96 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
    
 ```{r BCOSA2, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Atdist.OSAcat.png")
+
+
+perma_OSA_AD1 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_ad.tsv')
+perma_OSA_AD2 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_ad.tsv')
+perma_OSA_AD3 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_ad.tsv')
+perma_OSA_ADsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_ad.tsv')
+
+n1 = perma_OSA_AD1[variables =="OSAcat", 'Pr(>F)']
+n2 = perma_OSA_AD2[variables =="OSAcat", 'Pr(>F)']
+n3 = perma_OSA_AD3[variables =="OSAcat", 'Pr(>F)']
+nsa = perma_OSA_ADsa[variables =="OSAcat", 'Pr(>F)']
+
+perma_AHI_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_ad.tsv')
+perma_AHI_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_ad.tsv')
+perma_AHI_AD3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_ad.tsv')
+perma_AHI_ADsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_ahi_ad.tsv')
+
+x1 = perma_AHI_AD1[variables =="ahi", 'Pr(>F)']
+x2 = perma_AHI_AD2[variables =="ahi", 'Pr(>F)']
+x3 = perma_AHI_AD3[variables =="ahi", 'Pr(>F)']
+xsa = perma_AHI_ADsa[variables =="ahi", 'Pr(>F)']
 ```
+
+PERMANOVA for OSA groups     
+* model 1 - p-value = `r n1`   
+* model 2 - p-value = `r n2`   
+* model 3 - p-value = `r n3`   
+* sens analysis  - p-value = `r nsa`    
+    
+PERMANOVA for AHI     
+* model 1 - p-value = `r x1`     
+* model 2 - p-value = `r x2`    
+* model 3 - p-value = `r x3`    
+* sens analysis  - p-value = `r xsa`   
+
 
 &nbsp; 
 
 ***
 
-### Bray-curtis dissimilarity - T90 {-}
+### Bray-curtis dissimilarity - T90% {-}
    
 ```{r BCOSA3, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.T90.png")
+
+perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_BC.tsv')
+perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_BC.tsv')
+perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_BC.tsv')
+perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_BC.tsv')
+
+n1 = perma_t90_BC1[variables =="T90", 'Pr(>F)']
+n2 = perma_t90_BC2[variables =="T90", 'Pr(>F)']
+n3 = perma_t90_BC3[variables =="T90", 'Pr(>F)']
+nsa = perma_t90_BCsa[variables =="T90", 'Pr(>F)']
 ```
+
+PERMANOVA for T90%     
+* model 1 - p-value = `r n1`    
+* model 2 - p-value = `r n2`     
+* model 3 - p-value = `r n3`     
+* sens analysis  - p-value = `r nsa`     
 
 &nbsp; 
 
 ***
 
-### Aitchison distance - T90 {-}
+### Aitchison distance - T90% {-}
    
 ```{r BCOSA4, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Atdist.T90.png")
+
+
+perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_ad.tsv')
+perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_ad.tsv')
+perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_ad.tsv')
+perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_ad.tsv')
+
+n1 = perma_t90_BC1[variables =="T90", 'Pr(>F)']
+n2 = perma_t90_BC2[variables =="T90", 'Pr(>F)']
+n3 = perma_t90_BC3[variables =="T90", 'Pr(>F)']
+nsa = perma_t90_BCsa[variables =="T90", 'Pr(>F)']
 ```
+
+PERMANOVA for T90%     
+* model 1 - p-value = `r n1`    
+* model 2 - p-value = `r n2`     
+* model 3 - p-value = `r n3`     
+* sens analysis  - p-value = `r nsa`     
+
+&nbsp; 
 
 &nbsp; 
 
@@ -1215,10 +1320,10 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_AD_sever
 
 #### model 1 {-}
    
-```{r permanovaOSA, echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_bc.tsv')
-perma_OSA_BC = apply(perma_OSA_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 1") %>% kable_styling()
+```{r permanovaOSA, }
+perma_OSA_BC1 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_bc.tsv')
+perma_OSA_BC1 = apply(perma_OSA_BC1,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_BC1, caption = "OSA and BC - model 1") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1227,10 +1332,10 @@ knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 1") %>% kable_styling()
 
 #### model 2 {-}
    
-```{r permanovaOSA2, echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_bc.tsv')
-perma_OSA_BC = apply(perma_OSA_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 2") %>% kable_styling()
+```{r permanovaOSA2, }
+perma_OSA_BC2 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_bc.tsv')
+perma_OSA_BC2 = apply(perma_OSA_BC2,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_BC2, caption = "OSA and BC - model 2") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1239,10 +1344,22 @@ knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 2") %>% kable_styling()
 
 #### model 3 {-}
    
-```{r permanovaOSA3, echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_bc.tsv')
-perma_OSA_BC = apply(perma_OSA_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 3") %>% kable_styling()
+```{r permanovaOSA3, }
+perma_OSA_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_bc.tsv')
+perma_OSA_BC3 = apply(perma_OSA_BC3,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_BC3, caption = "OSA and BC - model 3") %>% kable_styling()
+```
+
+&nbsp;
+
+***
+
+ #### model 4 {-}
+   
+```{r permanovaOSA4, }
+perma_OSA_BC4= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_osa_bc.tsv')
+perma_OSA_BC4 = apply(perma_OSA_BC4,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_BC4, caption = "OSA and BC - model 4") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1253,10 +1370,10 @@ knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 3") %>% kable_styling()
    
  Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
    
-```{r permanovaOSA4, echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_bc.tsv')
-perma_OSA_BC = apply(perma_OSA_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 3 no medication") %>% kable_styling()
+```{r permanovaOSAsa, }
+perma_OSA_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_bc.tsv')
+perma_OSA_BCsa = apply(perma_OSA_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_BCsa, caption = "OSA and BC - model 3 no medication") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1267,56 +1384,65 @@ knitr::kable(perma_OSA_BC, caption = "OSA and BC - model 3 no medication") %>% k
    
 #### model 1 {-}
    
-```{r permanovaAHI1, echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1.tsv')
-perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 1") %>% kable_styling()
+```{r permanovaAHI1, }
+perma_AHI_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_bc.tsv')
+perma_AHI_BC1 = apply(perma_AHI_BC1,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC1, caption = "AHI and BC - model 1") %>% kable_styling()
 ```
 <br>
 
 ***
 
 #### model 2 {-}
-```{r permanovaAHI2, echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2.tsv')
-perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 2") %>% kable_styling()
+```{r permanovaAHI2, }
+perma_AHI_BC2 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_bc.tsv')
+perma_AHI_BC2 = apply(perma_AHI_BC2,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC2, caption = "AHI and BC - model 2") %>% kable_styling()
 ```
 <br>
 
 ***
 
 #### model 3 {-}
-```{r permanovaAHI3, echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3.tsv')
-perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 3") %>% kable_styling()
+```{r permanovaAHI3, }
+perma_AHI_BC3 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_bc.tsv')
+perma_AHI_BC3 = apply(perma_AHI_BC3,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC3, caption = "AHI and BC - model 3") %>% kable_styling()
+```
+<br>
+
+***
+#### model 4 {-}
+```{r permanovaAHI4, }
+perma_AHI_BC4 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_ahi_bc.tsv')
+perma_AHI_BC4 = apply(perma_AHI_BC4,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BC4, caption = "AHI and BC - model 4") %>% kable_styling()
 ```
 <br>
 
 ***
 
-#### model 3 - no medication {-}
+#### Sens Analysis {-}
   
 Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
   
-```{r permanovaAHI4, echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed.tsv')
-perma_AHI_BC = apply(perma_AHI_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_BC, caption = "AHI and BC - model 3 no medication") %>% kable_styling()
+```{r permanovaAHI5, }
+perma_AHI_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed.tsv')
+perma_AHI_BCsa = apply(perma_AHI_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BCsa, caption = "AHI and BC - model 3 no medication") %>% kable_styling()
 ```
 <br>
 
 ***
 
-### T90 {.tabset}
+### T90% {.tabset}
 
 #### model 1 {-}
    
-```{r permanovat90, echo=FALSE, message=FALSE, warning=FALSE}
-perma_t90_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_BC.tsv')
-perma_t90_BC = apply(perma_t90_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_t90_BC, caption = "T90 and BC - model 1") %>% kable_styling()
+```{r permanovat90, }
+perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_BC.tsv')
+perma_t90_BC1 = apply(perma_t90_BC1,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_t90_BC1, caption = "T90% and BC - model 1") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1325,10 +1451,10 @@ knitr::kable(perma_t90_BC, caption = "T90 and BC - model 1") %>% kable_styling()
 
 #### model 2 {-}
    
-```{r permanovat902, echo=FALSE, message=FALSE, warning=FALSE}
-perma_t90_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_BC.tsv')
-perma_t90_BC = apply(perma_t90_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_t90_BC, caption = "T90 and BC - model 2") %>% kable_styling()
+```{r permanovat902, }
+perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_BC.tsv')
+perma_t90_BC2 = apply(perma_t90_BC2,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_t90_BC2, caption = "T90% and BC - model 2") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1337,10 +1463,10 @@ knitr::kable(perma_t90_BC, caption = "T90 and BC - model 2") %>% kable_styling()
 
 #### model 3 {-}
    
-```{r permanovat903, echo=FALSE, message=FALSE, warning=FALSE}
-perma_t90_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_BC.tsv')
-perma_t90_BC = apply(perma_t90_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_t90_BC, caption = "T90 and BC - model 3") %>% kable_styling()
+```{r permanovat903, }
+perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_BC.tsv')
+perma_t90_BC3 = apply(perma_t90_BC3,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_t90_BC3, caption = "T90% and BC - model 3") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1351,10 +1477,10 @@ knitr::kable(perma_t90_BC, caption = "T90 and BC - model 3") %>% kable_styling()
    
  Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
    
-```{r permanovat904, echo=FALSE, message=FALSE, warning=FALSE}
-perma_t90_BC= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_BC.tsv')
-perma_t90_BC = apply(perma_t90_BC,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_t90_BC, caption = "T90 and BC - model 3 no medication") %>% kable_styling()
+```{r permanovat904, }
+perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_BC.tsv')
+perma_t90_BCsa = apply(perma_t90_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_t90_BCsa, caption = "T90% and BC - model 3 no medication") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1372,9 +1498,9 @@ knitr::kable(perma_t90_BC, caption = "T90 and BC - model 3 no medication") %>% k
 #### model 1 {-}
    
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_ad.tsv')
-perma_OSA_AD = apply(perma_OSA_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 1") %>% kable_styling()
+perma_OSA_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_ad.tsv')
+perma_OSA_AD1 = apply(perma_OSA_AD1,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_AD1, caption = "OSA and AD - model 1") %>% kable_styling()
 ```
 <br>
 
@@ -1382,9 +1508,9 @@ knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 1") %>% kable_styling()
 
 #### model 2 {-}
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_ad.tsv')
-perma_OSA_AD = apply(perma_OSA_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 2") %>% kable_styling()
+perma_OSA_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_ad.tsv')
+perma_OSA_AD2 = apply(perma_OSA_AD2,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_AD2, caption = "OSA and AD - model 2") %>% kable_styling()
 ```
 <br>
 
@@ -1392,9 +1518,9 @@ knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 2") %>% kable_styling()
 
 #### model 3 {-}
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_ad.tsv')
-perma_OSA_AD = apply(perma_OSA_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 3") %>% kable_styling()
+perma_OSA_AD3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_ad.tsv')
+perma_OSA_AD3 = apply(perma_OSA_AD3,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_AD3, caption = "OSA and AD - model 3") %>% kable_styling()
 ```
 <br>
 
@@ -1405,9 +1531,9 @@ knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 3") %>% kable_styling()
 Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
   
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_ad.tsv')
-perma_OSA_AD = apply(perma_OSA_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 3 no medication") %>% kable_styling()
+perma_OSA_ADsa <-  fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_ad.tsv')
+perma_OSA_ADsa <-  apply(perma_OSA_ADsa,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_OSA_ADsa, caption = "OSA and AD - model 3 no medication") %>% kable_styling()
 ```
 <br>
 
@@ -1420,9 +1546,9 @@ knitr::kable(perma_OSA_AD, caption = "OSA and AD - model 3 no medication") %>% k
 #### model 1 {-}
    
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_ad.tsv')
-perma_AHI_AD = apply(perma_AHI_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_AD, caption = "AHI and AD - model 1") %>% kable_styling()
+perma_AHI_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_ad.tsv')
+perma_AHI_AD1 = apply(perma_AHI_AD1,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_AD1, caption = "AHI and AD - model 1") %>% kable_styling()
 ```
 <br>
 
@@ -1430,9 +1556,9 @@ knitr::kable(perma_AHI_AD, caption = "AHI and AD - model 1") %>% kable_styling()
 
 #### model 2 {-}
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_ad.tsv')
-perma_AHI_AD = apply(perma_AHI_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_AD, caption = "AHI and AD - model 2") %>% kable_styling()
+perma_AHI_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_ad.tsv')
+perma_AHI_AD2 = apply(perma_AHI_AD2,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_AD2, caption = "AHI and AD - model 2") %>% kable_styling()
 ```
 <br>
 
@@ -1440,22 +1566,22 @@ knitr::kable(perma_AHI_AD, caption = "AHI and AD - model 2") %>% kable_styling()
 
 #### model 3 {-}
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_ad.tsv')
-perma_AHI_AD = apply(perma_AHI_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_AD, caption = "AHI and AD - model 3") %>% kable_styling()
+perma_AHI_AD3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_ad.tsv')
+perma_AHI_AD3 = apply(perma_AHI_AD3,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_AD3, caption = "AHI and AD - model 3") %>% kable_styling()
 ```
 <br>
 
 ***
 
-#### model 3 - no medication {-}
+#### Sens. Analysis  {-}
   
 Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
   
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_ahi_ad.tsv')
-perma_AHI_AD = apply(perma_AHI_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_AD, caption = "AHI and AD - model 3 no medication") %>% kable_styling()
+perma_AHI_ADsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_ahi_ad.tsv')
+perma_AHI_ADsa = apply(perma_AHI_ADsa,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_ADsa, caption = "AHI and AD - model 3 no medication") %>% kable_styling()
 ```
 <br>
 
@@ -1468,9 +1594,9 @@ knitr::kable(perma_AHI_AD, caption = "AHI and AD - model 3 no medication") %>% k
 #### model 1 {-}
    
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_ad.tsv')
-perma_T90_AD = apply(perma_T90_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_AD, caption = "T90 and AD - model 1") %>% kable_styling()
+perma_T90_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_ad.tsv')
+perma_T90_AD1 = apply(perma_T90_AD1,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_T90_AD1, caption = "T90% and AD - model 1") %>% kable_styling()
 ```
 <br>
 
@@ -1478,9 +1604,9 @@ knitr::kable(perma_T90_AD, caption = "T90 and AD - model 1") %>% kable_styling()
 
 #### model 2 {-}
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_ad.tsv')
-perma_T90_AD = apply(perma_T90_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_AD, caption = "T90 and AD - model 2") %>% kable_styling()
+perma_T90_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_ad.tsv')
+perma_T90_AD2 = apply(perma_T90_AD2,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_T90_AD2, caption = "T90% and AD - model 2") %>% kable_styling()
 ```
 <br>
 
@@ -1488,46 +1614,59 @@ knitr::kable(perma_T90_AD, caption = "T90 and AD - model 2") %>% kable_styling()
 
 #### model 3 {-}
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_ad.tsv')
-perma_T90_AD = apply(perma_T90_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_AD, caption = "T90 and AD - model 3") %>% kable_styling()
+perma_T90_AD3 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_ad.tsv')
+perma_T90_AD3 = apply(perma_T90_AD3,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_T90_AD3, caption = "T90% and AD - model 3") %>% kable_styling()
 ```
 <br>
 
 ***
 
-#### model 3 - no medication {-}
+#### Sens. Analysis {-}
   
 Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
   
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_AD= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_ad.tsv')
-perma_T90_AD = apply(perma_T90_AD,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_AD, caption = "T90 and AD - model 3 no medication") %>% kable_styling()
+perma_T90_ADsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_ad.tsv')
+perma_T90_ADsa = apply(perma_T90_ADsa,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_T90_ADsa, caption = "T90% and AD - model 3 no medication") %>% kable_styling()
 ```
 <br>
 
 ***
+```{r, }
+# Correlation t90 and ahi
+setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+valid.t90 <- readRDS("valid.t90_MGS.shannon_Upp.rds")
+n = round(with(valid.t90[!is.na(ahi),], cor(t90,ahi, method='spearman')),3)
+``` 
 
 # Sleep apnea and MGSs 
 
 We included two sleep apnea variables in the analyses, namely AHI and T90%.  
-AHI is the most used variable for obstructive sleep apnea diagnosis.   
-T90% is a measure of hypoxemia. Hypoxemia has gained more and more attention in the sleep apnea field due to its connection with comorbidities. 
-We tested the Spearman correlation between these variables and 1984 MGSs.   
+- AHI is the most used variable for obstructive sleep apnea diagnosis.   
+- T90% is a measure of hypoxemia. Hypoxemia has gained more and more attention in sleep apnea due to its connection with morbidities.   
+    
+Cor. between AHI and T90% = **`r n`**
+    
+After removing MGSs that were present in 5 individuals or fewer, we tested the Spearman correlation between these variables and MGSs.
    
 Models: 
    
-1. Model 1 = sex + age + smoking + alcohol + sequencing plate 
+1. Model 1 = sex + age + smoking + alcohol + sequencing plate + shannon
 2. Model 2 = + BMI 
 3. Model 3 = + PA + education + place birth + fiber intake + energy intake
+4. Model 4 = + PPI + metformin + antihypertensive + cholesterol-lowering 
   
-4. Model 3_noMedication = removed medication users 
-(PPI,Metformin,anti-hypertension and cholesterol-lowering) 
+5. SA = removed medication users 
 
 &nbsp;
 
 ## AHI and MGS {.tabset}
+    
+1966 MGS
+
+<br>
 
 ### model1 {-}
 
@@ -1541,16 +1680,25 @@ n = median(cor.ahi[model=="model1", N],na.rm=T)
 ggplot(cor.ahi[model=="model1",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
   ggtitle(label="Spearman cor. AHI and MGS - model1",
-          subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+          subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
-t = cor.ahi[model=="model1",] %>% filter(q.value<0.05) %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
+t = cor.ahi[model=="model1",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
 t$cor = round(t$cor,digits = 3)
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if (data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 &nbsp;
 
@@ -1565,16 +1713,25 @@ n = median(cor.ahi[model=="model2", N],na.rm=T)
 ggplot(cor.ahi[model=="model2",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
   ggtitle(label="Spearman cor.AHI and MGS - model2",
-  subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
 t = cor.ahi[model=="model2",] %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
-t$cor = round(t$cor,digits = 3) 
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t$cor = round(t$cor,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)] 
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1590,43 +1747,95 @@ n = median(cor.ahi[model=="model3", N],na.rm=T)
 ggplot(cor.ahi[model=="model3",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
   ggtitle(label="Spearman cor. AHI and MGS - model3",
-  subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
 t = cor.ahi[model=="model3",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
 t$cor = round(t$cor,digits = 3)
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if (data[i]<0.001  & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 
 &nbsp;
 
 *** 
 
-### model 3 - no medication {-}
-
-Equal to model 3, but medication users were removed. 
+### model 4 {-}
    
 ```{r, echo=FALSE, warning=FALSE, message=FALSE,fig.align='center',out.width="70%", out.height="70%"}
-a = sum(cor.ahi[model=="model3_noMedication",q.value]<.05,na.rm=T)
-n = median(cor.ahi[model=="model3_noMedication", N],na.rm=T)
+a = sum(cor.ahi[model=="model4",q.value]<.05,na.rm=T)
+n = median(cor.ahi[model=="model4", N],na.rm=T)
 
-ggplot(cor.ahi[model=="model3_noMedication",],aes(y=-log(q.value),x=phylum,color=phylum))+
+ggplot(cor.ahi[model=="model4",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
-  ggtitle(label="Spearman cor. AHI and MGS - model3 no medication users",
-  subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  ggtitle(label="Spearman cor. AHI and MGS - model4",
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
-t = cor.ahi[model=="model3_noMedication",] %>%  select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
+t = cor.ahi[model=="model4",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
+t$cor = round(t$cor,digits = 3) 
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+```
+
+&nbsp;
+
+*** 
+
+### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, echo=FALSE, warning=FALSE, message=FALSE,fig.align='center',out.width="70%", out.height="70%"}
+a = sum(cor.ahi[model=="SA",q.value]<.05,na.rm=T)
+n = median(cor.ahi[model=="SA", N],na.rm=T)
+
+ggplot(cor.ahi[model=="SA",],aes(y=-log(q.value),x=phylum,color=phylum))+
+  geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
+  ggtitle(label="Spearman cor. AHI and MGS - model3 no medication users",
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  theme(plot.title = element_text(size=14, face="bold", hjust=.5),
+        axis.text.x = element_text(angle=45,hjust = 1),
+        legend.position = "none")
+
+t = cor.ahi[model=="SA",] %>%  select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
 t$cor = round(t$cor,digits = 3)
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1634,6 +1843,8 @@ knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.att
 *** 
 
 ## T90% and MGS {.tabset}
+    
+1969 MGS
 
 <br>
 
@@ -1649,16 +1860,25 @@ n = median(cor.t90[model=="model1", N],na.rm=T)
 ggplot(cor.t90[model=="model1",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
   ggtitle(label="Spearman cor. T90% and MGS - model1",
-  subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
 t = cor.t90[model=="model1",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
 t$cor = round(t$cor,digits = 3)
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001  & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 &nbsp;
 
@@ -1673,16 +1893,25 @@ n = median(cor.t90[model=="model2", N],na.rm=T)
 ggplot(cor.t90[model=="model2",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
    ggtitle(label="Spearman cor. T90% and MGS - model2",
-  subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
 t = cor.t90[model=="model2",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
 t$cor = round(t$cor,digits = 3)
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001  & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 
 &nbsp;
@@ -1698,49 +1927,1059 @@ n = median(cor.t90[model=="model3", N],na.rm=T)
 ggplot(cor.t90[model=="model3",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
    ggtitle(label="Spearman cor. T90% and MGS - model3",
-  subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
 t = cor.t90[model=="model3",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
 t$cor = round(t$cor,digits = 3)
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 
 &nbsp;
 
 *** 
 
-### model 3 - no medication {-}
-
-Equal to model 3, but medication users were removed. 
+### model 4 {-}
    
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center',out.width="70%", out.height="70%"}
-a = sum(cor.t90[model=="model3_noMedication",q.value]<.05,na.rm=T)
-n = median(cor.t90[model=="model3_noMedication", N],na.rm=T)
+```{r, out.width="70%", out.height="70%"}
+a = sum(cor.t90[model=="model4",q.value]<.05,na.rm=T)
+n = median(cor.t90[model=="model4", N],na.rm=T)
 
-ggplot(cor.t90[model=="model3_noMedication",],aes(y=-log(q.value),x=phylum,color=phylum))+
+ggplot(cor.t90[model=="model4",],aes(y=-log(q.value),x=phylum,color=phylum))+
   geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
-   ggtitle(label="Spearman cor. T90% and MGS - model3 no medication users",
-  subtitle = paste0("N = ",n," . Correlations FDR p-value<.05: ",a)) + xlab("Phyla") +
+   ggtitle(label="Spearman cor. T90% and MGS - model4",
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
   theme(plot.title = element_text(size=14, face="bold", hjust=.5),
         axis.text.x = element_text(angle=45,hjust = 1),
         legend.position = "none")
 
-t = cor.t90[model=="model3_noMedication",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
+t = cor.t90[model=="model4",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
 t$cor = round(t$cor,digits = 3)
-t$p.value = formatC(t$p.value,digits = 2, format ="e")
-t$q.value = formatC(t$q.value,digits = 2, format ="e")
-knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
 ```
 
 &nbsp;
 
 *** 
 
+### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, fig.align='center',out.width="70%", out.height="70%"}
+a = sum(cor.t90[model=="SA",q.value]<.05,na.rm=T)
+n = median(cor.t90[model=="SA", N],na.rm=T)
+
+ggplot(cor.t90[model=="SA",],aes(y=-log(q.value),x=phylum,color=phylum))+
+  geom_jitter() + geom_hline(yintercept = -log(0.05), lty=2, color="darkred")+
+   ggtitle(label="Spearman cor. T90% and MGS - model3 no medication users",
+  subtitle = paste0("N = ",n,".\nCorrelations FDR p-value<.05: ",a)) + xlab("Phyla") +
+  theme(plot.title = element_text(size=14, face="bold", hjust=.5),
+        axis.text.x = element_text(angle=45,hjust = 1),
+        legend.position = "none")
+
+t = cor.t90[model=="SA",]  %>% select(MGS, exposure, cor, p.value,q.value,N) %>% arrange(q.value)
+t$cor = round(t$cor,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+#knitr::kable(head(t,10), caption = "Correlations with lowest p-value", table.attr = "style='width:100%;'") %>% kable_styling()
+```
+
+&nbsp;
+
+*** 
+
+## AHI - BMI strat {.tabset}
+
+### BMI<25 {.tabset}
+
+<br>
+
+#### model1 {-}
+
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_1_model1.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_<25_model1.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 2 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_1_model2.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_<25_model2.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 3 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_1_model3.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_<25_model3.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### model 4 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_1_model4.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_<25_model4.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_1_SA.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_<25_SA.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+```
+
+&nbsp;
+
+
+***
+
+### BMI 25-30 {.tabset}
+
+<br>
+
+#### model1 {-}
+
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_2_model1.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_25-30_model1.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 2 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_2_model2.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_25-30_model2.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 3 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_2_model3.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_25-30_model3.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### model 4 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_2_model4.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_25-30_model4.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_2_SA.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_25-30_SA.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+```
+
+&nbsp;
+
+
+***
+
+### BMI >=30 {.tabset}
+
+<br>
+
+#### model1 {-}
+
+```{r, out.width="70%", out.height="70%"}
+
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_3_model1.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_>=30_model1.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 2 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_3_model2.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_>=30_model2.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 3 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_3_model3.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_>=30_model3.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### model 4 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_3_model4.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_>=30_model4.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_ahi_3_SA.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_ahi_>=30_SA.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+```
+
+&nbsp;
+
+
+***
+## T90% - BMI strat {.tabset}
+
+### BMI<25 {.tabset}
+
+<br>
+
+#### model1 {-}
+
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_1_model1.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_<25_model1.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 2 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_1_model2.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_<25_model2.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 3 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_1_model3.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_<25_model3.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+```
+
+&nbsp;
+
+*** 
+
+#### model 4 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_1_model4.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_<25_model4.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_1_SA.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_<25_SA.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+```
+
+&nbsp;
+
+
+***
+
+### BMI 25-30 {.tabset}
+
+<br>
+
+#### model1 {-}
+
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_2_model1.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_25-30_model1.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 2 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_2_model2.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_25-30_model2.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+```
+&nbsp;
+
+*** 
+
+#### model 3 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_2_model3.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_25-30_model3.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### model 4 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_2_model4.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_25-30_model4.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_2_SA.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_25-30_SA.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+```
+
+&nbsp;
+
+
+***
+
+### BMI >=30 {.tabset}
+
+<br>
+
+#### model1 {-}
+
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_3_model1.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_>=30_model1.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 2 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_3_model2.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_>=30_model2.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+&nbsp;
+
+*** 
+
+#### model 3 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_3_model3.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_>=30_model3.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### model 4 {-}
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_3_model4.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_>=30_model4.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+*** 
+
+#### Sens. Analysis {-}
+
+Equal to model 3, but medication users were removed. 
+   
+```{r, out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/res.plot_t90_3_SA.png")
+
+t = readRDS("/home/baldanzi/Sleep_apnea/Results/Plots/res.table_t90_>=30_SA.rds")
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+datatable(t,options = list(
+      rowCallback = JS(
+        "function(row, data) {",
+        "for (i = 1; i < data.length; i++) {",
+        "if ( data[i]<0.001 & data[i]>0){",
+        "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+        "}",
+        "}",
+        "}")))
+
+```
+
+&nbsp;
+
+
+***
+
+## Discordant MGS - AHI vs BMI 
+    
+We look which MGS correlated with either AHI or BMI using the same models. Next, we draw Venn diagrams with the MGS correlated.
+    
+### Models {.tabset}
+
+#### model 1 {-}
+
+model1 = age + sex + smoking + alcohol + plate + shannon 
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m1.png")
+```
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+discordant <- readRDS('/home/baldanzi/Sleep_apnea/Results/discordant_ahi_bmi.rds')
+
+t = discordant$model1 
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, p.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+#### model 2 {-}
+
+model2 = + PA + fiber + energy intake + place of birth + education 
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m2.png")
+```
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t = discordant$model2 
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+#### model 3 {-}
+    
+model3 = + PPI + metformin + anti-hypertensive + cholesterol-lowering
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m3.png")
+```
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+t = discordant$model3
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+#### SensAnalysis {-}
+   
+model2 after removing medication users
+    
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_sa.png")
+```
+     
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+t = discordant$SA 
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if (data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+
+&nbsp;
+
+***
+
+## Discordant MGS - t90 vs BMI 
+    
+We look which MGS correlated with either t90 or BMI using the same models. Next, we draw Venn diagrams with the MGS correlated.
+    
+### Models {.tabset}
+
+#### model 1 {-}
+
+model1 = age + sex + smoking + alcohol + plate + shannon 
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmit90_m1.png")
+```
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+discordant <- readRDS('/home/baldanzi/Sleep_apnea/Results/discordant_t90_bmi.rds')
+
+t = discordant$model1 
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, p.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+#### model 2 {-}
+
+model2 = + PA + fiber + energy intake + place of birth + education 
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmit90_m2.png")
+```
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t = discordant$model2 
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+#### model 3 {-}
+    
+model3 = + PPI + metformin + anti-hypertensive + cholesterol-lowering
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmit90_m3.png")
+```
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+t = discordant$model3
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+#### SensAnalysis {-}
+   
+model2 after removing medication users
+    
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmit90_sa.png")
+```
+     
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+t = discordant$SA 
+t$cor.coefficient = round(t$cor.coefficient,digits = 3)
+t[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+t[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+datatable(t,options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if (data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+
+&nbsp;
+
+***
 
 # Appendix
 
@@ -1755,6 +2994,52 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/hist.MGS.prevale
 
 &nbsp;
 
+## Plot - Blautia_obeum____HG3A.0001
+
+```{r,}
+ggplot(valid.t90, aes(x=t90,y=Blautia_obeum____HG3A.0001)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  ggtitle("Blautia_obeum____HG3A.0001") +
+  ylab("T90%") + xlab("Relative abundance") + 
+  theme(plot.title = element_text(size = 14, face = 'bold', hjust=.5))
+
+ggplot(valid.t90, aes(x=t90cat,y=Blautia_obeum____HG3A.0001)) +
+  geom_boxplot() +
+  geom_smooth(method = 'lm') +
+  ggtitle("Blautia_obeum____HG3A.0001") +
+  ylab("T90%") + xlab("Relative abundance") + 
+  theme(plot.title = element_text(size = 14, face = 'bold', hjust=.5),
+        axis.text.x = element_text(size=12))
+```
+
+&nbsp;
+
+## Plot - Dorea_formicigenerans____HG3A.0006
+
+```{r,}
+ggplot(valid.t90, aes(x=t90,y=Dorea_formicigenerans____HG3A.0006)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  ggtitle("Dorea_formicigenerans____HG3A.0006") +
+  ylab("T90%") + xlab("Relative abundance") + 
+  theme(plot.title = element_text(size = 14, face = 'bold', hjust=.5))
+
+ggplot(valid.t90, aes(x=t90cat,y=Dorea_formicigenerans____HG3A.0006)) +
+  geom_boxplot() +
+  geom_smooth(method = 'lm') +
+  ggtitle("Dorea_formicigenerans____HG3A.0006") +
+  ylab("T90%") + xlab("Relative abundance") + 
+  theme(plot.title = element_text(size = 14, face = 'bold', hjust=.5),
+        axis.text.x = element_text(size=12))
+```
+
+
+&nbsp;
+
+***
+
+&nbsp;
 ## CLR transformation 
     
     
@@ -1764,7 +3049,7 @@ It consists on (1) taking the ratio of count value to the geometric mean of all 
 Neverthess, there is high Spearman correlation between relative abundances and clr transformed data
 
 
-```{r clr, echo=FALSE, message=FALSE, warning=FALSE}
+```{r clr,}
 count.clr = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.mgs_clr_count.tsv",sep='\t')
 # Extracting mgs relative abundances 
 a = grep("___",names(valid.ahi),value=T)
@@ -1791,7 +3076,7 @@ summary(cor.ind)
   
 ## Summary of all covariates 
 
-```{r summaryall, echo = FALSE,fig.align='center'}
+```{r summaryall, }
 # Summary of variables
 summaryall = sapply(names(dat1), function(x) {summary(dat1[[x]])})
 print(summaryall)
@@ -1804,7 +3089,7 @@ print(summaryall)
 
 ## Variables of technical variation 
 
-```{r cm_variables, echo=FALSE, message=FALSE, warning=FALSE}
+```{r cm_variables, }
 #Number of plates 
 n1 = length(unique(valid.ahi$plate)) # 55 plates
 
@@ -1821,7 +3106,7 @@ n4 = round(mean(valid.ahi[,dna.yield], na.rm = T),2)
 * Mean read-pair depth = `r n3`M
 * Mean DNA yield = `r n4`
 
-```{r cm_variables2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r cm_variables2, }
 valid.ahi$read.per.million = valid.ahi$read.pairs.per.sample/(10^6)
 tcm = compareGroups(OSAcat~read.per.million + dna.yield, data= valid.ahi)
 t1 = createTable(tcm, show.p.overall = F)
@@ -1856,7 +3141,7 @@ Smoking-related metabolites:
 #### Box plots {-}
   
     
-```{r nicotine_metabolites_boxplots, echo=FALSE, fig.align='center', out.width="50%", out.height="70%"}
+```{r nicotine_metabolites_boxplots, out.width="50%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine.png")
 #knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokhydroxycotinine.png")
 #knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinineNoxide.png")
@@ -1873,7 +3158,7 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine.png
 #### Histogram {-}
 
 
-```{r nicotine_cotinine_hist, echo=FALSE, fig.align='center', out.width="70%", out.height="60%"}
+```{r nicotine_cotinine_hist, out.width="70%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_hist.png")
 ```
  
@@ -1884,7 +3169,7 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_his
 #### Histograms zoomed at the origin  {-}
     
     
-```{r nicotine_cotinine_hist2, echo=FALSE, fig.align='center', out.width="50%", out.height="40%"}
+```{r nicotine_cotinine_hist2, out.width="50%", out.height="40%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_hist_zoomed.png")
 ```
 
@@ -1894,7 +3179,7 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_his
 
 ### Missing {-}
 
-```{r nicotine_metabolites1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r nicotine_metabolites1, }
 nicmet=c("MET_848", "MET_100002717", "MET_100002719")
 nicotine = fread("/home/baldanzi/Datasets/Metabolon/nicotine_metab.csv", header = T, 
                  na.strings = c("NA",""))

@@ -13,10 +13,11 @@
 # File model 1 - permanova_model1_osa_bc.tsv
 # File model 2 - permanova_model2_osa_bc.tsv
 # File model 3 - permanova_model3_osa_bc.tsv
+# File model 4 - permanova_model4_osa_bc.tsv
 # File model 3 after removing medication users - permanova_model3_nomed_osa_ahi.tsv
 
 # Loading packages 
-pacman::p_load(data.table, vegan, ggplot2,parallel)
+#pacman::p_load(data.table, vegan, ggplot2,parallel)
 
 rm(list = ls())
 output = "/home/baldanzi/Sleep_apnea/Results/"
@@ -24,7 +25,7 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv",header=T, na.strings=c("", "NA")) 
+valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 setnames(valid.ahi, "pob", "placebirth")
 
 # Importing BC matrix 
@@ -66,38 +67,37 @@ PermanovaFunction = function(outcome, exposure, covari, data, distance = "bray",
 
 # Transforming two-level factor variables into numeric variables 
 dades = copy(valid.ahi)
-a= c("Sex")
+a= c("Sex","ppi","metformin","hypermed","dyslipmed")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,smokestatus:=as.factor(smokestatus)]
-dades[,leisurePA:=as.factor(leisurePA)]
-dades[,educat:=as.factor(educat)]
-dades[,placebirth:=as.factor(placebirth)]
 
 # Making sure that BC and dades have the same order of observations 
-dades = dades[match(rownames(BC),dades$SCAPISid),]
+  dades = dades[match(rownames(BC),dades$SCAPISid),]
 
 # Outcome - character name (length=1) with matrix distance 
-outc = "BC"
+  outc = "BC"
 
 # Main Exposure - character name (length=1)
-expo = "OSAcat"
+  expo = "OSAcat"
 
 #Covariates 
 # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
+  model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
 # model 2 = model 1 + BMI 
-model2 <-  c(model1,"BMI")
+  model2 <-  c(model1,"BMI")
 # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth 
-model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
+  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
+# model 4 = model 3 + ppi + metformin +  antihypertensive + cholesterol-lowering 
+  model4 <-  c(model3, "metformin","hypermed","dyslipmed","ppi")
+
 
 # Runing PERMANOVA in parallel ####
 set.seed(123)
 nod=16   # Number of workers to be used 
 cl = makeCluster(nod)
-clusterExport(cl, varlist = c("outc","expo","dades","model1","model2","model3"))
+clusterExport(cl, varlist = c("outc","expo","dades","model1","model2","model3","model4"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
 print("PERMANOVA OSA severity and BC - Model1")
@@ -109,14 +109,18 @@ res2 = PermanovaFunction(outcome = outc, exposure = expo, covari = model2, data 
 print("PERMANOVA OSA severity and BC - Model3")
 print(" ")
 res3 = PermanovaFunction(outcome = outc, exposure = expo, covari = model3, data = dades, nodes = nod)
+print("PERMANOVA OSA severity and BC - Model4")
+print(" ")
+res4 = PermanovaFunction(outcome = outc, exposure = expo, covari = model4, data = dades, nodes = nod)
 
-stopCluster(cl)
+
+  stopCluster(cl)
 
 # Saving result
 fwrite(res1, file = paste0(output,"permanova_model1_osa_bc.tsv"), sep="\t")
 fwrite(res2, file = paste0(output,"permanova_model2_osa_bc.tsv"), sep="\t")
 fwrite(res3, file = paste0(output,"permanova_model3_osa_bc.tsv"), sep="\t")
-
+fwrite(res4, file = paste0(output,"permanova_model4_osa_bc.tsv"), sep="\t")
 
 
 #---------------------------------------------------------------------------#
@@ -136,10 +140,7 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
-dades[,smokestatus:=as.factor(smokestatus)]
-dades[,leisurePA:=as.factor(leisurePA)]
-dades[,educat:=as.factor(educat)]
-dades[,placebirth:=as.factor(placebirth)]
+
 
 # Making sure that BC and dades have the same observations 
 BC = as.data.frame(BC) # Transform BC from matrix to data.frame
@@ -154,15 +155,15 @@ BC = as.matrix(BC) # Transform BC back to a matrix
 dades = dades[match(rownames(BC),dades$SCAPISid),]  # Makes that BC and dades are in the same order
 
 # Runing PERMANOVA in parallel ####
-print("PERMANOVA OSA severity and BC - Model3 No Medication users")
-print(" ")
-set.seed(123)
-nod=16   # Number of workers to be used 
-cl = makeCluster(nod)
-clusterExport(cl, varlist = c("outc","expo","dades","model1","model2","model3"))
-clusterEvalQ(cl, library(vegan))
-clusterEvalQ(cl, library(data.table))
-res3.nomed = PermanovaFunction(outcome = outc, exposure = expo, covari = model3, data = dades, nodes = nod)
+  print("PERMANOVA OSA severity and BC - Model3 No Medication users")
+  print(" ")
+  set.seed(123)
+  nod=16   # Number of workers to be used 
+  cl = makeCluster(nod)
+  clusterExport(cl, varlist = c("outc","expo","dades","model1","model2","model3"))
+  clusterEvalQ(cl, library(vegan))
+  clusterEvalQ(cl, library(data.table))
+  res3.nomed = PermanovaFunction(outcome = outc, exposure = expo, covari = model3, data = dades, nodes = nod)
 
 stopCluster(cl)
 
