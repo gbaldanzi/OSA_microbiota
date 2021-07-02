@@ -40,7 +40,7 @@ valid.t90 <- valid.t90[ , -a, with=F]  # 1984 MGS remaining
 # Transforming two-level factor variables into numeric variables 
 dades = copy(valid.t90)
 #a= c("Sex","ppi", "diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed")
-a= c("Sex", "diabmed","hypermed","dyslipmed","ppi")
+a= c("Sex", "metformin","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
@@ -98,7 +98,7 @@ model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 model2 <-  c(model1,"BMI")
 # model 3 = model 2 + fiber intake + Energy intake+ physical activity + education + country of birth 
 model3 <-  c(model2, "Fibrer","Energi_kcal" ,"leisurePA", "educat","placebirth")
-model4 <-  c(model3, "diabmed","hypermed","dyslipmed","ppi")
+model4 <-  c(model3, "metformin","hypermed","dyslipmed","ppi")
 # OLD model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
 # OLD model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed","ppi")
 

@@ -43,7 +43,7 @@ load('pc_BC')
           xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
           theme(axis.text.x = element_text(angle = 0),
-                plot.title = element_text(hjust = 0.5))
+                plot.title = element_text(hjust = 0.5), face="bold")
 
   ggsave("BC.OSAcat.png", plot = p4, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")

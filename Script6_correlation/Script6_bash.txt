@@ -2,19 +2,15 @@
 
 #SBATCH -A sens2019512
 #SBATCH -p core
-#SBATCH -n 4
-#SBATCH -t 3:00:00
+#SBATCH -n 1
+#SBATCH -t 2:00:00
 #SBATCH -J Script6
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
 ml R_packages
 
-wharf='/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512'
+Rscript Script6.main.R
 
-cd $wharf 
-
-Rscript Script6_spearcorMGS_AHI.R
-Rscript Script6_spearcorMGS_T90.R
-
-Rscript -e 'rmarkdown::render("Descrip.Rmd")'
+cd $wrf
+Rscript -e "rmarkdown::render('Desc.disc.Rmd')"

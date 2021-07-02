@@ -14,8 +14,4 @@ ml R_packages
 Rscript Script3.main.R
 
 echo ""
-echo "Now running the Rmarkdown"
-echo ""
 
-
-Rscript -e 'rmarkdown::render("Descrip.Rmd")'

@@ -26,7 +26,7 @@ setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 load("data_table1")
 
 #Variables are: SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
-#leisurePA, pob, diabd, hypertension, dyslipidemia, diabmed, 
+#leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
 #hypermed, dyslipmed, ppi, fiber, EI,ESS,apnea_self, apneatto_self,
 #cpap_self, splint_self, apneasurgery_self,
 #ahi, odi, sat90, cpap, splint 
@@ -77,7 +77,7 @@ for(i in names(datatable1)){
 
 # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
 t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
-                    leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
+                    leisurePA + placebirth + diabd + hypertension + dyslipidemia + diabmed + 
                     hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ESS+apnea_self+apneatto_self+
                     cpap_self+ splint_self+ apneasurgery_self+ahi+ odi+ sat90+
                     ESS+ cpap+ splint, data= datatable1, 
@@ -309,7 +309,7 @@ nrow(valid.ahi[diff2>30,a,with=F]) # 23 had a difference greater than 30 days
 #### Missingness #### 
 # Variables of interest 
 listvar = c("educat", "leisurePA", "hypertension","smokestatus", 
-            "diabd", "pob", "Alkohol", "Fibrer", "Energi_kcal")
+            "diabd", "placebirth", "Alkohol", "Fibrer", "Energi_kcal")
 
 # Selecting 
 contain_missing = which(apply(dat1[,listvar,with=F], 1, function(x){any(is.na(x))}))
@@ -324,7 +324,7 @@ dat1$incomplete_obs = factor(dat1[,incomplete_obs],
 ## REMOVE THIS ######
 # Add information on alpha-diversity 
 setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-alpha = fread("validsleep_MGS.shannon.BC_Upp.tsv", header = T)
+alpha = readRDS("validsleep_MGS.shannon_Upp.rds")
 a=c("SCAPISid","shannon")
 dat1 = merge(dat1,alpha[,a,with=F],by="SCAPISid",all=T)
 #################################################################3
@@ -354,7 +354,7 @@ for(i in names(datafortable)){
 
 # Creating the table 
 t = compareGroups(incomplete_obs ~ ahi + shannon + age + Sex + BMI+  Alkohol + Fibrer + Energi_kcal + smokestatus + educat +
-                    leisurePA + pob + diabd + hypertension+apnea_self, data= datafortable, 
+                    leisurePA + placebirth + diabd + hypertension+apnea_self, data= datafortable, 
                   include.miss = FALSE, chisq.test.perm = TRUE)
 t1 = createTable(t)
 t1
@@ -382,17 +382,17 @@ t1 = createTable(tcm)
 
 #---------------------------------------------------------------------------#
 #### Taxonomy ####
+print("Taxonomy")
 # Describe the taxonomic composition by different OSA severity groups. 
 
 # Importing data with taxonomic information for every MGS 
-taxonomy = import('/home/baldanzi/Datasets/MGS/MGS_taxonomic_information.tsv')
+taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy",data.table = F)
 
 # Transforming taxonomic levels into factor variables
 a = c("species", "genus", "family", 'order', 'class', 'phylum')
 for(i in a){
 taxonomy[[i]]=as.factor(taxonomy[[i]])
 }
-taxonomy$mgs2 = paste0(taxonomy$maintax,"____",taxonomy$mgs)
 
 # Subsetting the data to create a data.frame containing only SCAPISid, ahi, OSAcat
 #(OSA severity category), and the relative abundance by phylum for each participants 
@@ -405,7 +405,7 @@ a=c("SCAPISid","ahi","OSAcat")
 phylum_abundance[,a]=as.data.frame(valid.ahi[,a,with=F])
 
 for(i in levels(taxonomy$phylum)){ 
-  a = taxonomy$mgs2[taxonomy$phylum==i]
+  a = taxonomy$maintax_mgs[taxonomy$phylum==i]
     phylum_abundance[[i]]=rowSums(valid.ahi[,a,with=F])
 }
 
@@ -426,7 +426,7 @@ if(all(phylum_mean$average[phylum_mean$phyla_name==i]<a)){
 }
 }
 # Creating the bar plot stacked for phyla relative abundance by OSA cat 
-mycolors <- colorRampPalette(brewer.pal(12, "Set2"))(14)
+mycolors <- colorRampPalette(brewer.pal(12, "Paired"))(14)
 
 p1 = phylum_mean %>% ggplot(aes(x=OSAcat, y=average, fill=phyla_name)) +
   geom_bar(position = "stack", stat = "identity", color="black",lwd=.2) +
@@ -451,7 +451,7 @@ a=c("SCAPISid","ahi","OSAcat")
 family_abundance[,a]=as.data.frame(valid.ahi[,a,with=F])
 
 for(i in levels(taxonomy$family)){ 
-  a = taxonomy$mgs2[taxonomy$family==i]
+  a = taxonomy$maintax_mgs[taxonomy$family==i]
     family_abundance[[i]]=rowSums(valid.ahi[,a,with=F])
 }
 
@@ -474,7 +474,7 @@ for(i in unique(family_mean$family_name)){
 }
 
 # Creating the bar plot stacked for phyla relative abundance by OSA cat 
-mycolors <- colorRampPalette(brewer.pal(12, "Set2"))(20)
+mycolors <- colorRampPalette(brewer.pal(12, "Paired"))(22)
 
 p2 = family_mean %>% ggplot(aes(x=OSAcat, y=average, fill=family_name)) +
   geom_bar(position = "stack", stat = "identity", color="black",lwd=.2) +
@@ -488,3 +488,4 @@ p2 = family_mean %>% ggplot(aes(x=OSAcat, y=average, fill=family_name)) +
 #Saving the plot
 ggsave("family_abundance_OSAcat.png", plot = p2, device = "png", 
        path="/home/baldanzi/Sleep_apnea/Descriptive/")
+
