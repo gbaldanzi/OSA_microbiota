@@ -25,8 +25,8 @@
   res.neg <-  res.neg[order(q.value) & q.value<0.05,.(exposure,type,category,name,pval,q.value)]
 
   #Saving 
-  save(res.both,file=paste0(output,"ea_modules_table_both.rds"))
-  save(res.pos,file=paste0(output,"ea_modules_table_pos.rds"))
-  save(res.neg,file=paste0(output,"ea_modules_table_neg.rds"))
+  saveRDS(res.both,file=paste0(output,"ea_modules_table_both.rds"))
+  saveRDS(res.pos,file=paste0(output,"ea_modules_table_pos.rds"))
+  saveRDS(res.neg,file=paste0(output,"ea_modules_table_neg.rds"))
 
   

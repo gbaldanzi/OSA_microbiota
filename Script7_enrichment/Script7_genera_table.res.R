@@ -25,8 +25,8 @@
   res.neg <-  lapply(res.neg,function(x){x[order(q.value) & q.value<0.05,.(genera,pval,q.value)]})
   
   #Saving 
-  save(res.both,file=paste0(output,"ea_genera_table_both.rds"))
-  save(res.pos,file=paste0(output,"ea_genera_table_pos.rds"))
-  save(res.neg,file=paste0(output,"ea_genera_table_neg.rds"))
+  saveRDS(res.both,file=paste0(output,"ea_genera_table_both.rds"))
+  saveRDS(res.pos,file=paste0(output,"ea_genera_table_pos.rds"))
+  saveRDS(res.neg,file=paste0(output,"ea_genera_table_neg.rds"))
 
   
