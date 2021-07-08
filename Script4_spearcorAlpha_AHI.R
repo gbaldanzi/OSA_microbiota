@@ -3,6 +3,9 @@
 
 # Inferential Statistics 
 
+# Version 1: March, 2021
+# Update: July 8, 2021
+
 # This code will investigate the alpha diversity in relation AHI, OSAcat, and T90%.  
 # Four models  and a sensitivity analysis will be used 
 # Results will be saved in three files depending on the exposure (AHI,OSAcat,T90%)
@@ -51,13 +54,14 @@ source(Spearman.correlation.function.R)
   model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
 # model 2 = model 1 + BMI 
   model2 <-  c(model1,"BMI")
-# model 3 = model 2 + fiber intake +energy intake+ physical activity + education + country of birth 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
-# model 4 = mode 3 + PPI + metformin + anti-hypertensive + cholesterol-lowering
-  model4 <-  c(model3, "metformin","hypermed","dyslipmed","ppi")
+# model 3 = model 2 + fiber intake +energy intake+ physical activity + education + country of birth + PPI + metformin + anti-hypertensive + cholesterol-lowering
+  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", 
+               "metformin","hypermed","dyslipmed","ppi")
+# SA = model3 but removed medication users 
+  SA <- c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
   
   
-  listmodels=list(model1,model2,model3, model4)
+  listmodels=list(model1,model2,model3)
   
   
 # OLD model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
@@ -73,17 +77,15 @@ source(Spearman.correlation.function.R)
 # Run Spearman correlation for the models.
 res.alpha = lapply(listmodels,function(mod){
   spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades)})
-names(res.alpha) = c("model1", "model2", "model3", "model4")
+names(res.alpha) = c("model1", "model2", "model3")
 
 res.model1 = res.alpha[[1]]
 res.model2 = res.alpha[[2]]
 res.model3 = res.alpha[[3]]
-res.model4 = res.alpha[[4]]
 
 res.model1$model= "model1"
 res.model2$model= "model2"
 res.model3$model= "model3"
-res.model4$model= "model4"
 
 res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3, res.model4))
 
@@ -93,9 +95,9 @@ names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value",
 # Sensitivity analysis 
 
 # Spearman correlation 
-res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades.sa)
+res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades.sa)
 
-res.sa$model= "model3_noMedication"
+res.sa$model= "SA"
 
 #naming coluns
 names(res.sa) <- c("MGS", "exposure", "cor.coefficient", "p.value", 
@@ -120,25 +122,22 @@ for(group in unique(valid.ahi[,BMIcat])){
 # Run Spearman correlation for the models.
 res.alpha = lapply(listmodels,function(mod){
      spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
-names(res.alpha) = c("model1", "model2", "model3","model4")
+names(res.alpha) = c("model1", "model2", "model3")
   
 res.model1 = res.alpha[[1]]
 res.model2 = res.alpha[[2]]
 res.model3 = res.alpha[[3]]
-res.model4 = res.alpha[[4]]
 
 
 res.model1$model= "model1"
 res.model2$model= "model2"
 res.model3$model= "model3"
-res.model4$model= "model4"
 
 res.model1$bmi= group
 res.model2$bmi= group
 res.model3$bmi= group
-res.model4$bmi= group
 
-res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3, res.model4))
+res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3))
 
 names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                      "N", "method", "covariates","model","bmi")
@@ -152,9 +151,9 @@ print("Sensitivity analysis")
 dades2 <- dades.sa[dades.sa$BMIcat==group,]
 
 # Spearman correlation 
-res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades2)
+res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades2)
 
-res.sa$model= "model3_noMedication"
+res.sa$model= "SA"
 res.sa$bmi= group
 
 #naming coluns
@@ -189,17 +188,15 @@ outcomes="shannon"
 # Run Spearman correlation for the models.
 res.alpha = lapply(listmodels,function(mod){
   spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades)})
-names(res.alpha) = c("model1", "model2", "model3","model4")
+names(res.alpha) = c("model1", "model2", "model3")
 
 res.model1 = res.alpha[[1]]
 res.model2 = res.alpha[[2]]
 res.model3 = res.alpha[[3]]
-res.model4 = res.alpha[[4]]
 
 res.model1$model= "model1"
 res.model2$model= "model2"
 res.model3$model= "model3"
-res.model4$model= "model4"
 
 res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3,res.model4))
 
@@ -217,7 +214,7 @@ nrow(dades) #2602
 # Spearman correlation 
 res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades.sa)
 
-res.sa$model= "model3_noMedication"
+res.sa$model= "SA"
 
 #naming coluns
 names(res.sa) <- c("MGS", "exposure", "cor.coefficient", "p.value", 
@@ -244,24 +241,21 @@ dades2 = dades[BMIcat==group,]
 # Run Spearman correlation for the models.
 res.alpha = lapply(listmodels,function(mod){
   spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
-names(res.alpha) = c("model1", "model2", "model3", "model4")
+names(res.alpha) = c("model1", "model2", "model3")
 
 res.model1 = res.alpha[[1]]
 res.model2 = res.alpha[[2]]
 res.model3 = res.alpha[[3]]
-res.model4 = res.alpha[[4]]
 
 res.model1$model= "model1"
 res.model2$model= "model2"
 res.model3$model= "model3"
-res.model4$model= "model4"
 
 res.model1$bmi= group
 res.model2$bmi= group
 res.model3$bmi= group
-res.model4$bmi= group
 
-res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3, res.model4))
+res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3))
 
 names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                      "N", "method", "covariates","model","bmi")
@@ -274,7 +268,7 @@ dades2 = dades.sa[BMIcat==group,]
 # Spearman correlation 
 res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades2)
 
-res.sa$model= "model3_noMedication"
+res.sa$model= "SA"
 res.sa$bmi= group
 
 #naming coluns

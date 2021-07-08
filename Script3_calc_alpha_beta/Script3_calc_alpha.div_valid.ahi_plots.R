@@ -36,15 +36,20 @@ res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
   
 # Scatter plot: Shannon index against AHI 
-  p1 = ggplot(data=valid.ahi) + 
-        geom_point(aes(x=ahi, y= shannon)) + ggtitle("Shannon index and AHI") + 
-        xlab("Apnea-hypopnea index") +
-        ylab("Shannon index") +
-        geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
-        geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
-        geom_vline(xintercept = 30, color = "red", linetype = "twodash")
-
-  ggsave("scatter.shannon.ahi", plot = p1, device = "png", 
+  a = cor(valid.ahi$ahi, valid.ahi$shannon, method = "spearman")
+  
+  p1 = ggplot(data=valid.ahi,aes(x=ahi, y= shannon)) + 
+    geom_point(color="lightskyblue2") + 
+    ggtitle(paste0("Shannon index and AHI \n Spearman cor.= ",round(a,3))) + 
+    xlab("Apnea-hypopnea index") +
+    ylab("Shannon index") +
+    geom_smooth(method='lm', alpha=.8) +
+    geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
+    geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
+    geom_vline(xintercept = 30, color = "red", linetype = "twodash") +
+    theme(plot.title = element_text(hjust = 0.5, size = 14))
+  
+  ggsave("scatter.shannon.ahi.png", plot = p1, device = "png", 
         path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
   p2 = ggplot(data=valid.ahi) + 

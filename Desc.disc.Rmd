@@ -85,9 +85,7 @@ rownames(ttt) <- c("N","MGS")
     
 We investigated which MGS correlated with either AHI, T90 or BMI.     
 
-Next, we draw Venn diagrams with the identified MGS    
-
-MGS present in less than 5 individuals, where removed  
+MGS present in less than 5 individuals were removed  
 
 &nbsp;
 
