@@ -47,6 +47,23 @@ load('pc_BC')
 
   ggsave("BC.OSAcat.png", plot = p4, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
+  
+  # Scatter plot - NoOSA vs Severe OSA ####
+  severe_noosa <- valid.ahi$OSAcat[valid.ahi$OSA %in% c("no OSA","Severe")]
+
+  dat.plot2=dat.plot[dat.plot$OSAcat %in% c("no OSA", "Severe"),]
+  
+  p4=ggplot(dat.plot2, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
+    geom_point(size=1.1) +
+    stat_ellipse(type = "t", size=1.3) +
+    ggtitle("Bray-curtis dissimilarity - AHI") +
+    xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
+    ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
+    theme(axis.text.x = element_text(angle = 0),
+          plot.title = element_text(hjust = 0.5), face="bold")
+  
+  ggsave("BC.OSAcat_noosa_severe.png", plot = p4, device = "png", 
+         path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
 # BC heatmap - AHI ####
 

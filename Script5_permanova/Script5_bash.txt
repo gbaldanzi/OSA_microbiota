@@ -3,8 +3,8 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 16
-#SBATCH -t 24:00:00
-#SBATCH -J Script5
+#SBATCH -t 48:00:00
+#SBATCH -J perma
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
@@ -14,4 +14,4 @@ wharf='/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512'
 
 cd $wharf 
 
-Rscript Script5.main.R
+Rscript perma_ahi_bc/perma_ahi_bc_main.R
