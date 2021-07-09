@@ -10,27 +10,22 @@ library(grid)
 
   setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 
-# Uploading dataset with variables of class "factor"
-  load("data_table1")
-  
   
 # Importing data on individuals with valid.ahi measurement 
-  valid.ahi <- fread("validsleep_MGS.shannon_Upp.tsv", sep = "\t")
+  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
   
   
-#merging with the data set that has variables as factors 
-  a = names(dat1[,-"SCAPISid"])
-  valid.ahi[,(a):=NULL]
-  valid.ahi = merge(dat1,valid.ahi, by = "SCAPISid", all=T, all.x=F, all.y=F)
-
-
 # Compare the Shannon index across OSA groups using Kruskal-Wallis #### 
 res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
 
 # Histogram of Shannon diversity 
   p3_1=ggplot(data=valid.ahi,aes(x=shannon))+
-        geom_histogram()+
-        ggtitle("Histogram - Shannon diversity")
+    geom_histogram(color="black", fill="lightskyblue2") +
+    geom_density(alpha=.2, fill="#FF6666") +
+    ggtitle("Histogram - Shannon diversity") +
+    theme_light() +
+    theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5),
+          axis.title.x = element_text(size=14))
   
   ggsave("hist.shannon", plot = p3_1, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
@@ -47,6 +42,7 @@ res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
     geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
     geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
     geom_vline(xintercept = 30, color = "red", linetype = "twodash") +
+    theme_light() +
     theme(plot.title = element_text(hjust = 0.5, size = 14))
   
   ggsave("scatter.shannon.ahi.png", plot = p1, device = "png", 
