@@ -9,26 +9,22 @@
 rm(list=ls())
 
 # Loading packages
-library(Hmisc)
-library(compareGroups)
-library(flextable)
 library(pheatmap)
 library(RColorBrewer)
 library(grid)
+library(ggplot2)
+library(data.table)
 
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+  # Import pheno data
+  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
 
-# Import pheno data
-valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
+  # Import BC
+  BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")
+  BC = as.matrix(BC)
+  rownames(BC) = colnames(BC) 
 
-# Import BC
-BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")
-BC = as.matrix(BC)
-rownames(BC) = colnames(BC) 
-
-# Import PCoA of BC 
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-load('pc_BC')
+  # Import PCoA of BC 
+  load("/home/baldanzi/Datasets/sleep_SCAPIS/pc_BC")
 
 
 # Plotting the first 2 principal components 
@@ -37,30 +33,36 @@ load('pc_BC')
       
     # Second: creating the scatter plot ####
       p4=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
-          geom_point(size=1.1) +
+          geom_point(size=1.1,aes(color=OSAcat)) +
           stat_ellipse(type = "t", size=1.3) +
+         scale_color_manual(values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
           ggtitle("Bray-curtis dissimilarity - AHI") +
           xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
+          theme_light()+
           theme(axis.text.x = element_text(angle = 0),
-                plot.title = element_text(hjust = 0.5), face="bold")
+              plot.title = element_text(hjust = 0.5, face="bold", size=12),
+              legend.text = element_text(size=10))
 
   ggsave("BC.OSAcat.png", plot = p4, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
   
   # Scatter plot - NoOSA vs Severe OSA ####
-  severe_noosa <- valid.ahi$OSAcat[valid.ahi$OSA %in% c("no OSA","Severe")]
-
+ 
   dat.plot2=dat.plot[dat.plot$OSAcat %in% c("no OSA", "Severe"),]
   
-  p4=ggplot(dat.plot2, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
+  p4=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
     geom_point(size=1.1) +
-    stat_ellipse(type = "t", size=1.3) +
+    stat_ellipse(type = "t", size=1.3,data = . %>% filter(OSAcat %in% c("no OSA", "Severe")), 
+                 aes(color=OSAcat)) +
+    scale_color_manual(values=c("gray84","white", "white", "blue3")) +
     ggtitle("Bray-curtis dissimilarity - AHI") +
     xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
     ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
+    theme_light() +
     theme(axis.text.x = element_text(angle = 0),
-          plot.title = element_text(hjust = 0.5), face="bold")
+          plot.title = element_text(hjust = 0.5, face="bold", size=12),
+          legend.text = element_text(size=10))
   
   ggsave("BC.OSAcat_noosa_severe.png", plot = p4, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")

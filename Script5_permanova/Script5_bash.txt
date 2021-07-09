@@ -4,7 +4,7 @@
 #SBATCH -p core
 #SBATCH -n 16
 #SBATCH -t 48:00:00
-#SBATCH -J perma
+#SBATCH -J permam1
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
