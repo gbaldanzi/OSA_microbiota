@@ -9,7 +9,8 @@
 rm(list=ls())
 
 # Loading packages
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+require(vegan)
+require(data.table)
 
 # Importing data
 valid.t90 = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", sep = "\t")
@@ -28,7 +29,7 @@ a = grep("____",names(valid.t90),value=T) # vector with MGS names
 valid.t90$shannon=diversity(valid.t90[,a, with=F],index="shannon") #estimating shannon per individual
 
 
-fwrite(valid.t90, file = "valid.t90_MGS.shannon_Upp.tsv", sep = "\t")
+fwrite(valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.tsv", sep = "\t")
 
-saveRDS(valid.t90, file = "valid.t90_MGS.shannon_Upp.rds")
+saveRDS(valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
 #-----------------------------------------------------------------------------#
