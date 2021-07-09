@@ -4,7 +4,7 @@
 #SBATCH -p core
 #SBATCH -n 16
 #SBATCH -t 48:00:00
-#SBATCH -J perma13_t90
+#SBATCH -J perma13_osa
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
@@ -14,4 +14,4 @@ wharf='/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512'
 
 cd $wharf 
 
-Rscript perma_t90_bc/perma_t90_bc_main.R
+Rscript perma_osa_bc/perma_osa_bc_main.R
