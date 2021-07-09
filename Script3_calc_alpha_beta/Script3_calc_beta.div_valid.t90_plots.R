@@ -11,11 +11,8 @@ rm(list=ls())
 # Loading packages
 library(RColorBrewer)
 
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-
-
 # Import data
-valid.t90 <- readRDS("valid.t90_MGS.shannon_Upp.rds")
+valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
 
 # Import BC
 BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv',sep=",")
@@ -23,8 +20,7 @@ BC = as.matrix(BC)
 rownames(BC) = colnames(BC) 
 
 # Import PCoA of BC 
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-load('pc_BC_t90')
+load('/home/baldanzi/Datasets/sleep_SCAPIS/pc_BC_t90')
 
 # Plotting the first 2 principal components 
 # First: extracting the principal component value for every sample 

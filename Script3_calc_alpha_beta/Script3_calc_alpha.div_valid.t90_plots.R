@@ -7,24 +7,25 @@
 
 # Loading packages
 
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 
 # Import data
-  valid.t90 <- readRDS("valid.t90_MGS.shannon_Upp.rds")
+  valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
   
 # Scatter plot: Shannon index against T90
   a = with(valid.t90, cor(t90, shannon, method = "spearman"))
   a = round(a,3)
   p1 = ggplot(data=valid.t90,aes(x=t90, y= shannon)) + 
-    geom_point() + ggtitle(paste0("Shannon index and T90 \nSpear. cor",a)) + 
+    geom_point(color="lightskyblue") + ggtitle(paste0("Shannon index and T90 \nSpear. cor",a)) + 
     xlab("T90") +
     ylab("Shannon index") +
     geom_smooth(method='lm', alpha=.8) +
+    theme_light() + 
     theme(plot.title = element_text(hjust=.5, size=14),
           axis.title = element_text(size=14))
   
   ggsave("scatter.shannon.T90.png", plot = p1, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
+  
 #Box plot
   res=with(valid.t90, kruskal.test(shannon ~ t90cat))
   p2 = ggplot(data=valid.t90) + 

@@ -32,6 +32,7 @@ res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
   
 # Scatter plot: Shannon index against AHI 
   a = cor(valid.ahi$ahi, valid.ahi$shannon, method = "spearman")
+  a = round(a,3)
   
   p1 = ggplot(data=valid.ahi,aes(x=ahi, y= shannon)) + 
     geom_point(color="lightskyblue2") + 

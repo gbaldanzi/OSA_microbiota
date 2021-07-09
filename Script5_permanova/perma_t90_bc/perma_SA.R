@@ -5,7 +5,7 @@
 # Sensitivity analysis excluding medication users 
 
 # Sensitivity analysis - remove individuals who use medication 
-dades <-  copy(valid.ahi)
+dades <-  copy(valid.t90)
 dades <-  dades[ppi == "no",] #60
 dades <-  dades[metformin == "no",] #57 
 dades <-  dades[hypermed == "no",] #593
@@ -32,7 +32,7 @@ BC = as.matrix(BC) # Transform BC back to a matrix
 dades = dades[match(rownames(BC),dades$SCAPISid),]  # Makes that BC and dades are in the same order
 
 # Runing PERMANOVA in parallel ####
-print("PERMANOVA AHI and BC - Sensitivity Analysis")
+print("PERMANOVA T90 and BC - Sensitivity Analysis")
 print(" ")
 set.seed(123)
 nod=16   # Number of workers to be used 
@@ -45,4 +45,4 @@ res = PermanovaFunction(outcome = outc, exposure = expo, covari = SA, data = dad
 stopCluster(cl)
 
 # Saving results 
-fwrite(res3.nomed, file = paste0(output,"permanova_SA_ahi_bc.tsv"), sep="\t")
+fwrite(res3.nomed, file = paste0(output,"permanova_SA_t90_bc.tsv"), sep="\t")
