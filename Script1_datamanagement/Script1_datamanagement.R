@@ -9,11 +9,9 @@
 pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.table)
 
 rm(list=ls())
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+#setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 
-# Import sleep recording data 
-valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.ahi.rds")
-valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.t90.rds")
+
 
 # Uploading phenotype data ####
 pheno=fread("/home/baldanzi/Datasets/sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv", header = T, na.strings=c("", "NA"))
@@ -211,10 +209,10 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   nrow(pheno)-sum(pheno[,SCAPISid] %in% metabolon[,SCAPISid])
 
 
-# Changing order
+  # Changing order
   setcolorder(pheno, c("SCAPISid", "age", "Sex"))
 
-# Clinical microbiomics variables ####
+  # Clinical microbiomics variables ####
   cmvar = fread("/home/baldanzi/Datasets/MGS/CM_lab_variables_4838_upp_4980_malmo.tsv",header=T, na.strings=c("", "NA")) 
   selected_id = fread("/home/baldanzi/Datasets/scapis_idkey/selected_participants_id_sample_id.tsv", 
                     header=T, na.strings=c("", "NA"))
@@ -234,6 +232,10 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
 
   # Save pheno data ####
   saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  
+  # Import sleep recording data 
+  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.ahi.rds")
+  valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.t90.rds")
 
   #valid.ahi + pheno
   nrow(valid.ahi) # 3301 individuals with valid flow and sat monitoring 
@@ -244,18 +246,19 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   valid.ahi = valid.ahi[!is.na(ahi),]
 
   #Saving the data #### 
-  setwd("/home/baldanzi/Datasets/sleep_SCAPIS/")
-  fwrite(valid.ahi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.MGS.Upp.tsv", sep = "\t")
+  write.table(valid.ahi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.MGS.Upp.tsv",row.names = FALSE,
+              sep = '\t',quote=FALSE)
 
   # valid.t90 + pheno
   valid.t90 = merge(valid.t90, pheno, by = "SCAPISid", all=F )
 
   # Save valid.t90 data
-  fwrite(valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", sep = "\t")
+  write.table(valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", row.names = FALSE,
+              sep = "\t",quote = FALSE)
 
   # 3622 individuals have a valid T90 measurement 
 
-# Saving those variables that were managed in rds format 
+# Saving those variables that were managed in Rdata format 
 dat1 = valid.ahi %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
                             leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
                             hypermed, dyslipmed, ppi, Fibrer, Energi_kcal,ESS,apnea_self, apneatto_self,
@@ -274,5 +277,4 @@ nicotine = merge(nicotine, valid.ahi[,a, with=F], by="SCAPISid", all.x = F, all.
 setnames(nicotine,"cqto015", "snus_ever1mo")
 
 # Saving nicotine metabolites data 
-setwd("/home/baldanzi/Datasets/Metabolon")
-fwrite(nicotine, file = "nicotine_metab.csv", sep=",")
+fwrite(nicotine, file = "/home/baldanzi/Datasets/Metabolon/nicotine_metab.csv", sep=",")

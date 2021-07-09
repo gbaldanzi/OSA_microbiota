@@ -10,42 +10,27 @@
 # Four models  and a sensitivity analysis will be used 
 # Results will be saved in three files depending on the exposure (AHI,OSAcat,T90%)
 
+  rm(list = ls())
 
-# Loading packages 
-pacman::p_load(data.table,ppcor, fastDummies, vegan, parallel)
-
-# Cleaning the environment 
-rm(list = ls())
+  pacman::p_load(data.table,ppcor, fastDummies, vegan)
 
 # Defining output folders 
-output = "/home/baldanzi/Sleep_apnea/Results/"
-output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
+  output = "/home/baldanzi/Sleep_apnea/Results/"
+  output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds") 
-setnames(valid.ahi, "pob", "placebirth")
+  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds") 
+  
+  # Transforming into factor variable
+  valid.ahi[,plate:=as.factor(valid.ahi$plate)]
 
 # Transforming two-level factor variables into numeric variables 
-a= c("Sex","hypermed","dyslipmed","ppi", "metformin")
-valid.ahi[,(a):=as.data.frame(data.matrix(data.frame(unclass(valid.ahi[,a, with=F]))))]
+  a= c("Sex","hypermed","dyslipmed","ppi", "metformin")
+  valid.ahi[,(a):=as.data.frame(data.matrix(data.frame(unclass(valid.ahi[,a, with=F]))))]
 
-# Transforming factor variables 
-valid.ahi[,plate:=as.factor(valid.ahi$plate)]
-
-# Prepare data 
-  dades = copy(valid.ahi)
-  
-  # For Sensitivity analysis - remove individuals who use medication 
-  dades.sa = copy(valid.ahi)
-  dades.sa <-  dades.sa[dades.sa$ppi == 1,] #60
-  dades.sa <-  dades[dades.sa$metformin == 1,] #57 
-  dades.sa <-  dades[dades.sa$hypermed == 1,] #593
-  dades.sa <-  dades[dades.sa$dyslipmed == 1,] # 239
-  nrow(dades.sa) #2318
 
 #Spearman correlation function ####
-source(Spearman.correlation.function.R)
+source('/proj/nobackup/wharf/baldanzi/baldanzi-sens2019512/Spearman.correlation.function.R')
 
 #-----------------------------------------------------------------------------#
 # Models ####
@@ -69,43 +54,40 @@ source(Spearman.correlation.function.R)
 
 #-----------------------------------------------------------------------------#
 # Correlation between AHI and Shannon ####
-
+  
+  # Prepare data 
+  dades = copy(valid.ahi)
+  
 # Preparing exposure and  outcomes
   exposure="ahi"
   outcomes="shannon"
 
 # Run Spearman correlation for the models.
-res.alpha = lapply(listmodels,function(mod){
-  spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades)})
-names(res.alpha) = c("model1", "model2", "model3")
+  res.alpha = t(sapply(listmodels,function(mod){
+  spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades)}))
 
-res.model1 = res.alpha[[1]]
-res.model2 = res.alpha[[2]]
-res.model3 = res.alpha[[3]]
+  res.alpha <-  as.data.frame(res.alpha)
+  res.alpha$model <-  c("model1", "model2", "model3")
 
-res.model1$model= "model1"
-res.model2$model= "model2"
-res.model3$model= "model3"
 
-res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3, res.model4))
-
-names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
-                     "N", "method", "covariates","model")
 #----------------------------------------------------------------------------#
 # Sensitivity analysis 
+  
+  # Prepare data 
+  dades.sa = copy(valid.ahi)
+  dades.sa <- dades.sa[which(ppi==1 | metformin==1 | hypermed == 1 | dyslipmed ==1), ]
 
-# Spearman correlation 
-res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades.sa)
+  # Spearman correlation 
+  res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades.sa)
+  res.sa$model= "SA"
 
-res.sa$model= "SA"
+  # Naming columns
+  res.alpha = rbind(res.alpha,res.sa)
+  
+  names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
+                     "N", "method", "covariates","model")
 
-#naming coluns
-names(res.sa) <- c("MGS", "exposure", "cor.coefficient", "p.value", 
-                "N", "method", "covariates","model")
-
-res.alpha = rbind(res.alpha,res.sa)
-
-fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha.tsv"), sep="\t")
+  fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha.tsv"), sep="\t")
 
 #-----------------------------------------------------------------------------#
 
@@ -113,55 +95,46 @@ fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha.tsv"), sep="\t")
 
 # the correlation between AHI and shannon will be separately by the 3 BMI groups:
 # <25, >=25 & <30, and >=30.
-
-# By BMI group 
-for(group in unique(valid.ahi[,BMIcat])){
-  dades2 = dades[BMIcat==group,]
-
-
-# Run Spearman correlation for the models.
-res.alpha = lapply(listmodels,function(mod){
-     spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
-names(res.alpha) = c("model1", "model2", "model3")
   
-res.model1 = res.alpha[[1]]
-res.model2 = res.alpha[[2]]
-res.model3 = res.alpha[[3]]
+  setDT(dades)
+  setDT(dades.sa)
+
+  # By BMI group 
+  for(group in unique(valid.ahi[,BMIcat])){
+    dades2 = dades[BMIcat==group,]
 
 
-res.model1$model= "model1"
-res.model2$model= "model2"
-res.model3$model= "model3"
+  # Run Spearman correlation for the models.
+  res.alpha = sapply(listmodels,function(mod){
+     spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades2)})
+  res.alpha <- as.data.frame(t(res.alpha))
+  
+  res.alpha$model = c("model1", "model2", "model3")
+  
+  res.alpha$bmi= group
 
-res.model1$bmi= group
-res.model2$bmi= group
-res.model3$bmi= group
 
-res.alpha = as.data.table(rbind(res.model1, res.model2, res.model3))
-
-names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
-                     "N", "method", "covariates","model","bmi")
-print(res.alpha)
-
+  
 #----------------------------------------------------------------------------#
-print("Sensitivity analysis")
-# Sensitivity analysis 
+  print("Sensitivity analysis")
+  # Sensitivity analysis 
 
-# BMI group
-dades2 <- dades.sa[dades.sa$BMIcat==group,]
+  # BMI group
+  dades2 <- dades.sa[dades.sa$BMIcat==group,]
 
-# Spearman correlation 
-res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades2)
+  # Spearman correlation 
+  res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades2)
 
-res.sa$model= "SA"
-res.sa$bmi= group
+  res.sa$model= "SA"
+  res.sa$bmi= group
 
-#naming coluns
-names(res.sa) <- c("MGS", "exposure", "cor.coefficient", "p.value", 
-                   "N", "method", "covariates","model","bmi")
+  res.alpha = rbind(res.alpha,res.sa)
+  
+  #naming coluns
+  names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
+                     "N", "method", "covariates","model","bmi")
 
-res.alpha = rbind(res.alpha,res.sa)
+  fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha_bmi",group,".tsv"), sep="\t")
+  print(res.alpha)
+  }
 
-fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha_bmi",group,".tsv"), sep="\t")
-}
-#-----------------------------------------------------------------------------#

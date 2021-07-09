@@ -26,12 +26,11 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
+valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
 #setnames(valid.ahi, "pob", "placebirth")
 
 # Importing BC matrix 
-BC = fread('OSA.BCmatrix.csv', header=T, sep = ',')
+BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
 BC = as.matrix(BC)
 row.names(BC) = colnames(BC)
 
@@ -66,11 +65,11 @@ expo = "ahi"
   SA <- model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
 
 # Runing PERMANOVA in parallel ####
-source('perma_ahi_bc/perma_model1.R')
+#source('perma_ahi_bc/perma_model1.R')
 
 #source('perma_ahi_bc/perma_model2.R')
 
-#source('perma_ahi_bc/perma_model3.R')
+source('perma_ahi_bc/perma_model3.R')
 
 #source('perma_ahi_bc/perma_SA.R')
 
