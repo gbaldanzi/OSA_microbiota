@@ -293,17 +293,17 @@ datatable(t1,container=sketch,rownames = FALSE, options = list(
 
 # Step 2 
 
-model2 = model 1 + PA + fiber + energy intake + place of birth + education + PPI + metformin +
+model2 = model 1 + PA + fiber + energy intake + place of birth + education + visit.month + PPI + metformin +
 antihypertensive med. + cholesterol-lowering med.
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m2.png")
 
 t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res2.rds')
-n = nrow(t[q.value_BMI<=0.05 | q.value_ahi <=0.05 |q.value_t90<=0.05,])
+n = nrow(t[q.value_BMI<0.05 | q.value_ahi <0.05 |q.value_t90<0.05,])
 ```
 
-`r n-1` MGSs correlated with either AHI, BMI, or T90% in Step 2
+`r n` MGSs correlated with either AHI, BMI, or T90% in Step 2
 
 ## Tables {.tabset}
 

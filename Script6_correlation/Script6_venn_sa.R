@@ -24,6 +24,7 @@
   
   
   # filter MGS significant at the FDR p-value<0.05
+  res.list <- lapply(res.list, function(x){x[q.value>=0.001, q.value:=round(q.value, digits = 3)]})
   mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
   
   names(mgs.fdr) <- c("AHI","BMI","T90")
