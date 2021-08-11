@@ -315,7 +315,7 @@ for(i in names(datatable1)){
 
 # Create table 1 
 t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
-                  leisurePA + pob + diabd + hypertension + dyslipidemia + diabmed + 
+                  leisurePA + placebirth + diabd + hypertension + dyslipidemia + diabmed + 
                   hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ESS+apnea_self+apneatto_self+
                   cpap_self+ splint_self+ apneasurgery_self+ahi+ odi+ sat90+
                   ESS+ cpap+ splint, data= datatable1, 
@@ -569,8 +569,8 @@ print(palkohol)
 ```{r plotsahiandpob, echo =FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 
 # AHI and place of birth
-a=table(valid.ahi$pob, useNA = "ifany")
-ppob = ggplot(data = valid.ahi, aes(y=ahi)) + geom_boxplot(aes(x=pob, fill=pob))  +
+a=table(valid.ahi$placebirth, useNA = "ifany")
+ppob = ggplot(data = valid.ahi, aes(y=ahi)) + geom_boxplot(aes(x=placebirth, fill=placebirth))  +
   ggtitle("AHI and place of birth") +  xlab("Place of birth") + ylab("AHI") +
   theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5), 
         axis.title = element_text(size = 13, face = "bold"), 
@@ -688,6 +688,52 @@ print(pfiber)
 
 ***
 
+&nbsp;
+
+## Season
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE }
+  plot.data = valid.ahi %>% group_by(visit.month) %>% 
+  summarise(N=length(visit.month), median = median(ahi), q25 = quantile(ahi)[2], 
+            q75 = quantile(ahi)[4])
+
+  ggplot(plot.data, aes(x=visit.month, y=median,group=1)) + geom_errorbar(aes(ymin=q25, ymax=q75), width=.3, color="gray60") + geom_line() + geom_point(color="gray30")
+```
+
+&nbsp;
+
+***
+
+&nbsp;
+
+## Lung disease {.tabset}
+   
+ COPD, chronic bronchitis, and emphysema 
+     
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
+
+valid.t90[,Lung_disease:=as.factor(cqhe043)]
+valid.ahi[,Lung_disease:=as.factor(cqhe043)]
+valid.t90[Lung_disease=="NO_ANSWER",Lung_disease:=NA]
+valid.ahi[Lung_disease=="NO_ANSWER",Lung_disease:=NA]
+
+t = valid.ahi %>% group_by(Lung_disease) %>% summarise(N=length(Lung_disease), mean_ahi = round(mean(ahi, na.rm=T),1), median_ahi = round(median(ahi, na.rm=T),1), sd_ahi = round(sd(ahi, na.rm=T),1))
+knitr::kable(as.data.table(t), caption = "AHI by Lung_disease",table.attr = "style='width:80%;'") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+t = valid.t90 %>% group_by(Lung_disease) %>% summarise(N=length(Lung_disease), mean_t90 = round(mean(t90, na.rm=T),1), median_t90 = round(median(t90, na.rm=T),1), sd_t90 = round(sd(t90, na.rm=T),1))
+knitr::kable(as.data.table(t), caption = "T90% by Lung_disease",table.attr = "style='width:80%;'") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+***
+
 #   Missing values    
 
 **Comparing participants with incomplete vs complete observation**    
@@ -785,6 +831,7 @@ Interval between sleep recording and metabolomics collection
 * Missing metabolomics collection date = `r n1`
 * Sleep records and metabolomics collection in the same day = `r n2`
 * Median [IQR] difference in days = `r n4`
+* Mean difference in days = `r mean(diff)`
 * Individuals with an interval >30days = `r n5`
 
 <br>
@@ -795,6 +842,7 @@ Interval between sleep recording and anthropometric collection
     
 * Missing anthropometric collection date = `r n6`
 * Median [IQR] difference in days = `r n7`
+* Mean difference in days = `r mean(diff2)`
 * Individuals with an interval >30days = `r n8`
 
 <br>
@@ -950,10 +998,10 @@ knitr::kable(shannoncor, caption = "Correlation between T90% and Shannon diversi
 #### {.unlisted .unnumbered}
 1. Model 1 = sex + age + smoking + alcohol + plate 
 2. Model 2 = + BMI 
-3. Model 3 = + PA + education + place birth + fiber intake + energy intake
-4. Model 4 = + PPI + metformin + antihypertensive + cholesterol-lowering 
-  
-5. SA = Model 3 but removed medication users 
+3. Model 3 = + PA + education + place birth + fiber intake + energy intake + visit month + medication
+
+5. Sens. Analysis = Removed medication users   
+(ppi, metformin, anti-hypertensive, cholesterol-lowering)
 
 <br>
 <br>
@@ -1067,10 +1115,9 @@ knitr::kable(shannoncor, caption = "Correlation between T90% and Shannon diversi
 #### {.unlisted .unnumbered}     
 1. Model 1 = sex + age + smoking + alcohol + plate 
 2. Model 2 = + BMI 
-3. Model 3 = + PA + education + place birth + fiber intake + energy intake
-4. Model 4 = + PPI + metformin + antihypertensive + cholesterol-lowerring
-  
-4. Model 3_noMedication = removed medication users 
+3. Model 3 = + PA + education + place birth + fiber intake + energy intake +  visit month + medication
+
+4. Sens. Analysis = removed medication users 
 (PPI,Metformin,antihypertensive and cholesterol-lowering) 
 
 ***
@@ -1089,40 +1136,40 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
 perma_OSA_BC1 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_bc.tsv')
 perma_OSA_BC2 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_bc.tsv')
 perma_OSA_BC3 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_bc.tsv')
-perma_OSA_BC4 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_osa_bc.tsv')
-perma_OSA_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_bc.tsv')
+
+perma_OSA_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_osa_bc.tsv')
 
 n1 = perma_OSA_BC1[variables =="OSAcat", 'Pr(>F)']
 n2 = perma_OSA_BC2[variables =="OSAcat", 'Pr(>F)']
 n3 = perma_OSA_BC3[variables =="OSAcat", 'Pr(>F)']
-n4 = perma_OSA_BC4[variables =="OSAcat", 'Pr(>F)']
+
 nsa = perma_OSA_BCsa[variables =="OSAcat", 'Pr(>F)']
 
 perma_AHI_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_bc.tsv')
-perma_AHI_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_bc.tsv')
+#perma_AHI_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_bc.tsv')
 perma_AHI_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_bc.tsv')
-perma_AHI_BC4= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_ahi_bc.tsv')
-perma_AHI_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed.tsv')
+
+perma_AHI_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_ahi_bc.tsv')
 
 x1 = perma_AHI_BC1[variables =="ahi", 'Pr(>F)']
-x2 = perma_AHI_BC2[variables =="ahi", 'Pr(>F)']
+x2 = 'error'  #perma_AHI_BC2[variables =="ahi", 'Pr(>F)']
 x3 = perma_AHI_BC3[variables =="ahi", 'Pr(>F)']
-x4 = perma_AHI_BC4[variables =="ahi", 'Pr(>F)']
-xsa = perma_AHI_BCsa[variables =="ahi", 'Pr(>F)']
+
+xsa = 'error' #perma_AHI_BCsa[variables =="ahi", 'Pr(>F)']
 ```
 
 PERMANOVA for OSA groups     
  * model 1 - p-value = `r n1`   
  * model 2 - p-value = `r n2`   
  * model 3 - p-value = `r n3`    
- * model 4 - p-value = `r n4`
+ 
  * sens analysis  - p-value = `r nsa`    
     
 PERMANOVA for AHI     
  * model 1 - p-value = `r x1`        
  * model 2 - p-value = `r x2`    
  * model 3 - p-value = `r x3`   
- * model 4 - p-value = `r x4`  
+ 
  * sens analysis - p-value = `r xsa`      
     
 &nbsp; 
@@ -1178,7 +1225,7 @@ PERMANOVA for AHI
 ```{r BCOSA3, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.T90.png")
 
-perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_BC.tsv')
+perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_bc.tsv')
 perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_BC.tsv')
 perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_BC.tsv')
 perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_BC.tsv')
@@ -1412,24 +1459,15 @@ knitr::kable(perma_AHI_BC3, caption = "AHI and BC - model 3") %>% kable_styling(
 <br>
 
 ***
-#### model 4 {-}
-```{r permanovaAHI4, }
-perma_AHI_BC4 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_ahi_bc.tsv')
-perma_AHI_BC4 = apply(perma_AHI_BC4,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_BC4, caption = "AHI and BC - model 4") %>% kable_styling()
-```
-<br>
-
-***
 
 #### Sens Analysis {-}
   
 Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
   
 ```{r permanovaAHI5, }
-perma_AHI_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed.tsv')
-perma_AHI_BCsa = apply(perma_AHI_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_BCsa, caption = "AHI and BC - model 3 no medication") %>% kable_styling()
+#perma_AHI_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_ahi_bc.tsv')
+#perma_AHI_BCsa = apply(perma_AHI_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
+#knitr::kable(perma_AHI_BCsa, caption = "AHI and BC - Sensitivity analysis") %>% kable_styling()
 ```
 <br>
 
@@ -1440,7 +1478,7 @@ knitr::kable(perma_AHI_BCsa, caption = "AHI and BC - model 3 no medication") %>%
 #### model 1 {-}
    
 ```{r permanovat90, }
-perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_BC.tsv')
+perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_bc.tsv')
 perma_t90_BC1 = apply(perma_t90_BC1,2,function(x){ifelse(!is.na(x),x,"")})
 knitr::kable(perma_t90_BC1, caption = "T90% and BC - model 1") %>% kable_styling()
 ```
@@ -1473,7 +1511,7 @@ knitr::kable(perma_t90_BC3, caption = "T90% and BC - model 3") %>% kable_styling
 
 ***
 
-#### model 3 - no medication {-}
+#### Sens. Analysis  {-}
    
  Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
    
@@ -1526,7 +1564,7 @@ knitr::kable(perma_OSA_AD3, caption = "OSA and AD - model 3") %>% kable_styling(
 
 ***
 
-#### model 3 - no medication {-}
+#### Sens. Analysis {-}
   
 Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
   
@@ -1636,8 +1674,6 @@ knitr::kable(perma_T90_ADsa, caption = "T90% and AD - model 3 no medication") %>
 ***
 ```{r, }
 # Correlation t90 and ahi
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.t90 <- readRDS("valid.t90_MGS.shannon_Upp.rds")
 n = round(with(valid.t90[!is.na(ahi),], cor(t90,ahi, method='spearman')),3)
 ``` 
 
@@ -1655,10 +1691,9 @@ Models:
    
 1. Model 1 = sex + age + smoking + alcohol + sequencing plate + shannon
 2. Model 2 = + BMI 
-3. Model 3 = + PA + education + place birth + fiber intake + energy intake
-4. Model 4 = + PPI + metformin + antihypertensive + cholesterol-lowering 
-  
-5. SA = removed medication users 
+3. Model 3 = + PA + education + place birth + fiber intake + energy intake + visit month + medication
+
+4. SA = removed medication users 
 
 &nbsp;
 
@@ -1672,7 +1707,7 @@ Models:
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 cor.ahi <- fread("/home/baldanzi/Sleep_apnea/Results/cor_ahi_mgs.tsv")
-setnames(cor.ahi,'cor.coeficient','cor')
+setnames(cor.ahi,'cor.coefficient','cor')
 
 a = sum(cor.ahi[model=="model1",q.value]<.05,na.rm=T)
 n = median(cor.ahi[model=="model1", N],na.rm=T)
@@ -1852,7 +1887,7 @@ datatable(t,options = list(
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center',out.width="70%", out.height="70%"}
 cor.t90 <- fread("/home/baldanzi/Sleep_apnea/Results/cor_t90_mgs.tsv")
-setnames(cor.t90,'cor.coeficient','cor')
+setnames(cor.t90,'cor.coefficient','cor')
 
 a = sum(cor.t90[model=="model1",q.value]<.05,na.rm=T)
 n = median(cor.t90[model=="model1", N],na.rm=T)
@@ -2777,7 +2812,7 @@ datatable(t,options = list(
 
 #### model 2 {-}
 
-model2 = + PA + fiber + energy intake + place of birth + education 
+model2 = + PA + fiber + energy intake + visit month  + place of birth + education 
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m2.png")
@@ -2898,7 +2933,7 @@ datatable(t,options = list(
 
 #### model 2 {-}
 
-model2 = + PA + fiber + energy intake + place of birth + education 
+model2 = + PA + fiber + energy intake + visit month  + place of birth + education 
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmit90_m2.png")

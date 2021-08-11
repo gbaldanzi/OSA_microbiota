@@ -12,4 +12,12 @@ ml R_packages
 
 cd $wrf
 
+echo "Script6m2_bash.txt"
+
+echo "model 2 
+
 Rscript cor_model2/Script6_cor2_all.R
+
+echo "SA"
+
+Rscript cor_SA/Script6_SA_all.R

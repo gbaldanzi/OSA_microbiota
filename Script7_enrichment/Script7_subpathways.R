@@ -68,3 +68,10 @@ return(temp[,2])
   }
   
   saveRDS(pathways, '/home/baldanzi/Datasets/Mgs_metab_correlations/subpathwayslist.rds')
+  
+  # Metabolites annotation  
+  metabolites <- annotation[,CHEMICAL_NAME]
+  metlist = as.list(metabolites)
+  names(metlist) = metabolites
+  
+  saveRDS(metlist, '/home/baldanzi/Datasets/Mgs_metab_correlations/metabolitelist.rds')

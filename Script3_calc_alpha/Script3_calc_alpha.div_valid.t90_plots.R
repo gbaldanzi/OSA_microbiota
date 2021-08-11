@@ -6,6 +6,7 @@
 # This script will create plots and table describing alpha in participants with valid T90 measurement
 
 # Loading packages
+library(ggplot2)
 
 
 # Import data
@@ -20,7 +21,7 @@
     ylab("Shannon index") +
     geom_smooth(method='lm', alpha=.8) +
     theme_light() + 
-    theme(plot.title = element_text(hjust=.5, size=14),
+    theme(plot.title = element_text(hjust=.5, size=14, face = "bold"),
           axis.title = element_text(size=14))
   
   ggsave("scatter.shannon.T90.png", plot = p1, device = "png", 
@@ -34,8 +35,8 @@
                    formatC(res$p.value,format= "e", digits=2)))+
        xlab("T90") +
        ylab("Shannon index") +
-       theme(title = element_text(hjust=.5, size=14),
-             axis.title = element_text(size=12))
+       theme(title = element_text(hjust=.5, size=14, face = "bold"),
+             axis.title = element_text(size=14))
   
   ggsave("box.shannon.T90.png", plot = p2, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")

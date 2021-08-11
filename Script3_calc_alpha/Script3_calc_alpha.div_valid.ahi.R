@@ -17,6 +17,8 @@ a = names(dat1[,-"SCAPISid"])
 valid.ahi[,(a):=NULL]
 valid.ahi = merge(dat1,valid.ahi, by = "SCAPISid", all=T, all.x=F, all.y=F)
 
+valid.ahi[,visit.month:=as.factor(valid.ahi$visit.month)]
+
 #Calculate Shannon diversity ####
   a = grep("____",names(valid.ahi),value=T) # vector with MGS names 
   valid.ahi$shannon=diversity(valid.ahi[,a, with=F],index="shannon") 

@@ -3,7 +3,7 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 1
-#SBATCH -t 1:00:00
+#SBATCH -t 2:00:00
 #SBATCH -J Script6
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
@@ -12,4 +12,9 @@ ml R_packages
 
 cd $wrf
 
-Rscript cor_SA/Script6_corsa_all.R
+echo "Script6sa2_bash.txt"
+
+echo "model SA2"
+
+Rscript cor_SA2/Script6_corSA2_all.R
+

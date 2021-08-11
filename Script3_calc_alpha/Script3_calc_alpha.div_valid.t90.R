@@ -17,6 +17,10 @@ valid.t90 = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", s
 valid.t90 = valid.t90[!is.na(sat90),]
 setnames(valid.t90, "sat90", "t90")
 
+# Create factor variables 
+valid.t90[,visit.month:=as.factor(valid.t90$visit.month)]
+valid.t90[,plate:=as.factor(valid.t90$plate)]
+
 # Create a grouping variable of t90
 valid.t90[t90<10,t90cat :=1]
 valid.t90[t90>=10 & t90<20,t90cat :=2]

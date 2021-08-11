@@ -10,13 +10,13 @@
 # in relation to OSA severity groups in 3 different models. 
 # Analysis are run using a PERMANOVA approach
 
-#parallel nodes (1 for each model). Therefore, this code requires at least 3 nodes. 
 
 # Results saved at the folder: "/home/baldanzi/Sleep_apnea/Results/"
 # File model 1 - permanova_model1_osa_bc.tsv
 # File model 2 - permanova_model2_osa_bc.tsv
 # File model 3 - permanova_model3_osa_bc.tsv
 # File SA - permanova_SA_osa_bc.tsv
+# File SA2 - permanova_SA2_osa_bc.tsv
 
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
@@ -42,6 +42,7 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
+dades[,visit.month:=as.factor(dades$visit.month)]
 
 # Making sure that BC and dades have the same order of observations 
 dades = dades[match(rownames(BC),dades$SCAPISid),]
@@ -58,19 +59,23 @@ expo = "OSAcat"
   # model 2 = model 1 + BMI 
   model2 <-  c(model1,"BMI")
   # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth",
-            "metformin","hypermed","dyslipmed","ppi")
+  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month","metformin","hypermed","dyslipmed","ppi")
   # SA = remove medication users 
-  SA <- model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
+  SA <- c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month")
+  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
+  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
+  
 
 # Runing PERMANOVA in parallel ####
-source('perma_osa_bc/perma_model1.R')
+# source('perma_osa_bc/perma_model1.R')
 
-#source('perma_ahi_bc/perma_model2.R')
+  #source('perma_osa_bc/perma_model2.R')
 
-source('perma_osa_bc/perma_model3.R')
+  #source('perma_osa_bc/perma_model3.R')
 
-#source('perma_ahi_bc/perma_SA.R')
+  #source('perma_osa_bc/perma_SA.R')
+  
+  source('perma_osa_bc/perma_SA2.R')
 
 
 #---------------------------------------------------------------------------#

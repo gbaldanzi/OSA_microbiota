@@ -1,12 +1,14 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
-# Script created in 2021-06-17
+# Script created in 2021-08-10
 
 # Inferential Statistics 
 
 # This code will investigate the association between MGS and AHI 
 
-# Results saved at "/home/baldanzi/Sleep_apnea/Results/cor2_ahi_mgs.tsv"
+# Sensitivity analysis 2 - additional adjustment for sleeptime 
+
+# Results saved at "/home/baldanzi/Sleep_apnea/Results/corSA2_ahi_mgs.tsv"
 
 # input and output folder 
 input = "/home/baldanzi/Sleep_apnea/Results/"
@@ -38,6 +40,8 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 # Transforming characters to factor variables 
 dades[,plate:=as.factor(dades$plate)]
 
+
+
 # Correlation between AHI and MGS - Step1 ####
 
 #Preparing exposure, outcomes, and covariates
@@ -47,16 +51,16 @@ m = m[m %in% mgs.m1]
 outcomes=m
 
 # Running correlation 
-  res <-   spearman.function(x1=outcomes,x2=exposure,covari = model2,data = dades)
+  res <-   spearman.function(x1=outcomes,x2=exposure,covari = SA2,data = dades)
 
   res = res[order(res$q.value),]
 
-  res$model= "model2"
+  res$model= "SA2"
 
   names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                      "N", "method", "covariates","q.value","model")
 
-fwrite(res, file = paste0(output,"cor2_ahi_mgs.tsv"), sep="\t")
+fwrite(res, file = paste0(output,"corSA2_ahi_mgs.tsv"), sep="\t")
 
 #--------------------------------------------------------------------------#
 # Merging results with taxonomy information #### 
@@ -64,6 +68,6 @@ fwrite(res, file = paste0(output,"cor2_ahi_mgs.tsv"), sep="\t")
 taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
 setnames(taxonomy,"maintax_mgs","MGS")
 
-dades <- fread(paste0(output,"cor2_ahi_mgs.tsv"))
+dades <- fread(paste0(output,"corSA2_ahi_mgs.tsv"))
 dades <- merge(dades, taxonomy, by="MGS", all.x=T)
-fwrite(dades, file=paste0(output,"cor2_ahi_mgs.tsv"))
+fwrite(dades, file=paste0(output,"corSA2_ahi_mgs.tsv"))

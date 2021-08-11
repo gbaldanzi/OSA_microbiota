@@ -41,9 +41,6 @@ dades = copy(pheno)
 a= c("Sex", "metformin","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
-# Transforming characters to factor variables 
-dades[,plate:=as.factor(dades$plate)]
-
 # Correlation between t90 and MGS - Step1 ####
 
 #Preparing exposure, outcomes, and covariates

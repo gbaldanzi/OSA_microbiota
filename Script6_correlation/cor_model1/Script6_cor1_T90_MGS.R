@@ -17,7 +17,7 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
-
+valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
 
 #Calculating  MGS prevalence ####
 noms=grep("____",names(valid.t90),value=T)

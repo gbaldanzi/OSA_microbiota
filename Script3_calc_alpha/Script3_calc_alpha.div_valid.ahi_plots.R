@@ -7,6 +7,8 @@
 
 # Loading packages
 library(grid)
+library(ggplot2)
+
 
   setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 
@@ -40,11 +42,12 @@ res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
     xlab("Apnea-hypopnea index") +
     ylab("Shannon index") +
     geom_smooth(method='lm', alpha=.8) +
-    geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
-    geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
-    geom_vline(xintercept = 30, color = "red", linetype = "twodash") +
+    #geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
+    #geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
+    #geom_vline(xintercept = 30, color = "red", linetype = "twodash") +
     theme_light() +
-    theme(plot.title = element_text(hjust = 0.5, size = 14))
+    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+          axis.title = element_text(size=14))
   
   ggsave("scatter.shannon.ahi.png", plot = p1, device = "png", 
         path = "/home/baldanzi/Sleep_apnea/Descriptive/")

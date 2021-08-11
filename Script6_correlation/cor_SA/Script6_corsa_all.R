@@ -10,7 +10,7 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
 
 model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 
-model2 <- c(model1,"Fibrer","Energi_kcal" ,"leisurePA", "educat","placebirth")
+model2 <- c(model1,"Fibrer","Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
 
 # Loading packages 
 pacman::p_load(data.table, ppcor, fastDummies,vegan)

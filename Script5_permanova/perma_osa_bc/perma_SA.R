@@ -5,31 +5,31 @@
 # Sensitivity analysis excluding medication users 
 
 # Sensitivity analysis - remove individuals who use medication 
-dades <-  copy(valid.ahi)
-dades <-  dades[ppi == "no",] #60
-dades <-  dades[metformin == "no",] #57 
-dades <-  dades[hypermed == "no",] #593
-dades <-  dades[dyslipmed == "no",] # 239
-nrow(dades) #2318
+dades.sa <-  copy(valid.ahi)
+dades.sa <-  dades.sa[ppi == "no",] #60
+dades.sa <-  dades.sa[metformin == "no",] #57 
+dades.sa <-  dades.sa[hypermed == "no",] #593
+dades.sa <-  dades.sa[dyslipmed == "no",] # 239
+nrow(dades.sa) #2318
 
 # Transforming two-level factor variables into numeric variables 
 a= c("Sex")
-dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+dades.sa[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades.sa[,a, with=F]))))]
 
 # Transforming factor variables 
-dades[,plate:=as.factor(dades$plate)]
+dades.sa[,plate:=as.factor(dades.sa$plate)]
 
-# Making sure that BC and dades have the same observations 
+# Making sure that BC and dades.sa have the same observations 
 BC = as.data.frame(BC) # Transform BC from matrix to data.frame
-cols = dades[,SCAPISid] # Pass the dades observations ids to a vector
-BC = BC[,cols] # Only keep the BC columns that correspond to dades observations
+cols = dades.sa[,SCAPISid] # Pass the dades.sa observations ids to a vector
+BC = BC[,cols] # Only keep the BC columns that correspond to dades.sa observations
 BC$SCAPISid = rownames(BC) # Creates a BC variable with the rownames(BC) 
-BC = BC[BC$SCAPISid %in% dades[,SCAPISid], ] # Exclude BC rows that are not present in dades 
+BC = BC[BC$SCAPISid %in% dades.sa[,SCAPISid], ] # Exclude BC rows that are not present in dades.sa 
 BC$SCAPISid = NULL # Exclude the SCAPISid column 
 
 BC = as.matrix(BC) # Transform BC back to a matrix
 
-dades = dades[match(rownames(BC),dades$SCAPISid),]  # Makes that BC and dades are in the same order
+dades.sa = dades.sa[match(rownames(BC),dades.sa$SCAPISid),]  # Makes that BC and dades.sa are in the same order
 
 # Runing PERMANOVA in parallel ####
 print("PERMANOVA OSA categoies and BC - Sensitivity Analysis")
@@ -37,12 +37,13 @@ print(" ")
 set.seed(123)
 nod=16   # Number of workers to be used 
 cl = makeCluster(nod)
-clusterExport(cl, varlist = c("outc","expo","dades","SA"))
+clusterExport(cl, varlist = c("outc","expo","dades.sa","SA"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
-res = PermanovaFunction(outcome = outc, exposure = expo, covari = SA, data = dades, nodes = nod)
+res = PermanovaFunction(outcome = outc, exposure = expo, covari = SA, data = dades.sa, nodes = nod)
 
 stopCluster(cl)
 
 # Saving results 
-fwrite(res3.nomed, file = paste0(output,"permanova_SA_osa_bc.tsv"), sep="\t")
+fwrite(res, file = paste0(output,"permanova_SA_osa_bc.tsv"), sep="\t")
+rm(dades.sa)

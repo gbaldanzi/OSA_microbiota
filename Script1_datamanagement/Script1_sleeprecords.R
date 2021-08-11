@@ -35,6 +35,23 @@ range(as.Date(sleep$date, format = "%Y-%m-%d"),na.rm=T) #highest value with year
 sleep$date[which(as.Date(sleep$date)>as.Date("2018-12-01")) ] #values that were typo 
 which(as.Date(sleep$date)>as.Date("2018-12-01")) #index of values that were typos 
 
+  # sleep duration during the examination 
+
+  to.min.fun = function(a){
+    
+    splitted = strsplit(as.character(a),':')
+    in.min = sapply(splitted,function(x){
+      as.numeric(x[1])*60 + as.numeric(x[2])
+    })
+    return(in.min)
+  }
+    
+    
+  sleep$sovtid <- sub("8.","8:",sleep$sovtid)
+  sleep[,sovtid:=times(paste0(sovtid,':00'))]
+  
+  sleep[,sleeptime:=to.min.fun(sovtid)]
+
 # correcting the date values 
 sleep$date[55:65]
 sleep$date[59] = "2015-10-29"  # instead of "2105-10-29"

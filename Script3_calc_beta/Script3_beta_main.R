@@ -10,54 +10,38 @@ library(robCompositions)
 library(pheatmap)
 
 #1
-print("start - script3_calc_alpha.div_valid.ahi")
-setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
-  source("Script3_calc_alpha.div_valid.ahi.R")
-#2  
-print("start - Script3_calc_alpha.div_valid.ahi_plots.R")
-setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
-#  source("Script3_calc_alpha.div_valid.ahi_plots.R")
-#3
 print("start - Script3_calc_beta.div_valid.ahi.R")  
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_beta.div_valid.ahi.R")
-#4
+#2
 print("start - Script3_calc_beta.div_valid.ahi_plots.R") 
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_beta.div_valid.ahi_plots.R")
-#5  
+
+#3  
 print("start - Script3_calc_ad_valid.ahi.R")
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_ad_valid.ahi.R")
-#6
+
+#4
 print("start -  Script3_calc_ad_valid.ahi_plots.R")
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_ad_valid.ahi_plots.R")
-#7
-print("start - Script3_calc_alpha.div_valid.t90.R")
-  setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
-  source("Script3_calc_alpha.div_valid.t90.R")
-#8
-print("start - Script3_calc_alpha.div_valid.t90_plots.R")
-setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
- #  source("Script3_calc_alpha.div_valid.t90_plots.R")
-#9
+
+#5
 print("start - Script3_calc_beta.div_valid.t90.R")
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_beta.div_valid.t90.R")
-#10
+#6
 print("start - Script3_calc_beta.div_valid.t90_plots.R")
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #   source("Script3_calc_beta.div_valid.t90_plots.R")
-#11
+#7
 print("start - Script3_calc_ad_valid.t90.R")
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_ad_valid.t90.R")
-#12
+#8
 print("start - Script3_calc_ad_valid.t90_plots.R")
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_ad_valid.t90_plots.R")
-#13
-print("start - Script3_calc_mgs.prevalence.R")  
-setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
-#  source("Script3_calc_mgs.prevalence.R")
+

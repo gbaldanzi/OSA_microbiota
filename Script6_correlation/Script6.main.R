@@ -15,3 +15,13 @@
   source("Script6_venn2.R")
   
   source("Script6_table.res2.R")
+  
+  source("cor_SA/Script6_corsa_all.R")
+  
+  source("Script6_venn_sa.R")
+  
+  source("Script6_table.res_sa.R")
+  
+  source("cor_SA2/Script6_corSA2_all.R")
+  
+  

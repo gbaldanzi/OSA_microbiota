@@ -300,10 +300,10 @@ antihypertensive med. + cholesterol-lowering med.
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m2.png")
 
 t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res2.rds')
-n = nrow(t)
+n = nrow(t[q.value_BMI<=0.05 | q.value_ahi <=0.05 |q.value_t90<=0.05,])
 ```
 
-`r n` MGSs correlated with either AHI, BMI, or T90% in Step 2
+`r n-1` MGSs correlated with either AHI, BMI, or T90% in Step 2
 
 ## Tables {.tabset}
 
@@ -917,7 +917,129 @@ datatable(t.bmi,rownames = FALSE, options = list(
 ```  
 
 &nbsp;
+
+***
+
+## Metabolites {.tabset}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_metabolites.png")
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_metabolite_table.rds')
+
+t.ahi = t[exposure=="AHI",]
+a = t[exposure!="AHI",pathway]
+onlyahi = t[exposure=="AHI" & !pathway %in% a,]
+
+t.t90 = t[exposure=="T90"]
+a = t[exposure!="T90",pathway]
+onlyt90 = t[exposure=="T90" & !pathway %in% a,]
+
+t.bmi = t[exposure=="BMI"]
+a = t[exposure!="BMI",pathway]
+onlybmi = t[exposure=="BMI" & !pathway %in% a,]
+```
+
+### AHI {- }
    
+```{r,}
+t.ahi[,exposure:=NULL]
+datatable(t.ahi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+***
+
+### Only AHI {- }
+   
+```{r,}
+onlyahi[,exposure:=NULL]
+datatable(onlyahi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+***
+     
+### T90 {-}
+    
+```{r,}
+t.t90[,exposure:=NULL]
+datatable(t.t90,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+
+***
+   
+### Only T90 {- }
+   
+```{r,}
+onlyt90[,exposure:=NULL]
+datatable(onlyt90,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+***
+   
+### BMI {-}
+    
+```{r,}
+t.bmi[,exposure:=NULL]
+datatable(t.bmi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+   
+***   
+   
+### Only BMI {- }
+   
+```{r,}
+onlybmi[,exposure:=NULL]
+datatable(onlybmi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```   
+
 ***
 
 ## Metabolic subpathways {.tabset}

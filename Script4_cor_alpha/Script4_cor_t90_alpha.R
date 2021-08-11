@@ -34,11 +34,11 @@
 
   # For Sensitivity analysis - remove individuals who use medication 
   dades.sa = copy(valid.t90)
-  dades.sa <-  dades.sa[which(ppi == "no" | metformin == "no" | hypermed == "no" | dyslipmed == "no"),] 
-  dades2[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades2[,a, with=F]))))]
+  dades.sa <-  dades.sa[which(ppi == "no" & metformin == "no" & hypermed == "no" & dyslipmed == "no"),] 
+  dades.sa[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades.sa[,a, with=F]))))]
 
   #Spearman correlation function ####
-  source('Spearman.correlation.function.R')
+  source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.correlation.function.R')
 
 #-----------------------------------------------------------------------------#
 # Models ####
@@ -47,14 +47,17 @@
   model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
   # model 2 = model 1 + BMI 
   model2 <-  c(model1,"BMI")
-  # model 3 = model 2 + fiber intake +energy intake+ physical activity + education + country of birth + PPI + metformin + anti-hypertensive + cholesterol-lowering
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", 
+  # model 3 = model 2 + fiber intake +energy intake+ physical activity + education + country of birth + visit month + medication
+  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month", 
                "metformin","hypermed","dyslipmed","ppi")
   # SA = model3 but removed medication users 
-  SA <- c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
+  SA <- c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month")
   
+  # SA2 = model 3 but added sleep duration 
+  SA2 <- c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month","sleeptime")
   
-  listmodels=list(model1,model2,model3)
+  listmodels=list(model1,model2,model3,SA2)
+  
   
   # Preparing exposure, outcomes, and covariates
   exposure="t90"
@@ -66,14 +69,14 @@
   
   res.alpha <- as.data.frame(res.alpha)
   
-  res.alpha$model <-  c("model1", "model2", "model3")
+  res.alpha$model <-  c("model1", "model2", "model3","SA2")
 
 
 #----------------------------------------------------------------------------#
   # Sensitivity analysis - removed individuals who use medication 
 
   # Spearman correlation 
-  res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades.sa)
+  res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades.sa)
 
   res.sa$model= "SA"
   
@@ -107,7 +110,7 @@
   
   res.alpha = as.data.frame(res.alpha)
   
-  res.alpha$model = c("model1", "model2", "model3")
+  res.alpha$model = c("model1", "model2", "model3","SA2")
 
 
   res.alpha$bmi= group
@@ -120,7 +123,7 @@ print("Sensitivity analysis (no medication users) correlation T90% and Shannon I
   dades2 = dades.sa[BMIcat==group,]
 
   # Spearman correlation 
-  res.sa = spearman.function(x1=outcomes,x2=exposure,covari = model3,data = dades2)
+  res.sa = spearman.function(x1=outcomes,x2=exposure,covari = SA,data = dades2)
 
   res.sa$model= "SA"
   res.sa$bmi= group

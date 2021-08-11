@@ -11,7 +11,7 @@
 cd /proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512
 
 ml R_packages
-Rscript Script3.main.R
+Rscript Script3_alpha_main.R
 
 echo ""
 

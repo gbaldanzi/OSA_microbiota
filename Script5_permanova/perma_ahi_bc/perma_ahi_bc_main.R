@@ -27,7 +27,6 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
 valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
-#setnames(valid.ahi, "pob", "placebirth")
 
 # Importing BC matrix 
 BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
@@ -43,6 +42,7 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
 # Transforming factor variables 
 dades[,plate:=as.factor(dades$plate)]
+dades[,visit.month:=as.factor(dades$visit.month)]
 
 # Making sure that BC and dades have the same order of observations 
 dades = dades[match(rownames(BC),dades$SCAPISid),]
@@ -59,19 +59,28 @@ expo = "ahi"
   # model 2 = model 1 + BMI 
   model2 <-  c(model1,"BMI")
   # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth",
-            "metformin","hypermed","dyslipmed","ppi")
+  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
   # SA = remove medication users 
-  SA <- model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth")
-
+  SA <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month")
+  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
+  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
+  
+  
+  
 # Runing PERMANOVA in parallel ####
 #source('perma_ahi_bc/perma_model1.R')
-
+  
+#print("model2")
 #source('perma_ahi_bc/perma_model2.R')
 
-source('perma_ahi_bc/perma_model3.R')
+  print("model3")
+  source('perma_ahi_bc/perma_model3.R')
 
-#source('perma_ahi_bc/perma_SA.R')
+  print("SA")
+  source('perma_ahi_bc/perma_SA.R')
+  
+  print("SA2")
+  source('perma_ahi_bc/perma_SA2.R')
 
 
 #---------------------------------------------------------------------------#
