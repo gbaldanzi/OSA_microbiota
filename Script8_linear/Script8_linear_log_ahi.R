@@ -11,5 +11,5 @@ dades[, (mgs.ahi) := lapply(.SD, function(x){log(x+1)}), .SDcols = mgs.ahi]
 
 res.ahi.log <-  lapply(mgs.ahi, lm.mgs, phenotype = "ahi", covariates = model2, data = dades)
 
-res.ahi.log <- do.call(rbind,res.log)
+res.ahi.log <- do.call(rbind,res.ahi.log)
 res.ahi.log$transformation="log+1"

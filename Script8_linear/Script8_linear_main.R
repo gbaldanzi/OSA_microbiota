@@ -43,3 +43,10 @@ source(paste0(input2,'lm.mgs.function.R'))
   source("Script8_linear/Script8_linear_log_ahi.R")
   source("Script8_linear/Script8_linear_log_t90.R")
   
+  source("Script8_linear/Script8_linear_clr_ahi.R")
+  source("Script8_linear/Script8_linear_clr_t90.R")
+  
+  res = rbind(res.ahi.log,res.t90.log,res.ahi.clr,res.t90.clr)
+  
+  fwrite(res, file=paste0(output,"res_linear_all.tsv"), sep="\t")
+  
