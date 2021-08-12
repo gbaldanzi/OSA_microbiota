@@ -36,7 +36,7 @@ valid.t90 <- readRDS("valid.t90_MGS.shannon_Upp.rds")
 # Only keeping the individuals that have valid T90
   count=count[count$SCAPISid %in% valid.t90[,SCAPISid],]
 
-# Merging counts with valid.t99 
+# Merging counts with valid.t90 
   a = c("SCAPISid", "t90cat", "ahi", "age", "Sex")
   count=merge(count,valid.t90[,a,with=F], by="SCAPISid",all=F, all.x=F, all.y=T)
 

@@ -1,0 +1,13 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 3
+#SBATCH -t 6:00:00
+#SBATCH -J ea_subpath
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+ml R_packages
+
+Rscript Script7_subpathways_ea.R 

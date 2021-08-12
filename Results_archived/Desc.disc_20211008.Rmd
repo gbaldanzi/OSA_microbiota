@@ -640,11 +640,107 @@ datatable(t1,container=sketch,rownames = FALSE, options = list(
 
 ***
 
-# Enrichment analysis 
+# Overrepresentation analysis
+   
+## Genera {.tabset}
+
+### Positive correlation {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_genera_pos.png")
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_genera_table_pos.rds')
+```
+      
+   **AHI**
+```{r,}
+t$ahi[,q.value:=round(q.value,digits = 3)]
+t$ahi[,pval:=formatC(pval,digits = 1,format = 'e')]
+datatable(t$ahi, rownames = FALSE,options=list(lengthChange = FALSE))
+```
+      
+          
+   **T90**
+```{r,}
+t$t90[,q.value:=round(q.value,digits = 3)]
+t$t90[,pval:=formatC(pval,digits = 1,format = 'e')]
+datatable(t$t90, rownames = FALSE,options=list(lengthChange = FALSE))
+```
+   
+       
+   **BMI**
+     
+   No genus was overrepresented among the positive correlations 
+   
+   &nbsp;
+   
+***
+
+### Negative correlation {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_genera_neg.png")
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_genera_table_neg.rds')
+```
+      
+   **AHI** -   No genus was overrepresented among the positive correlations  
+     
+   **T90** -   No genus was overrepresented among the positive correlations 
+      
+   **BMI** -   No genus was overrepresented among the positive correlations 
+
+&nbsp;
+   
+***
+
+## Family {.tabset}
+
+### Positive correlation {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_family_pos.png")
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_family_table_pos.rds')
+```
+      
+   **AHI**
+```{r,}
+t$ahi[,q.value:=round(q.value,digits = 3)]
+t$ahi[,pval:=formatC(pval,digits = 1,format = 'e')]
+datatable(t$ahi,rownames = FALSE,options=list(lengthChange = FALSE))
+```
+     
+        
+   **T90**
+```{r,}
+t$t90[,q.value:=round(q.value,digits = 3)]
+t$t90[,pval:=formatC(pval,digits = 1,format = 'e')]
+datatable(t$t90,rownames = FALSE,options=list(lengthChange = FALSE))
+```
+   
+      
+   **BMI**
+```{r,}
+t$bmi[,q.value:=round(q.value,digits = 3)]
+t$bmi[,pval:=formatC(pval,digits = 1,format = 'e')]
+datatable(t$bmi,rownames = FALSE,options=list(lengthChange = FALSE))
+```
+   
+***
+
+### Negative correlation {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_family_neg.png")
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_family_table_neg.rds')
+```
+      
+   **AHI**  
+  Uncharacterized familes were overrepresented among the positive correlations  
+     
+   **T90** -  No family was overrepresented among the positive correlations 
+      
+   **BMI** -  No family was overrepresented among the positive correlations 
+
+&nbsp;
+   
+***
 
 ## KEGG modules {.tabset}
-
-Enrichment analysis of KEGG modules among the MGS correlated to AHI, T90, or BMI
 
 ### Positive correlation {- .tabset}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
