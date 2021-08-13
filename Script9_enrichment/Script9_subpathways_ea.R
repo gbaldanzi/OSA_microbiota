@@ -2,6 +2,8 @@
 # Gabriel Baldanzi 
 # Script created in 2021-08-13
 
+# Enrichment analysis of subpathways among the metabolites correlated to the identified MGSs
+
 # Correlation between relevant MGS and metabolites 
 pacman::p_load(data.table,fgsea)
 
@@ -65,8 +67,14 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
     
     res.table <- do.call(rbind,res)
     
+    HG3A <- as.data.table( HG3A[HG3A[,2] %in% m, ] )
+    HG3A[,maintax:=paste0(V1,"____",V2)]
+    setnames(HG3A, "V2", "mgs")
+    
+    res.table <- merge(res.table, HG3A[,.(mgs,maintax)], by="mgs", all.x=T, all.y=F )
+    
     fwrite(res.table,
-           file= paste0(output,"ea_subpathways.tsv", sep='\tsv'))
+           file= paste0(output,"ea_subpathways.tsv"), sep='\t')
     
   
   
