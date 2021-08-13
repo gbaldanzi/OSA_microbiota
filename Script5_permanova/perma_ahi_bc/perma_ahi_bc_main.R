@@ -10,13 +10,11 @@
 # Aitchison distance) in relation to AHI and T90% in 3 different models. 
 # Analysis are run using a PERMANOVA approach
 
-#parallel nodes (1 for each model). Therefore, this code requires at least 3 nodes. 
-
 # Results saved at the folder: "/home/baldanzi/Sleep_apnea/Results/"
 # File model 1 - permanova_model1.tsv
 # File model 2 - permanova_model2.tsv
 # File model 3 - permanova_model3.tsv
-# File SA - permanova_model3_nomed.tsv
+# File SA - permanova_SA.tsv
 
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
@@ -73,11 +71,11 @@ expo = "ahi"
 #print("model2")
 #source('perma_ahi_bc/perma_model2.R')
 
-  print("model3")
-  source('perma_ahi_bc/perma_model3.R')
+  #print("model3")
+  #source('perma_ahi_bc/perma_model3.R')
 
-  print("SA")
-  source('perma_ahi_bc/perma_SA.R')
+  #print("SA")
+  #source('perma_ahi_bc/perma_SA.R')
   
   print("SA2")
   source('perma_ahi_bc/perma_SA2.R')

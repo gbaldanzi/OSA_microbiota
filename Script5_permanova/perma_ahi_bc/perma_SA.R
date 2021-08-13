@@ -20,16 +20,19 @@ dades.sa[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades.sa[,a, with=F]
 dades.sa[,plate:=as.factor(dades.sa$plate)]
 
 # Making sure that BC and dades.sa have the same observations 
-BC = as.data.frame(BC) # Transform BC from matrix to data.frame
+BCsa <- BC
+BCsa = as.data.frame(BCsa) # Transform BCsa from matrix to data.frame
 cols = dades.sa[,SCAPISid] # Pass the dades.sa observations ids to a vector
-BC = BC[,cols] # Only keep the BC columns that correspond to dades.sa observations
-BC$SCAPISid = rownames(BC) # Creates a BC variable with the rownames(BC) 
-BC = BC[BC$SCAPISid %in% dades.sa[,SCAPISid], ] # Exclude BC rows that are not present in dades.sa 
-BC$SCAPISid = NULL # Exclude the SCAPISid column 
+BCsa = BCsa[,cols] # Only keep the BCsa columns that correspond to dades.sa observations
+BCsa$SCAPISid = rownames(BCsa) # Creates a BCsa variable with the rownames(BCsa) 
+BCsa = BCsa[BCsa$SCAPISid %in% dades.sa[,SCAPISid], ] # Exclude BCsa rows that are not present in dades.sa 
+BCsa$SCAPISid = NULL # Exclude the SCAPISid column 
 
-BC = as.matrix(BC) # Transform BC back to a matrix
+BCsa = as.matrix(BCsa) # Transform BCsa back to a matrix
 
-dades.sa = dades.sa[match(rownames(BC),dades.sa$SCAPISid),]  # Makes that BC and dades.sa are in the same order
+outsa = "BCsa"
+
+dades.sa = dades.sa[match(rownames(BCsa),dades.sa$SCAPISid),]  # Makes that BCsa and dades.sa are in the same order
 
 # Runing PERMANOVA in parallel ####
 print("PERMANOVA AHI and BC - Sensitivity Analysis")
@@ -37,10 +40,10 @@ print(" ")
 set.seed(123)
 nod=16   # Number of workers to be used 
 cl = makeCluster(nod)
-clusterExport(cl, varlist = c("outc","expo","dades.sa","SA"))
+clusterExport(cl, varlist = c("outsa","expo","dades.sa","SA","BCsa"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
-res = PermanovaFunction(outcome = outc, exposure = expo, covari = SA, data = dades.sa, nodes = nod)
+res = PermanovaFunction(outcome = outsa, exposure = expo, covari = SA, data = dades.sa, nodes = nod)
 
 stopCluster(cl)
 

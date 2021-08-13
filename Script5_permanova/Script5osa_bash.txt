@@ -3,8 +3,8 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 16
-#SBATCH -t 48:00:00
-#SBATCH -J perma_ahi_and_osa
+#SBATCH -t 24:00:00
+#SBATCH -J perma_ahi
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
@@ -14,13 +14,8 @@ echo "Scriptosa_bash.txt"
 
 echo "Added SA2 and visit.month to the analyses" 
 
-wharf='/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512'
-
 cd $wharf 
 
-echo " PERMA with OSA cat - model SA2"
-Rscript perma_osa_bc/perma_osa_bc_main.R
-
-echo " PERMA with AHI - model 3, SA, and SA2"
+echo " PERMA with AHI - SA2"
 Rscript perma_ahi_bc/perma_ahi_bc_main.R
 
