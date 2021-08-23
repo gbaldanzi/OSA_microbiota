@@ -1,6 +1,6 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
-# Script created in 2021-08-13
+# Script created in 2021-08-16
 
 # Heatmap on the Enrichment analysis of subpathways among the metabolites 
 # correlated to the identified MGSs
@@ -51,8 +51,8 @@ library(tidyverse)
       annotation <- data.table(mgs.rel = mgs.rel, 
                                correlated = as.character())
       
-      annotation[mgs.rel %in% mgs.ahi, correlated := "Correlated AHI"]
-      annotation[mgs.rel %in% mgs.t90, correlated := "Correlated T90"]
+      annotation[mgs.rel %in% mgs.ahi, correlated := "AHI"]
+      annotation[mgs.rel %in% mgs.t90, correlated := "T90"]
       annotation[mgs.rel %in% mgs.ahi & mgs.rel %in% mgs.t90, correlated := "Both"]
   
       setDF(annotation)
@@ -61,8 +61,8 @@ library(tidyverse)
       
       rownames(annotation) <- annotation$mgs.rel 
       
-      map.col = c("red2", "rosybrown1","#EEEEEE")
-      names(map.col) = c(unique(annotation$correlated))
+      map.col = c("#008000CC", "#466E82", "#FFA540")
+      names(map.col) = c("AHI", "T90", "Both")
       
       
       noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , rownames(hm.matrix)) ) )
@@ -78,7 +78,8 @@ library(tidyverse)
                        col = list(Correlation = c(map.col)),
                        annotation_legend_param = list(labels_gp = gpar(fontsize=4),
                                                       title_gp = gpar(fontsize=5),
-                                                      grid_width = unit(1.5, "mm"),
+                                                      grid_width = unit(2, "mm"),
+                                                      nrow =1,
                                                       Correlation = list(nrow = 1)),
                        annotation_label = "Correlation",
                        annotation_name_gp=gpar(fontsize = 5),
@@ -87,14 +88,20 @@ library(tidyverse)
 
 
 
-pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/temp.heatmap.pdf", width = 6, height = 5)
+pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/temp.heatmap.pdf", width = 9, height = 5)
 set.seed(1)
 h1 = Heatmap(hm.matrix, 
              column_names_rot =  90,
              column_names_side = "bottom",
              cluster_columns = TRUE,
+             show_column_dend = FALSE,
+             
              cluster_rows = TRUE,
-             name="Pathways",
+             row_names_side = "right",
+             row_dend_width = unit(1.5, "cm"),
+
+             col = colorRamp2(c(0,2.3),c("gray95","darkred")),
+             name="NES",
              column_labels = colnames(hm.matrix),
              column_names_gp = gpar(fontsize = 5),
              row_names_gp = gpar(fontsize = 5),
@@ -104,7 +111,10 @@ h1 = Heatmap(hm.matrix,
                                          grid_width = unit(1.5, "mm"),
                                          direction = 'horizontal'),
              left_annotation = ha)
-draw(h1, column_title = "Enriched subpathways",
+
+
+draw(h1, column_title = "Subpathways enrichment analysis",
      column_title_gp = gpar(fontsize = 10, fontface="bold"),
-     heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+     heatmap_legend_side = "bottom", annotation_legend_side = "bottom", merge_legend=T)
+
 dev.off()

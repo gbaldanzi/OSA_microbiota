@@ -61,7 +61,7 @@ setnames(metab_collection_date,"COLLECTION_DATE", "metabolon_collection_date")
   pheno[,visit.month:=factor(visit.month,c(month.name,"June.July"))]
   
       # Merging June to July due to the low number of July participants 
-      pheno[visit.month %in% c("June","July"),visit.month:="June.July"]
+      #pheno[visit.month %in% c("June","July"),visit.month:="June.July"]
       
   #Age
   pheno[,age:=AgeAtVisitOne]

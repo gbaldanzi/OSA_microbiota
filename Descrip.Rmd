@@ -1146,16 +1146,16 @@ n3 = perma_OSA_BC3[variables =="OSAcat", 'Pr(>F)']
 nsa = perma_OSA_BCsa[variables =="OSAcat", 'Pr(>F)']
 
 perma_AHI_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_bc.tsv')
-#perma_AHI_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_bc.tsv')
+perma_AHI_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_bc.tsv')
 perma_AHI_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_bc.tsv')
 
 perma_AHI_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_ahi_bc.tsv')
 
 x1 = perma_AHI_BC1[variables =="ahi", 'Pr(>F)']
-x2 = 'error'  #perma_AHI_BC2[variables =="ahi", 'Pr(>F)']
+x2 = perma_AHI_BC2[variables =="ahi", 'Pr(>F)']
 x3 = perma_AHI_BC3[variables =="ahi", 'Pr(>F)']
 
-xsa = 'error' #perma_AHI_BCsa[variables =="ahi", 'Pr(>F)']
+xsa = perma_AHI_BCsa[variables =="ahi", 'Pr(>F)']
 ```
 
 PERMANOVA for OSA groups     
@@ -1275,29 +1275,6 @@ PERMANOVA for T90%
 
 ***
 
-```{r BC, echo=FALSE, fig.cap="BC by OSA categories", out.width = '100%'}
-
-#paletteLength <- 500
-#myColor <- colorRampPalette(c("white","indianred3"))(paletteLength)
-# length(breaks) == length(paletteLength) + 1
-# use floor and ceiling to deal with even/odd length pallettelengths
-#myBreaks <- c(seq(0, 0.5, length.out=ceiling(paletteLength/2) + 1), 
-#              seq(1/paletteLength, 1, length.out=floor(paletteLength/2)))
-
-#annotation = data.frame(OSAcat = valid.ahi[,OSAcat])
-#rownames(annotation) = valid.ahi$SCAPISid
-# Heatmap
-#p5=pheatmap(BC,main="Heatmap",
-#            legend_labels = "Bray-Curtis Dissimilarity",
-#            color = myColor,show_rownames = FALSE, show_colnames = FALSE,
-            # breaks = myBreaks,
-#            cutree_rows = 2,
- #           cutree_cols = 2,cluster_rows = F,cluster_cols = F, 
-  #          annotation_row = annotation,
-  #          annotation_col = annotation)
-#print(p5)
-```
-
 <br>
 
 ## Heatmap {.tabset}
@@ -1413,14 +1390,14 @@ knitr::kable(perma_OSA_BC4, caption = "OSA and BC - model 4") %>% kable_styling(
 
 ***
 
-#### model 3 - no medication {-}
+#### Sens. analysis {-}
    
  Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
    
 ```{r permanovaOSAsa, }
 perma_OSA_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_bc.tsv')
 perma_OSA_BCsa = apply(perma_OSA_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_BCsa, caption = "OSA and BC - model 3 no medication") %>% kable_styling()
+knitr::kable(perma_OSA_BCsa, caption = "OSA and BC - Sens. analysis") %>% kable_styling()
 ```
 
 &nbsp;

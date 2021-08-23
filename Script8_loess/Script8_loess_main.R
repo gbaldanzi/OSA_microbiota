@@ -30,23 +30,10 @@ source(paste0(input2,'lm.mgs.function.R'))
   mgs.ahi <- res.ahi[q.value<.05 & !MGS %in% mgs.bmi$MGS,MGS]
   mgs.t90 <- res.t90[q.value<.05 & !MGS %in% mgs.bmi$MGS,MGS]
 
-  # Model 
-  model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
-  model2 <- c(model1,"metformin","hypermed","dyslipmed","ppi","Fibrer",
-            "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
-
   # Import full data 
   valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
   valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
   
-  # Linear model -  log+1 transformed 
-  source("Script8_linear/Script8_linear_log_ahi.R")
-  source("Script8_linear/Script8_linear_log_t90.R")
-  
-  source("Script8_linear/Script8_linear_clr_ahi.R")
-  source("Script8_linear/Script8_linear_clr_t90.R")
-  
-  res = rbind(res.ahi.log,res.t90.log,res.ahi.clr,res.t90.clr)
-  
-  fwrite(res, file=paste0(output,"res_linear_all.tsv"), sep="\t")
+  # Linear model -
+  source("Script8_loess/Script8_loess_ahi.R")
   
