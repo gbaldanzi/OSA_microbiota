@@ -8,49 +8,16 @@
 
 # Results saved at "/home/baldanzi/Sleep_apnea/Results/cor_ahi_mgs.tsv"
 
-rm(list = ls())
-# Loading packages 
-pacman::p_load(data.table, ppcor, fastDummies, vegan)
-
-# Output folders 
-input1 = '/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/'
-output = "/home/baldanzi/Sleep_apnea/Results/"
-output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-
-# Importing data
-valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
-
-#Calculating  MGS prevalence ####
-noms=grep("____",names(valid.ahi),value=T)
-# presence-absence transformation: If a species is present, it becomes 1. If absent, becomes zero
-data_pa <- decostand(x = valid.ahi[,noms,with=F], "pa")
-
-# calculate sum per species
-data_sum <- data.frame(prevalence = apply(data_pa, 2, sum),
-                       percentage = apply(data_pa,2,sum)/nrow(valid.ahi))
-data_sum$MGS = rownames(data_sum)
-#a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
-a = data_sum$MGS[data_sum$percentage<.01] # 386 MGS are present in less than 1% of individuals
-
-# Removing MGS that are rare
-valid.ahi <- valid.ahi[ , -a, with=F] 
-
 # Transforming two-level factor variables into numeric variables 
-dades = copy(valid.ahi)
+dades = copy(pheno[valid.ahi=="yes",])
 a= c("Sex", "metformin","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
-
-# Transforming characters to factor variables 
-dades[,plate:=as.factor(dades$plate)]
-
-# Spearman correlation function ####
-source(paste0(input1,"Spearman.correlation.function.R"))
 
 # Correlation between AHI and MGS - Step1 ####
 
 #Preparing exposure, outcomes, and covariates
 exposure="ahi"
-outcomes=grep("___",names(valid.ahi),value=T)
+outcomes=grep("___",names(dades),value=T)
 
 #Covariates 
 # model 1 : adjust for age + sex + alcohol + smoking + plate + received 

@@ -8,46 +8,11 @@
 
 # Results saved at "/home/baldanzi/Sleep_apnea/Results/cor_BMI_mgs.tsv"
 
-rm(list = ls())
-# Loading packages 
-pacman::p_load(data.table, ppcor, fastDummies, vegan)
-
-# Output folders 
-output = "/home/baldanzi/Sleep_apnea/Results/"
-output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-
-# Importing data
-pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-
-#Calculate Shannon diversity ####
-a = grep("____",names(pheno),value=T) # vector with MGS names 
-pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
-
-#Calculating  MGS prevalence ####
-noms=grep("____",names(pheno),value=T)
-# presence-absence transformation: If a species is present, it becomes 1. If absent, becomes zero
-data_pa <- decostand(x = pheno[,noms,with=F], "pa")
-# calculate sum per species
-data_sum <- data.frame(prevalence=apply(data_pa, 2, sum),
-                       percentage = apply(data_pa,2,sum)/nrow(pheno))
-data_sum$MGS = rownames(data_sum)
-#a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
-a = data_sum$MGS[data_sum$percentage<.01] #383 MGS are present in less than 1% of individuals
-
-
-# Removing MGS that are rare
-pheno <- pheno[ , -a, with=F] 
-
 # Transforming two-level factor variables into numeric variables 
 dades = copy(pheno)
 a= c("Sex", "metformin","hypermed","dyslipmed","ppi")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
-# Transforming characters to factor variables 
-dades[,plate:=as.factor(dades$plate)]
-
-#Spearman correlation function ####
-source("Spearman.correlation.function.R")
 
 # Correlation between BMI and MGS - Step1 ####
 
