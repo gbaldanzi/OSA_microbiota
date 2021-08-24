@@ -1,8 +1,19 @@
 # Script 6 - Model 2
 
-rm(list = ls())
+  rm(list = ls())
 
-output = "/home/baldanzi/Sleep_apnea/Results/"
+  output = "/home/baldanzi/Sleep_apnea/Results/"
+
+  input = "/home/baldanzi/Sleep_apnea/Results/"
+
+  # Import MGS identified in model 1
+  mgs.m1  = readRDS(paste0(input,'mgs.m1.filter001.rds'))
+  
+  # Importing data
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  
+  a = grep("____",names(pheno),value=T) # vector with MGS names 
+  pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
 
 #Model 2
 #  adjust for model1 + place birth + education + leisure PA + fiber + total energy intake +
