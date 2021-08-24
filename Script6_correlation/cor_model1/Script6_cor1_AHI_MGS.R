@@ -24,7 +24,7 @@ outcomes=grep("___",names(dades),value=T)
 model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 
 # Running correlation 
-  res <-   spearman.function(x1=outcomes,x2=exposure,covari = model1,data = dades)
+  res<-   spearman.function(x1=outcomes,x2=exposure,covari = model1,data = dades)
 
   res = res[order(res$q.value),]
 
@@ -35,6 +35,8 @@ model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 
   #fwrite(res, file = paste0(output,"cor_ahi_mgs.tsv"), sep="\t")
   fwrite(res, file = paste0(output,"cor_ahi_mgs_filter001.tsv"), sep="\t")
+  
+  res.ahi <- res
 
 #--------------------------------------------------------------------------#
 # Merging results with taxonomy information #### 

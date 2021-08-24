@@ -36,6 +36,8 @@ model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 
   #fwrite(res, file = paste0(output,"cor_BMI_mgs.tsv"), sep="\t")
   fwrite(res, file = paste0(output,"cor_BMI_mgs_filter001.tsv"), sep="\t")
+  
+  res.bmi <- res
 
 #--------------------------------------------------------------------------#
 # Merging results with taxonomy information #### 

@@ -37,6 +37,7 @@ names(res) = c("MGS", "exposure", "cor.coefficient", "p.value",
 #fwrite(res, file = paste0(output,"cor_t90_mgs.tsv"), sep="\t")
 fwrite(res, file = paste0(output,"cor_t90_mgs_filter001.tsv"), sep="\t")
 
+  res.t90 <- res
 #--------------------------------------------------------------------------#
 # Merging results with taxonomy information #### 
 

@@ -8,30 +8,17 @@
 
 # Results saved at "/home/baldanzi/Sleep_apnea/Results/cor2_ahi_mgs.tsv"
 
-# input and output folder 
-input = "/home/baldanzi/Sleep_apnea/Results/"
-
-# MGSs identified in model 1
-#mgs.m1 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m1.rds')
-
-# Importing data
-valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
-
   # Transforming two-level factor variables into numeric variables 
-  dades = copy(valid.ahi)
+  dades = copy(pheno[valid.ahi=="yes",])
   a= c("Sex", "metformin","hypermed","dyslipmed","ppi")
   dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
-  # Transforming characters to factor variables 
-  dades[,plate:=as.factor(dades$plate)]
 
-# Correlation between AHI and MGS - Step1 ####
+  # Correlation between AHI and MGS - Step2 ####
 
   #Preparing exposure, outcomes, and covariates
-  exposure="ahi"
-  m = grep("____",names(dades),value=T)
-  m = m[m %in% mgs.m1]
-  outcomes=m
+  exposure <-  "ahi"
+  outcomes <-  mgs.m1
 
 # Running correlation 
   res <-   spearman.function(x1=outcomes,x2=exposure,covari = model2,data = dades)
