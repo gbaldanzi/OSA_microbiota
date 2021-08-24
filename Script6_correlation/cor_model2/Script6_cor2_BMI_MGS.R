@@ -12,7 +12,7 @@
 input = "/home/baldanzi/Sleep_apnea/Results/"
 
 # MGSs identified in model 1
-mgs.m1 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m1.rds')
+#mgs.m1 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m1.rds')
 
 # Importing data
 pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
@@ -21,19 +21,6 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 #Calculate Shannon diversity ####
 a = grep("____",names(pheno),value=T) # vector with MGS names 
 pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
-
-#Calculating  MGS prevalence ####
-noms=grep("____",names(pheno),value=T)
-# presence-absence transformation: If a species is present, it becomes 1. If absent, becomes zero
-data_pa <- decostand(x = pheno[,noms,with=F], "pa")
-# calculate sum per species
-data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
-data_sum$MGS = rownames(data_sum)
-a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
-
-# Removing MGS that are rare
-pheno <- pheno[ , -a, with=F] 
-
 
 
 # Transforming two-level factor variables into numeric variables 
@@ -59,14 +46,15 @@ res$model= "model2"
 names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                "N", "method", "covariates","q.value","model")
 
-fwrite(res, file = paste0(output,"cor2_BMI_mgs.tsv"), sep="\t")
+#fwrite(res, file = paste0(output,"cor2_BMI_mgs.tsv"), sep="\t")
+fwrite(res, file = paste0(output,"cor2_BMI_mgs_filter001.tsv"), sep="\t")
 
 #--------------------------------------------------------------------------#
 # Merging results with taxonomy information #### 
 
-taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
-setnames(taxonomy,"maintax_mgs","MGS")
+#taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+#setnames(taxonomy,"maintax_mgs","MGS")
 
-dades <- fread(paste0(output,"cor2_BMI_mgs.tsv"))
-dades <- merge(dades, taxonomy, by="MGS", all.x=T)
-fwrite(dades, file=paste0(output,"cor2_BMI_mgs.tsv"))
+#dades <- fread(paste0(output,"cor2_BMI_mgs.tsv"))
+#dades <- merge(dades, taxonomy, by="MGS", all.x=T)
+#fwrite(dades, file=paste0(output,"cor2_BMI_mgs.tsv"))

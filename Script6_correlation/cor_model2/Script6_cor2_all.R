@@ -1,8 +1,26 @@
 # Script 6 - Model 2
 
-rm(list = ls())
+  rm(list = ls())
 
-output = "/home/baldanzi/Sleep_apnea/Results/"
+  output = "/home/baldanzi/Sleep_apnea/Results/"
+
+  input = "/home/baldanzi/Sleep_apnea/Results/"
+
+# Importing results 
+  #res.ahi <- fread(paste0(input,"cor_ahi_mgs.tsv"))
+  #res.bmi <- fread(paste0(input,"cor_BMI_mgs.tsv"))
+  #res.t90 <- fread(paste0(input,"cor_t90_mgs.tsv"))
+  #res.list = list(res.ahi,res.bmi,res.t90)
+  
+  res.ahi <- fread(paste0(input,"cor_ahi_mgs_filter001.tsv"))
+  res.bmi <- fread(paste0(input,"cor_BMI_mgs_filter001.tsv"))
+  res.t90 <- fread(paste0(input,"cor_t90_mgs_filter001.tsv"))
+
+# filter MGS significant at the FDR p-value<0.05
+  res.list <- lapply(res.list, function(x){x[q.value>=0.001, q.value:=round(q.value, digits = 3)]})
+  mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
+
+  mgs.m1  = unique(unlist(mgs.fdr))
 
 #Model 2
 #  adjust for model1 + place birth + education + leisure PA + fiber + total energy intake +

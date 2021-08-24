@@ -10,7 +10,7 @@
 
 rm(list = ls())
 # Loading packages 
-pacman::p_load(data.table, ppcor, fastDummies, vegan, ggplot2,parallel)
+pacman::p_load(data.table, ppcor, fastDummies, vegan)
 
 # Output folders 
 output = "/home/baldanzi/Sleep_apnea/Results/"
@@ -28,9 +28,12 @@ noms=grep("____",names(pheno),value=T)
 # presence-absence transformation: If a species is present, it becomes 1. If absent, becomes zero
 data_pa <- decostand(x = pheno[,noms,with=F], "pa")
 # calculate sum per species
-data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
+data_sum <- data.frame(prevalence=apply(data_pa, 2, sum),
+                       percentage = apply(data_pa,2,sum)/nrow(pheno))
 data_sum$MGS = rownames(data_sum)
-a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
+#a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
+a = data_sum$MGS[data_sum$percentage<.01] #383 MGS are present in less than 1% of individuals
+
 
 # Removing MGS that are rare
 pheno <- pheno[ , -a, with=F] 
@@ -66,14 +69,15 @@ model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
   names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                      "N", "method", "covariates","q.value","model")
 
-fwrite(res, file = paste0(output,"cor_BMI_mgs.tsv"), sep="\t")
+  #fwrite(res, file = paste0(output,"cor_BMI_mgs.tsv"), sep="\t")
+  fwrite(res, file = paste0(output,"cor_BMI_mgs_filter001.tsv"), sep="\t")
 
 #--------------------------------------------------------------------------#
 # Merging results with taxonomy information #### 
 
-taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
-setnames(taxonomy,"maintax_mgs","MGS")
+#taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+#setnames(taxonomy,"maintax_mgs","MGS")
 
-dades <- fread(paste0(output,"cor_BMI_mgs.tsv"))
-dades <- merge(dades, taxonomy, by="MGS", all.x=T)
-fwrite(dades, file=paste0(output,"cor_BMI_mgs.tsv"))
+#dades <- fread(paste0(output,"cor_BMI_mgs.tsv"))
+#dades <- merge(dades, taxonomy, by="MGS", all.x=T)
+#fwrite(dades, file=paste0(output,"cor_BMI_mgs.tsv"))
