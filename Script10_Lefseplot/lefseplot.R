@@ -38,7 +38,7 @@
   
   res = rbind(res.ahi,res.t90,res.bmi)
   
-  sig.mgs = unique(res[p.value<.05,][["MGS"]])  # 509 MGSs
+  sig.mgs = unique(res[p.value<.05,][["MGS"]])  # 505 MGSs
 
   # Restricting Lefse plot to relevant MGS with p.value<0.05
   data = data[data$maintax_mgs %in% sig.mgs,]
@@ -71,7 +71,8 @@
   ord=mgs.collapse(data2,"order")
   fam=mgs.collapse(data2,"family")
   gen=mgs.collapse(data2,"genus")
-  sp=mgs.collapse(data2,"species")
+  #sp=mgs.collapse(data2,"species")
+  sp=mgs.collapse(data2,"maintax_mgs") #Added by Gabriel in 2021-08-23
   
   
   sup=sup[names(data)[2:ncol(data)],]
@@ -172,6 +173,15 @@
   }
   
   dat2=unique(data)
+  
+  #saveRDS(dat2, file = paste0(output.plot,'mgs_collapsed.taxonomy_rel.abundance.rds'))
+  #dat2 <- readRDS(paste0(output.plot,'mgs_collapsed.taxonomy_rel.abundance.rds'))
+  #saveRDS(dat2, file = paste0(output.plot,'mgs_collapsed.taxonomy_rel.abundance_maintax.rds')) #added by Gabriel in 20210823
+  dat2 <- readRDS(paste0(output.plot,'mgs_collapsed.taxonomy_rel.abundance_maintax.rds'))
+  
+  dat2=dat2[-grep("f__Clostridiales Family XIII. Incertae Sedis",dat2$ID,value=F),]
+  dat2=dat2[-grep("o__Candidatus Borkfalkiales",dat2$ID,value=F),]
+  
   dat=dat2
   
  #  install.packages("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/microbiomeViz-master",repos = NULL, type = "source")
@@ -185,22 +195,22 @@
   
   # Create Lefse plot backbone 
   
-  dat=dat[-grep("f__Clostridiales Family XIII. Incertae Sedis",dat$V1,value=F),]
-  dat=dat[-grep("o__Candidatus Borkfalkiales",dat$V1,value=F),]
+
   
   tr <- parseMetaphlanTSV(dat, node.size.offset=2, node.size.scale=0.1)
   
-  print("Creating the tree.backbone - this may take a while")
+  #print("Creating the tree.backbone - this may take a while")
   p <- tree.backbone(tr, size=0.5)
   
-  pdf("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/tree1.pdf")
-  p
-  dev.off()
+  #pdf("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/tree1.pdf")
+  #p
+  #dev.off()
   
-  saveRDS(p, file = paste0(output.plot,
-                           "treebackbone_",
-                           Sys.Date(),
-                           ".rds"))
+  #saveRDS(p, file = paste0(output.plot,"treebackbone_", Sys.Date(),".rds"))
+  #p<- readRDS('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Lefseplottreebackbone_2021-08-20.rds')
+  
+  # Added by Gabriel in 210823 - treebackbone based on maintax_mgs instead of species names 
+  saveRDS(p, file = paste0(output.plot,"treebackbone_.rds"))
           
           
   #source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/annotation.lefse.R')

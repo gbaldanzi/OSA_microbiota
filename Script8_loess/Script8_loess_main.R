@@ -5,16 +5,16 @@
 # AHI or T90 in the fully adjusted model 
 
 rm(list = ls())
-pacman::p_load(data.table)
+pacman::p_load(data.table,ggplot2,ggpubr)
 
 # input and output folders 
 input1 = "/home/baldanzi/Sleep_apnea/Results/"
 input2 = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
 
-output = "/home/baldanzi/Sleep_apnea/Results/"
-#output = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
+#output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
+output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
 
-source(paste0(input2,'lm.mgs.function.R'))
+#source(paste0(input2,'lm.mgs.function.R'))
 
   # Import results 
   res.ahi <- fread(paste0(input1,"cor2_ahi_mgs.tsv"))

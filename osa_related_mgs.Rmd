@@ -1,0 +1,116 @@
+---
+title: "MGS of interest related to sleep apnea"
+author: "Gabriel Baldanzi"
+date: 'Sys.Date()'
+output: 
+  html_document:
+    fig_width: 6
+    fig_height: 4
+    number_sections: TRUE
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 4
+    css: style.css
+---
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1500px !important;
+      width: 1500px !important;
+    }
+    body {
+      max-width: 1500px !important;
+    }
+    code.r { /* Code block */
+    font-size: 14pt;
+    }
+    pre {
+  font-size: 12px
+    }
+    .tocify-header {
+    text-indent: initial;
+}
+    .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 2em;
+    }
+table.display td { white-space: nowrap; }
+    ```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+options(width = 20)
+
+pacman::p_load(tidyverse,data.table,kableExtra,DT,vegan)
+```
+
+# Correlated MGS
+  
+  Table of MGS correlated to AHI and T90, but not correlated to BMI 
+
+```{r,}
+# import relevant results 
+  input.result = "/home/baldanzi/Sleep_apnea/Results/"
+
+  res.ahi <- fread(paste0(input.result,"cor2_ahi_mgs.tsv"))
+  res.t90 <- fread(paste0(input.result,"cor2_t90_mgs.tsv"))
+  res.bmi <- fread(paste0(input.result,"cor2_BMI_mgs.tsv"))
+
+  res.ahi[,q.value:=round(q.value,3)]
+  res.t90[,q.value:=round(q.value,3)]
+  res.bmi[,q.value:=round(q.value,3)]
+
+  # Select the relevant MGSs 
+  mgs.bmi <- res.bmi[q.value<.05,]
+  mgs.ahi <- res.ahi[q.value<.05 & !MGS %in% mgs.bmi$MGS,MGS]
+  mgs.t90 <- res.t90[q.value<.05 & !MGS %in% mgs.bmi$MGS,MGS]
+  
+  mgs.ahi.only <- mgs.ahi[!mgs.ahi %in% mgs.t90]
+  mgs.t90.only <- mgs.t90[!mgs.t90 %in% mgs.ahi]
+  mgs.ahi.t90 <- mgs.ahi[mgs.ahi %in% mgs.t90]
+
+  temp.table <- matrix( ncol = 3, nrow = length(mgs.t90.only))
+
+  temp.table[1:length(mgs.ahi.t90),1] <- mgs.ahi.t90 
+  temp.table[1:length(mgs.ahi.only),2] <- mgs.ahi.only
+  temp.table[1:length(mgs.t90.only),3] <- mgs.t90.only
+  
+  temp.table[is.na(temp.table)] <- ""
+  
+  temp.table <- as.data.frame(temp.table)
+  names(temp.table) <- c("AHI.T90", "AHI", "T90")
+  
+  knitr::kable(temp.table, caption = "Sleep apnea correlated MGS", 
+               align = c('c',times=3)) %>% kable_styling()
+```
+
+   N = `r length(unique(c(mgs.ahi, mgs.t90)))`
+
+*** 
+
+# Prevalence 
+```{r,} 
+  # Calculate prevalence the the relevant MGS
+
+  # import whole data
+  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
+  valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
+
+#Calculating  MGS prevalence  
+  # presence-absence transformation: If a species is present, it becomes 1. If absent, = zero
+  data_pa <- list(ahi = decostand(x = valid.ahi[,mgs.ahi,with=F], "pa"),
+                  t90 = decostand(x = valid.t90[,mgs.t90,with=F], "pa"))
+  # calculate sum per species
+  data_sum <- lapply(data_pa,function(x){data.frame(prevalence=apply(x, 2, sum),
+                                                    percentage = apply(x, 2, sum)/nrow(x))})
+  data_sum <- lapply(data_sum, function(x){x[,"MGS"] <- rownames(x)})
+  
+  data_sum$MGS = rownames(data_sum)
+```
+
