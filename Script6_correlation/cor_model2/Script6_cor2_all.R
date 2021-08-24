@@ -12,6 +12,7 @@
   # Importing data
   pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   
+  message("Calculating shannon-index")
   a = grep("____",names(pheno),value=T) # vector with MGS names 
   pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
 
@@ -30,8 +31,10 @@ source("Spearman.correlation.function.R")
 
 # Correlation scripts   
   source("cor_model2/Script6_cor2_AHI_MGS.R")
+
+  source("cor_model2/Script6_cor2_T90_MGS.R")
   
   source("cor_model2/Script6_cor2_BMI_MGS.R")
   
-  source("cor_model2/Script6_cor2_T90_MGS.R")
+ 
   

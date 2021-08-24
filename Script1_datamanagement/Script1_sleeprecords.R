@@ -103,6 +103,8 @@ valid.t90$splint = factor(valid.t90$splint, levels = c(0,1), labels = c("no", "y
 valid.t90$cpap[is.na(valid.t90$cpap)] = "no"
 valid.t90$splint[is.na(valid.t90$splint)] = "no"
 
+valid.t90$t90 = valid.t90$sat90
+
 
   # Saving the datasets ####
   saveRDS(valid.ahi,"/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.ahi.rds")

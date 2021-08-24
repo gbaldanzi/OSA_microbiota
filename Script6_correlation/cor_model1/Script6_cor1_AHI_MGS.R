@@ -24,6 +24,7 @@ outcomes=grep("___",names(dades),value=T)
 model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 
 # Running correlation 
+  message("Correlation between MGS and AHI - Step1")
   res<-   spearman.function(x1=outcomes,x2=exposure,covari = model1,data = dades)
 
   res = res[order(res$q.value),]

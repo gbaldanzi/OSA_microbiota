@@ -242,6 +242,7 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   
   pheno[,valid.ahi:=ifelse(pheno$SCAPISid %in% valid.ahi$SCAPISid, "yes", "no")]
   pheno[,valid.t90:=ifelse(pheno$SCAPISid %in% valid.t90$SCAPISid, "yes", "no")]
+  pheno <- merge(pheno, valid.t90, by='SCAPISid', all.x=T, all.y=F)
   
   # Save pheno data ####
   saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")

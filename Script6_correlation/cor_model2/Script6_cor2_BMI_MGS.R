@@ -26,6 +26,7 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
   outcomes <- mgs.m1
 
   # Running correlation 
+  message("Correlation between MGS and BMI - Step2")
   res <-   spearman.function(x1=outcomes,x2=exposure,covari = model2,data = dades)
 
   res = res[order(res$q.value),]

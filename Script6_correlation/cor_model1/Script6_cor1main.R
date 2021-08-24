@@ -39,6 +39,8 @@ pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
     source('cor_model1/Script6_cor1_T90_MGS.R')
     source('cor_model1/Script6_cor1_BMI_MGS.R')
   
-  mgs.m1.filter001 <- unique(c(res.ahi$MGS, res.t90$MGS , res.bmi$MGS))
+  mgs.m1.filter001 <- unique(c(res.ahi[res.ahi$q.value<.05,"MGS"], 
+                               res.t90[res.t90$q.value<.05,"MGS"], 
+                               res.bmi[res.bmi$q.value<.05,"MGS"]))
   saveRDS(mgs.m1.filter001, paste0(output,'mgs.m1.filter001.rds'))
   

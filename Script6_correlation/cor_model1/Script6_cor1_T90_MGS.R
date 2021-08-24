@@ -25,13 +25,14 @@ outcomes=grep("___",names(dades),value=T)
 model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 
 # Running correlation 
-res <-   spearman.function(x1=outcomes,x2=exposure,covari = model1,data = dades)
+  message("Correlation between MGS and T90 - Step1")
+  res <-   spearman.function(x1=outcomes,x2=exposure,covari = model1,data = dades)
 
-res = res[order(res$q.value),]
+  res = res[order(res$q.value),]
 
-res$model= "model1"
+  res$model= "model1"
 
-names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
+  names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                "N", "method", "covariates","q.value","model")
 
 #fwrite(res, file = paste0(output,"cor_t90_mgs.tsv"), sep="\t")
