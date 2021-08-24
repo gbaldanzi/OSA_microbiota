@@ -12,7 +12,6 @@ rm(list=ls())
 #setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
 
 
-
 # Uploading phenotype data ####
 pheno=fread("/home/baldanzi/Datasets/sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv", header = T, na.strings=c("", "NA"))
 # Restricting dataset to Uppsala participants only 
@@ -237,12 +236,15 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   pheno$plate = as.factor(pheno$plate)
   pheno$received = as.factor(pheno$received)
 
-  # Save pheno data ####
-  saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-  
   # Import sleep recording data 
   valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.ahi.rds")
   valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.t90.rds")
+  
+  pheno[,valid.ahi:=ifelse(pheno$SCAPISid %in% valid.ahi$SCAPISid, "yes", "no")]
+  pheno[,valid.t90:=ifelse(pheno$SCAPISid %in% valid.t90$SCAPISid, "yes", "no")]
+  
+  # Save pheno data ####
+  saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
   #valid.ahi + pheno
   nrow(valid.ahi) # 3301 individuals with valid flow and sat monitoring 
@@ -274,14 +276,4 @@ dat1 = valid.ahi %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, B
 save(dat1, file = "data_table1")
 
 
-# Nicotine metabolites ("cotinine", "hydroxycotinine", "cotinine N-oxide") ####
-a = c("SCAPISid" ,"MET_848","MET_100002717", "MET_100002719")
-nicotine=metabolon[,a,with=F]
 
-# Merging nicotine metabolites with smokestatus 
-a = c("SCAPISid", "smokestatus", "cqto015")
-nicotine = merge(nicotine, valid.ahi[,a, with=F], by="SCAPISid", all.x = F, all.y=T)
-setnames(nicotine,"cqto015", "snus_ever1mo")
-
-# Saving nicotine metabolites data 
-fwrite(nicotine, file = "/home/baldanzi/Datasets/Metabolon/nicotine_metab.csv", sep=",")
