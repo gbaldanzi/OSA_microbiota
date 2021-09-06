@@ -2,10 +2,12 @@
 # Gabriel Baldanzi 
 # Script created in 2021-08-13
 
+# Last update: 2021-09-03
+
 # Enrichment analysis of subpathways among the metabolites correlated to the identified MGSs
 
 # Correlation between relevant MGS and metabolites 
-pacman::p_load(data.table,fgsea)
+pacman::p_load(data.table,fgsea,tidyverse)
 
 rm(list = ls())
 
@@ -15,30 +17,26 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
   # Import results 
   mgs_met <- fread("/home/baldanzi/Datasets/Mgs_metab_correlations/table1_shortmgs.tsv") #Correlation metabolites and MGS
 
-  res.ahi <- fread(paste0(input,"cor2_ahi_mgs.tsv"))
-  res.t90 <- fread(paste0(input,"cor2_t90_mgs.tsv"))
-  res.bmi <- fread(paste0(input,"cor2_BMI_mgs.tsv"))
-
-  res.ahi[,q.value:=round(q.value,3)]
-  res.t90[,q.value:=round(q.value,3)]
-  res.bmi[,q.value:=round(q.value,3)]
+  res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+  
+  res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
 
   # Select the relevant MGSs 
-  mgs.bmi <- res.bmi[q.value<.05,]
-  mgs.ahi <- res.ahi[q.value<.05 & !MGS %in% mgs.bmi$MGS,MGS]
-  mgs.t90 <- res.t90[q.value<.05 & !MGS %in% mgs.bmi$MGS,MGS]
+  mgs.bmi <- res.m2[exposure =="BMI" & q.value<.05,mgs] # MGS correlated to BMI
   
-  mgs.rel <- unique(c(mgs.ahi, mgs.t90))
-  HG3A <- do.call(rbind,strsplit(mgs.rel, split ="____"))
+  # MGS correlated to either AHI or T90 but not to BMI (relevant mgs)
+  mgs.rel <- res.m2 %>% filter(exposure =="ahi" | exposure == "t90") %>% 
+    filter(q.value<.05) %>% filter(!mgs %in% mgs.bmi) %>% select(mgs)
+  mgs.rel <- unique(mgs.rel$mgs)
   
   # Restricting MGS-metabolites correlation results 
   
-  mgs.rel_met <- mgs_met[mgs %in% HG3A[,2],]
+  mgs.rel_met <- mgs_met[mgs %in% mgs.rel,]
   
-  HG3A[!HG3A[,2] %in% mgs_met[,mgs],] # 6 mgs used in the sleep apnea study were not used
+  mgs.rel[!mgs.rel %in% mgs_met[,mgs]] # 6 mgs used in the sleep apnea study were not used
   # in the metabolomics study 
   
-  m <- HG3A[HG3A[,2] %in% mgs_met[,mgs],2]
+  m <- mgs.rel[mgs.rel %in% mgs_met[,mgs]]
   
   metabolites.pvalues <- lapply(m, function(x) {
     
@@ -67,14 +65,11 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
     
     res.table <- do.call(rbind,res)
     
-    HG3A <- as.data.table( HG3A[HG3A[,2] %in% m, ] )
-    HG3A[,maintax:=paste0(V1,"____",V2)]
-    setnames(HG3A, "V2", "mgs")
+    fullnames <- unique(res.m2[mgs %in% m,.(mgs,MGS)])
     
-    res.table <- merge(res.table, HG3A[,.(mgs,maintax)], by="mgs", all.x=T, all.y=F )
+    res.table <- merge(res.table,fullnames , by="mgs", all.x=T, all.y=F)
     
-    fwrite(res.table,
-           file= paste0(output,"ea_subpathways.tsv"), sep='\t')
+    fwrite(res.table, file= paste0(output,"ea_subpathways.tsv"), sep='\t')
     
   
   
