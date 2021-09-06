@@ -2,8 +2,11 @@
 
 # Gabriel Baldanzi 2021-06-30
 
+
 # Loading packages 
 pacman::p_load(data.table,ggplot2, tidyr, fgsea,rio)
+
+source("MGS.Enrich.function.R")
 
 # input and output folders 
 input1 = "/home/baldanzi/Sleep_apnea/Results/"
@@ -59,6 +62,8 @@ fgsea.module.fun=function(res,outcome,direction)
     
     p.val=xxx$p.value
     names(p.val)=xxx$MGS
+    
+    print(mylist)
     
     set.seed(123)
     xRANK <- fgsea(pathways = mylist, stats = rank(-p.val), eps=0,scoreType="pos", maxSize=600, nPermSimple = 100000)
