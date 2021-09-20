@@ -1368,10 +1368,6 @@ Scatter plot of correlation coefficients from 2 analysis (correlation between AH
 
 knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_ahi.png')
 knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_t90.png')
-for(m in mgs.pos){
-  nn <- paste0("![](Self_apnea_mgs/pos.mgs/selfapnea_",m,".png)")
-  cat(nn,'\n')
-  }
 
 ```
 
@@ -1383,7 +1379,7 @@ for(m in mgs.pos){
 
 ## Prevalence barplots {.tabset}
      
-Plots display the MGS prevalence in all SCAPIS participants (n = `r n`) by self-reported sleep apnea
+Plots display the MGS prevalence in all SCAPIS participants (n = `r n2`) by self-reported sleep apnea
  
 
 ### Positive correlated {.unnumbered}
@@ -1469,3 +1465,94 @@ knitr::kable(table,
     kable_styling()
 
 ```
+
+
+##{.unlisted .unnumbered}
+
+<br>
+
+***
+
+<br>
+
+### Table of sef-reported CPAP
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
+  library(compareGroups)
+
+  sleep <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
+
+  all.data=fread("/home/baldanzi/Datasets/sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv", header = T, na.strings=c("", "NA"))
+  setnames(all.data, "Subject", "SCAPISid") #renaming the id variable
+  data.MGS = fread("/home/baldanzi/Datasets/MGS/clean/MGS_relative_abundance_4839_upp_4980_malmo.tsv")
+  data.MGS[SCAPISid=="", SCAPISid:=id]
+
+  all.data <- merge(all.data, data.MGS, by="SCAPISid", all.y=T)
+
+  all.data[,self.apnea:=cqhe058]
+  all.data[self.apnea=="NO_ANSWER", self.apnea:=NA]
+  all.data[,CPAP:='NO']
+  all.data[cqhe061=='CPAP',CPAP:='YES']
+  
+  t <- compareGroups(Site~CPAP+self.apnea,data=all.data)
+  export2md(createTable(t), which.table = "descr", format = "html", caption="Self-reported CPAP use by center") %>% kable_styling()
+```
+
+<br>
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
+
+  all.data[SCAPISid %in% sleep$SCAPISid, sleep.study:='yes']
+  all.data[!SCAPISid %in% sleep$SCAPISid, sleep.study:='no']
+  
+  t <- compareGroups(sleep.study~CPAP+self.apnea,data=all.data)
+  export2md(createTable(t), which.table = "descr", format = "html", caption="Self-reported CPAP use by inclusion to the sleep recording") %>%  kable_styling()
+``` 
+
+
+<br>
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
+  t <- compareGroups(sleep.study~CPAP+self.apnea,data=all.data[Site=="Site5",])
+  export2md(createTable(t), which.table = "descr", format = "html", caption="Self-reported CPAP use by inclusion to the sleep recording - Uppsala only") %>%   kable_styling()
+``` 
+
+<br>
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
+
+  all.data[SCAPISid %in% sleep[valid.ahi=='yes',SCAPISid], sleep.study.valid:='yes']
+  all.data[!SCAPISid %in% sleep[valid.ahi=='yes',SCAPISid], sleep.study.valid:='no']
+  
+  t <- compareGroups(sleep.study.valid~CPAP+self.apnea,data=all.data)
+  export2md(createTable(t), which.table = "descr", format = "html", caption="Self-reported CPAP use by valid measurement in the sleep recording") %>%  kable_styling()
+``` 
+
+
+<br>
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
+
+  all.data[SCAPISid %in% sleep[valid.ahi=='yes',SCAPISid], sleep.study.valid:='yes']
+  all.data[!SCAPISid %in% sleep[valid.ahi=='yes',SCAPISid], sleep.study.valid:='no']
+  
+  t <- compareGroups(sleep.study.valid~CPAP+self.apnea,data=all.data[Site=="Site5",])
+  export2md(createTable(t), which.table = "descr", format = "html", caption="Self-reported CPAP use by valid measurement in the sleep recording - Uppsala only") %>%  kable_styling()
+``` 
+
+<br>
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
+
+  all.data[SCAPISid %in% sleep[cpap=='yes',SCAPISid], cpap.study.night:='yes']
+  all.data[!SCAPISid %in% sleep[cpap=='yes',SCAPISid], cpap.study.night:='no']
+  
+  t <- compareGroups(sleep.study.valid~CPAP+self.apnea+cpap.study.night,data=all.data[SCAPISid %in% sleep$SCAPISid,])
+  export2md(createTable(t), which.table = "descr", format = "html", caption="Self-reported CPAP use by valid measurement only in those included in the sleep study") %>%  kable_styling()
+``` 
+
+```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
+
+  t <- compareGroups(CPAP~cpap.study.night+self.apnea,data=all.data[SCAPISid %in% sleep$SCAPISid,])
+  export2md(createTable(t), which.table = "descr", format = "html", caption="Use of CPAP during the study night by self-reported CPAP use in the questionnaire - only sleep study participants") %>%  kable_styling()
+``` 
