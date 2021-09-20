@@ -1269,8 +1269,6 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
 for(m in mgs.ahi){
   cat(sprintf("\n### %s {-} \n\n", m))
   cat(paste0("![](bar_ahi/minibar_ahi_",m,".png)"))
-  cat(paste0("![](bar_ahi/minibar_quant_ahi_",m,".png)"))
-  cat("  \n")
 }
 
 ```
@@ -1288,8 +1286,6 @@ for(m in mgs.t90){
   cat(sprintf("\n### %s{-} \n\n", m))
   nn <- paste0("![](bar_t90/minibar_t90_",m,".png)")
   cat(nn,'\n')
-  cat(paste0("![](bar_t90/minibar_quant_t90_",m,".png)"))
-  cat("  \n")
 }
 
 ```
@@ -1332,8 +1328,7 @@ Among those participant(n=`r n2`) for whom measured sleep apnea was not availabl
     cor_mgs.fdr <- res.m2[MGS %in% mgs.fdr & exposure %in% c("ahi","t90"),
                         .(MGS,exposure,cor.coefficient,p.value,q.value)]
   
-    cor_mgs.fdr <- cor_mgs.fdr %>% pivot_wider(id_cols=MGS, names_from = exposure, 
-                          values_from = c(cor.coefficient,p.value,q.value))
+    cor_mgs.fdr <- cor_mgs.fdr %>% pivot_wider(id_cols=MGS, names_from = exposure, values_from = c(cor.coefficient,p.value,q.value))
     setDT(cor_mgs.fdr)
   
     mgs.pos <- cor_mgs.fdr[cor.coefficient_t90>0,MGS]
@@ -1355,6 +1350,29 @@ Among those participant(n=`r n2`) for whom measured sleep apnea was not availabl
             columnDefs = list(list(className = 'dt-center', targets = c(2:3)) )
             )) %>% formatStyle(c(3), `border-right` = "solid 2px")
     
+```
+
+<br>
+
+***
+
+<br>
+
+## Scatter plot of correlation coefficients {.tabset}
+    
+&nbsp;
+
+Scatter plot of correlation coefficients from 2 analysis (correlation between AHI or T90 and MGS & correlation between Self-reported apnea and MGS)
+
+```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
+
+knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_ahi.png')
+knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_t90.png')
+for(m in mgs.pos){
+  nn <- paste0("![](Self_apnea_mgs/pos.mgs/selfapnea_",m,".png)")
+  cat(nn,'\n')
+  }
+
 ```
 
 <br>

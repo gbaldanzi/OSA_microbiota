@@ -36,11 +36,13 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   res.list <- lapply(res.list, function(x){x[,rho:=paste0("rho = ",round(cor.coefficient,3))]})
   
   #Categories
-  pheno[valid.t90=="yes" & t90==0, t90cat := 0 ]
-  pheno[valid.t90=="yes" & t90!=0, T90cat :=  cut(t90,breaks = quantile(t90,
+  pheno[,t90cat:=NULL]
+  pheno[valid.t90=="yes" & t90!=0, t90cat :=  cut(t90,breaks = quantile(t90,
                                                                   probs = seq(0,1,by=.33),
                                                                   na.rm=T), include.lowest = T)]
-  
+  pheno[,t90cat:=factor(t90cat, levels = c("0", levels(t90cat)))]
+  pheno[valid.t90=="yes" & t90==0, t90cat := '0' ]
+
   
   # Bar plots of prevalence 
   noms=unique(c(mgs.ahi, mgs.t90))
@@ -54,9 +56,13 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     require(ggplot2)
     require(dplyr)
     require(Hmisc)
-    dades <- data[!is.na(get(group)),]
-  
+    dades <- copy(data)
+    
     setDF(dades)
+    
+    dades <- dades[!is.na(dades[,group]),]
+    
+    n.gr <- table(dades[,group])
   
     dades <- dades %>% group_by(get(group)) %>% summarise_at(pa,function(x){sum(x)/length(x)})
     names(dades)[1] <- group
@@ -65,10 +71,10 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     r <- res.list[[exposure]][MGS==y.axis,rho]
   
   
-  
     ggplot(dades) + geom_bar(aes_string(x=group, y=y.axis), stat = 'identity') + 
       ggtitle(y.axis, subtitle = r) + 
       xlab(group) + ylab(y.axis) +
+      scale_x_discrete(labels=paste0(names(n.gr),'\nn=',n.gr)) +
       theme_classic() +
       theme(plot.title = element_text(hjust = .5, face = 'bold'),
           plot.subtitle = element_text(hjust = .5, face = 'bold', size=16),
@@ -113,40 +119,6 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
          path = './bar_t90/')
   }
 
-
-# plots of quantiles 
-  plots.ahi <- lapply(mgs.ahi, 
-                    bar.plot.prevalence.fun, 
-                    group = "AHIquantile",
-                    exposure = "ahi",
-                    data = pheno[valid.ahi=='yes',])
-
-  names(plots.ahi) <- mgs.ahi
-  
-  saveRDS(plots.ahi, file = paste0(output.plot,'/bar_ahi/barplot_quant_ahi.rds'))
-
-  for(i in 1:length(plots.ahi)){
-  
-  ggsave(file = paste0("bar_quant_ahi_",names(plots.ahi[i]),".png"), plot=plots.ahi[[i]],
-         path = './bar_ahi/')
-  }
-
-
-  plots.t90 <- lapply(mgs.t90, 
-                    bar.plot.prevalence.fun, 
-                    exposure = "t90", 
-                    group= "T90quantile",
-                    data = pheno[valid.t90=='yes',])
-
-  names(plots.t90) <- mgs.t90
-  
-  saveRDS(plots.t90, file = paste0(output.plot,'/bar_t90/barplot_quant_t90.rds'))
-  
-  for(i in 1:length(plots.t90)){
-  
-      ggsave(file = paste0("bar_quant_t90_",names(plots.t90[i]),".png"), plot=plots.t90[[i]],
-         path = './bar_t90/')
-  }
 
   source('Script8_minibarplots.R')
   

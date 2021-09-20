@@ -44,6 +44,7 @@
   
   n.self <- unique(res.self$N)
   n.ahi <- unique(res.m2.ahi$N)
+  n.t90 <- unique(res.m2.t90$N)
   
   # Scatter plots 
   p1 <- ggplot(data.frame(self.reported=res.self.ahi$cor.coefficient, 
@@ -53,8 +54,8 @@
     ggtitle("MGS correlations for Self reported VS measured AHI", 
            subtitle = paste0("rho=",round(cor.ahi$estimate,2),
                              ", p=",round(cor.ahi$p.value,4))) +
-           xlab("Cor. Coefficient - AHI and MGS") +
-           ylab("Cor. Coefficient - reported apnea and MGS")
+           xlab(paste0("Cor. Coefficient - AHI and MGS\nn=",n.ahi)) +
+           ylab(paste0("Cor. Coefficient - reported apnea and MGS\nn=",n.self))
   
   ggsave(file="scatter_self_ahi.png", plot=p1, dpi = 150, 
          path='/home/baldanzi/Sleep_apnea/Results/Plots/')
@@ -67,8 +68,8 @@
     ggtitle("MGS correlations for Self reported VS measured T90", 
             subtitle = paste0("rho=",round(cor.t90$estimate,2),
                               ", p=",round(cor.t90$p.value,4))) +
-            xlab("Cor. Coefficient - T90 and MGS") +
-            ylab("Cor. Coefficient - reported apnea and MGS")
+            xlab(paste0("Cor. Coefficient - T90 and MGS\nn=",n.t90)) +
+    ylab(paste0("Cor. Coefficient - reported apnea and MGS\nn=",n.self))
   
   ggsave(file="scatter_self_t90.png", plot=p2, dpi = 150, 
          path='/home/baldanzi/Sleep_apnea/Results/Plots/')
