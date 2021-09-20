@@ -2,6 +2,8 @@
 # Gabriel Baldanzi 
 # Script created in 2021-07-02
 
+# Last update: 2021-09-03
+
 # This script imports the table of correlations from the paper of Koen et al. and 
 # filters to the MGS identified with model 1 of this project. Finally, it saves the sp 
 # p.value corresponding to MGS in a list file. ("/home/baldanzi/Sleep_apnea/Results/list_mm_p.value.sp.rds")
@@ -19,28 +21,21 @@ mgs_met <- fread("/home/baldanzi/Datasets/Mgs_metab_correlations/table1_shortmgs
 input = "/home/baldanzi/Sleep_apnea/Results/"
 output = "/home/baldanzi/Sleep_apnea/Results/"
 
-res.ahi <- fread(paste0(input,"cor_ahi_mgs.tsv"))
-res.bmi <- fread(paste0(input,"cor_BMI_mgs.tsv"))
-res.t90 <- fread(paste0(input,"cor_t90_mgs.tsv"))
+  res <- fread(paste0(input,"cor_all.var_mgs.tsv"))
+  res[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+  
+  res.list = list(AHI = res[exposure=="ahi",],
+                  T90 = res[exposure=="t90",],
+                  BMI = res[exposure=="BMI",])
 
-res.list = list(res.ahi,res.bmi,res.t90)
+  # filter MGS significant at the FDR p-value<0.05
+  mgs.fdr = lapply(res.list,function(x){x[q.value<0.05,mgs]})
 
-# filter MGS significant at the FDR p-value<0.05
-  res.list <- lapply(res.list, function(x){x[q.value>=0.001, q.value:=round(q.value, digits = 3)]})
-  mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
-
-  names(mgs.fdr) <- c("AHI","BMI","T90")
-
-  mgs.fdr = lapply(mgs.fdr,function(x){
-  temp=strsplit(x, "____")
-  temp=matrix(unlist(temp), ncol=2, byrow=TRUE)
-  return(temp[,2])
-  })
 
   # List mgs_meta correlations p.value and metabolites names by phenotype 
-  list_mm_p.value.sp <- list(ahi=NULL, bmi=NULL, t90=NULL)
-  for(i in 1:3){
-  print(i)
+  list_mm_p.value.sp <- list(AHI=NULL, T90=NULL, BMI=NULL)
+  for(i in names(mgs.fdr)){
+  message(i)
   p <- mgs_met[mgs %in% mgs.fdr[[i]],p.value.sp]
   list_mm_p.value.sp[[i]] <- as.numeric(p)
   names(list_mm_p.value.sp[[i]]) <- mgs_met[mgs %in% mgs.fdr[[i]],metabolite]

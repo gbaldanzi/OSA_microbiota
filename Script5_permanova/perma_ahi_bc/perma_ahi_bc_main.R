@@ -66,19 +66,12 @@ expo = "ahi"
   
   
 # Runing PERMANOVA in parallel ####
-#source('perma_ahi_bc/perma_model1.R')
+  source('perma_ahi_bc/perma_model1.R')
   
-#print("model2")
-#source('perma_ahi_bc/perma_model2.R')
+  source('perma_ahi_bc/perma_model2.R')
 
-  #print("model3")
-  #source('perma_ahi_bc/perma_model3.R')
+  source('perma_ahi_bc/perma_model3.R')
 
-  #print("SA")
-  #source('perma_ahi_bc/perma_SA.R')
+  source('perma_ahi_bc/perma_SA.R')
   
-  print("SA2")
   source('perma_ahi_bc/perma_SA2.R')
-
-
-#---------------------------------------------------------------------------#

@@ -32,7 +32,7 @@ MGS.Enrich.Analysis <- function(data,
     #names(mgs.pval)=temp[,2]
     
     set.seed(123)
-    res<- fgsea(pathways = paths, stats = rank(-mgs.pval), eps = 0, scoreType = "pos",nPermSimple = 100000)
+    res<- fgsea(pathways = paths, stats = rank(-mgs.pval), eps = 0, scoreType = "pos",maxSize=650,nPermSimple = 100000)
     setnames(res,"padj","q.value")
     res[,exposure:=unique(dd$exposure)]
     rm(mgs.pval)

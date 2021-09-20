@@ -31,3 +31,8 @@ setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 print("start - Script3_calc_mgs.prevalence.R")  
 setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 #  source("Script3_calc_mgs.prevalence.R")
+
+#6 
+message("start - Script3_calc_alpha.div_pheno.R")
+setwd('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
+  source("Script3_calc_alpha.div_pheno.R")

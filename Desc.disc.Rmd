@@ -3,7 +3,7 @@ title: "Discordant MGS"
 author: "Gabriel Baldanzi"
 date: " `r Sys.time()` "
 output: 
-  html_document:
+  rmdformats::robobook:
     fig_width: 6
     fig_height: 4
     number_sections: TRUE
@@ -12,13 +12,23 @@ output:
       collapsed: true
       smooth_scroll: false
     toc_depth: 4
+    theme: united
+    hightlist: espresso
     css: style.css
+    
 ---
 ```{css, echo=FALSE}
     body .main-container {
       max-width: 1500px !important;
       width: 1500px !important;
     }
+
+    .book .book-body .page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 10px 10px 10px;
+    }
+
     body {
       max-width: 1500px !important;
     }
@@ -51,46 +61,41 @@ library(data.table)
 library(kableExtra)
 library(compareGroups)
 library(DT)
+library(knitr)
 ```
 
 ```{r,}
-valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
-mahi=grep("____",names(valid.ahi),value=T)
-data_pa <- decostand(x = valid.ahi[,mahi,with=F], "pa")
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
+ttt = data.frame(AHI=nrow(pheno[valid.ahi=='yes',]),
+                 T90=nrow(pheno[valid.t90=='yes',]),
+                 BMI=nrow(pheno))
+rownames(ttt) <- c("N")
+
 # calculate sum per species
+mgs=grep("____",names(pheno),value=T)
+data_pa <- decostand(x = pheno[,mgs,with=F], "pa")
 data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
 a1 = sum(data_sum$prevalence<5) 
 
-valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
-m90=grep("____",names(valid.t90),value=T)
-data_pa <- decostand(x = valid.t90[,m90,with=F], "pa")
-# calculate sum per species
-data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
-a2 = sum(data_sum$prevalence<5) 
-
-pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-mbmi=grep("____",names(pheno),value=T)
-data_pa <- decostand(x = pheno[,mbmi,with=F], "pa")
-# calculate sum per species
-data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
-a3 = sum(data_sum$prevalence<5) 
-
-
-ttt = data.frame(AHI=c(nrow(valid.ahi),length(mahi) - a1),
-                 T90=c(nrow(valid.t90),length(m90) - a2),
-                 BMI=c(nrow(pheno),length(mbmi) - a3))
-rownames(ttt) <- c("N","MGS")
+nr_mgs <- nrow(pheno) - a1
 ```
     
-    
-We investigated which MGS correlated with either AHI, T90 or BMI.     
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
 
-MGS present in less than 5 individuals were removed  
+- We investigated which MGS correlated with either AHI, T90 or BMI.
+- MGS present in less than 5 individuals were removed (`r a1`) leaving in total `r nr_mgs`
+
+</div>
 
 &nbsp;
 
 ```{r, figure.align='left'}
-  kable(ttt,format = "html", table.attr = "style='width:50%;'") %>%
+  kable(ttt,format = "html", table.attr = "style='width:40%;'", 
+        caption = 'Number of participants examined for each variable') %>%
   #kable_classic(full_width = T) %>% 
   kable_styling(position = "left")
 ```
@@ -99,6 +104,150 @@ MGS present in less than 5 individuals were removed
 
 ***
 
+&nbsp;
+
+# DAG
+
+```{r DAG, echo=FALSE, out.width="80%", out.height="80%",fig.align='center'}
+knitr::include_graphics("DAG.OSA_210803.jpg")
+```
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# Alpha-diversity {.tabset}
+
+## AHI {.unnumbered}
+     
+```{r, echo=FALSE, fig.align='center', fig.cap="Scatter of AHI and Shannon index"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.ahi.png")
+```
+
+```{r, echo=FALSE}
+tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_ahi_alpha.tsv')
+tab[,cor:=round(cor.coefficient,3)]
+tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
+tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
+
+cov <- tab[,.(model,covariates)]
+cov[,covariates := gsub("[+]"," ",covariates)]
+for(i in nrow(cov):2){
+   cov[i,covariates:=gsub(cov$covariates[i-1],"",cov$covariates[i])]
+}
+cov[model=="SA2", covariates:= "+sleep.time"]
+cov[model=="SA", covariates:= "medication users excluded"]
+
+t <- tab[,.(model,cor,p.val,N)] 
+
+kable(t,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Correlation - AHI and Shannon index') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+
+kable(cov,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Models') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+```
+
+
+## T90 {.unnumbered}
+     
+```{r, echo=FALSE, fig.align='center', fig.cap="Scatter of T90 and Shannon index"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.T90.png")
+```
+   
+     
+```{r, echo=FALSE}
+tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_t90_alpha.tsv')
+tab[,cor:=round(cor.coefficient,3)]
+tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
+tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
+
+cov <- tab[,.(model,covariates)]
+cov[,covariates := gsub("[+]"," ",covariates)]
+for(i in nrow(cov):2){
+   cov[i,covariates:=gsub(cov$covariates[i-1],"",cov$covariates[i])]
+}
+cov[model=="SA2", covariates:= "+sleep.time"]
+cov[model=="SA", covariates:= "medication users excluded"]
+
+t <- tab[,.(model,cor,p.val,N)] 
+
+kable(t,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Correlation - T90 and Shannon index') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+
+kable(cov,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Models') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+```
+&nbsp;
+
+***
+
+&nbsp;
+
+# Beta-diversity 
+
+## AHI {.tabset}
+
+### Plot {-}
+   
+```{r, echo=FALSE}
+results.dr = '/home/baldanzi/Sleep_apnea/Results'
+permafiles = list.files(path=results.dr, pattern="*_osa_bc.tsv", full.names=T)
+perma.res.osa = lapply(permafiles, fread)
+names(perma.res.osa) <- c("model1", "model2", "model3", "SA", "SA2")
+
+ps <- lapply(perma.res.osa, function(x) x[variables =="OSAcat", 'Pr(>F)'])
+ps <- lapply(1:5, function(x) ps[[x]][,model:=names(ps)[x]])
+ps <- do.call(rbind,ps)
+ps <- ps[,2:1]
+names(ps) <- c("model", "p.val")
+```
+   
+```{r ,fig.align='center', out.width="60%", out.height="60%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
+```
+
+***
+
+&nbsp;
+
+```{r loopbeta, results='asis', echo=FALSE}
+mod.names <- names(perma.res.osa)
+perma.res.osa = apply(perma.res.osa,2,function(x){ifelse(!is.na(x),x,"")})
+
+for(m in mod.names){
+  cat(sprintf("### %s {-}", m))
+  knitr::kable(perma_OSA_BC1, 
+               caption = paste0("OSA and BC - ", m)) %>% 
+    kable_styling()
+  
+}
+
+```
+
+<br>
+```{r,}
+kable(ps,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'PERMANOVA test - p.value') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+
+```
+
+&nbsp;
+
+***
+
+&nbsp;
 
 # Step 1 
 

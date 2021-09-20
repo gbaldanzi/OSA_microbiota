@@ -927,8 +927,7 @@ print(pshannonahi)
 ##### All {-}
    
 ```{r corrshannonAHI, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
-setwd("/home/baldanzi/Sleep_apnea/Results")
-shannoncor = fread('cor_ahi_alpha.tsv', header=T)
+shannoncor = fread('/home/baldanzi/Sleep_apnea/Results/cor_ahi_alpha.tsv', header=T)
 temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")

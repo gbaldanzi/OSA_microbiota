@@ -66,7 +66,7 @@ library(tidyverse)
       
       rownames(annotation) <- annotation$mgs.rel 
       
-      map.col = c("#008000CC", "#466E82", "#FFA540")
+      map.col = c("orange", "cornflowerblue", "red")
       names(map.col) = c("AHI", "T90", "Both")
       
       
@@ -95,7 +95,7 @@ set.seed(1)
                show_column_dend = T,
                
                cluster_rows = TRUE,
-               row_names_side = "right",
+               row_names_side = "left",
                show_row_dend = F,
                
                col = colorRamp2(c(0,2.3),c("gray95","darkred")),

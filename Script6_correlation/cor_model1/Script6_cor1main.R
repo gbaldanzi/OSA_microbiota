@@ -14,10 +14,6 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
 # Importing data
 pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
-#Calculate Shannon diversity ####
-a = grep("____",names(pheno),value=T) # vector with MGS names 
-pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
-
 # Removing rare MGS   
   # Calculating MGS prevalence 
   noms=grep("____",names(pheno),value=T)
@@ -27,8 +23,8 @@ pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
   data_sum <- data.frame(prevalence=apply(data_pa, 2, sum),
                        percentage = apply(data_pa,2,sum)/nrow(pheno))
   data_sum$MGS = rownames(data_sum)
-#a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
-  a = data_sum$MGS[data_sum$percentage<.01] #383 MGS are present in less than 1% of individuals
+  a = data_sum$MGS[data_sum$prevalence<5] #19 MGS are only present in less than 5 individuals
+  #a = data_sum$MGS[data_sum$percentage<.01] #383 MGS are present in less than 1% of individuals
 
   pheno <- pheno[ , -a, with=F] 
   
@@ -39,8 +35,24 @@ pheno[,shannon:=diversity(pheno[,a, with=F],index="shannon")]
     source('cor_model1/Script6_cor1_T90_MGS.R')
     source('cor_model1/Script6_cor1_BMI_MGS.R')
   
-  mgs.m1.filter001 <- unique(c(res.ahi[res.ahi$q.value<.05,"MGS"], 
-                               res.t90[res.t90$q.value<.05,"MGS"], 
-                               res.bmi[res.bmi$q.value<.05,"MGS"]))
-  saveRDS(mgs.m1.filter001, paste0(output,'mgs.m1.filter001.rds'))
+  res <- rbind(res.ahi, res.t90, res.bmi)
+  
+  res$model= "model1"
+  
+  names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
+                 "N", "method", "covariates","q.value","model")
+  
+  # Merging results with taxonomy information #### 
+  
+  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  setnames(taxonomy,"maintax_mgs","MGS")
+  
+  res <- merge(res, taxonomy, by="MGS", all.x=T)
+  
+  fwrite(res, file = paste0(output,"cor_all.var_mgs.tsv"))
+  
+  res$q.value[res$q.value>=0.001] <- round(res$q.value[res$q.value>=0.001] , digits = 3)
+  mgs.m1 <- unique(res[res$q.value<.05,"MGS"]) 
+    
+  saveRDS(mgs.m1, paste0(output,'mgs.m1.rds'))
   

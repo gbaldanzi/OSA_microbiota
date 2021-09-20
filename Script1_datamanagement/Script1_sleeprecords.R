@@ -12,8 +12,7 @@ rm(list=ls())
 
 # Import sleep recording data 
 
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording")
-sleep = fread("Data_Sleep_SCAPIS_Uppsala.csv", header=T, na.strings=c("", "NA"))
+sleep = fread("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/Data_Sleep_SCAPIS_Uppsala.csv", header=T, na.strings=c("", "NA"))
 setnames(sleep, "id", "SCAPISid") #renaming the id variable
 
 
@@ -72,47 +71,46 @@ sum(is.na(sleep$date[sleep$o2utv4h == 1])) # date is missing for ZERO obs in tho
 # Analysis using ODI should only include individuals with valid sat monitoring 
 
 #subsetting the dataset to only those with valid flow and sat monitoring 
-valid.ahi = sleep[flutv4h==1 & o2utv4h==1,]
+sleep[,valid.ahi:=ifelse(sleep$flutv4h==1 & sleep$o2utv4h==1, "yes", "no")]
+sleep[,valid.t90:=ifelse(sleep$o2utv4h==1, "yes", "no")]
 
-#subsetting the dataset to only those with valid sat monitoring (enough for analysis with ODI or Sat90%)
-valid.t90 = sleep[o2utv4h==1,]
+
 
 # 2 individuals with missing data for AHI among those with valid flow and sat monitoring
-valid.ahi[is.na(valid.ahi$ahi),c("idnr", "fldeutv_min", "spo2utv_min","date","anstart", "anstop", "ahi", "odi")]
+sleep[is.na(ahi) & valid.ahi=="yes",c("idnr", "fldeutv_min", "spo2utv_min","date","anstart", "anstop", "ahi", "odi")]
 
 # ODI missing for 4 individuals (# 2 are also missing informatio for AHI, 1 is also missing information on sat90%)
-valid.t90$idnr[which(is.na(valid.t90$odi))]
+sleep[is.na(sleep$odi) & valid.t90=='yes',idnr]
 
 # % of registration with sat≤90% missing for 1 individual 
-valid.t90$idnr[which(is.na(valid.t90$sat90))]
+sleep[is.na(sleep$sat90) & valid.t90=='yes',idnr]
+
+# Excluding 2 individuals with missing information on AHI
+sleep[valid.ahi=='yes' & is.na(ahi),valid.ahi:='no']
+
+# Excluding 2 individuals with missing information on T90
+sleep[valid.t90=='yes' & is.na(sat90),valid.t90:='no']
 
 # Creating a variable OSA severity 
-valid.ahi$OSAcat = rec(valid.ahi$ahi, rec = "0:4.9=0; 5:14.9=1; 15:29.9=2 ; 30:max=3")
-valid.ahi$OSAcat = factor(valid.ahi$OSAcat, levels = c(0,1,2,3), 
-                          labels = c("no OSA", "Mild","Moderate", "Severe"))
+sleep[valid.ahi=="yes",OSAcat:= rec(ahi, rec = "0:4.9=0; 5:14.9=1; 15:29.9=2 ; 30:max=3")]
+sleep[,OSAcat:= factor(OSAcat, levels = c(0,1,2,3), 
+                          labels = c("no OSA", "Mild","Moderate", "Severe"))]
 
 # CPAP and Splint data 
 # in the original data, CPAP and Splint only have the values 1 and NA
-valid.ahi$cpap = factor(valid.ahi$cpap, levels = c(0,1), labels = c("no", "yes"))
-valid.ahi$splint = factor(valid.ahi$splint, levels = c(0,1), labels = c("no", "yes"))
-valid.ahi$cpap[is.na(valid.ahi$cpap)] = "no"
-valid.ahi$splint[is.na(valid.ahi$splint)] = "no"
-
-valid.t90$cpap = factor(valid.t90$cpap, levels = c(0,1), labels = c("no", "yes"))
-valid.t90$splint = factor(valid.t90$splint, levels = c(0,1), labels = c("no", "yes"))
-valid.t90$cpap[is.na(valid.t90$cpap)] = "no"
-valid.t90$splint[is.na(valid.t90$splint)] = "no"
-
-valid.t90$t90 = valid.t90$sat90
+sleep[,cpap:= factor(sleep$cpap, levels = c(0,1), labels = c("no", "yes"))]
+sleep[,splint:= factor(sleep$splint, levels = c(0,1), labels = c("no", "yes"))]
+sleep[is.na(sleep$cpap),cpap:= "no"]
+sleep[is.na(sleep$splint),splint:= "no"]
+sleep[,t90:= sat90]
 
 
   # Saving the datasets ####
-  saveRDS(valid.ahi,"/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.ahi.rds")
-  saveRDS(valid.t90,"/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.t90.rds")
-  
+  saveRDS(sleep,"/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
+
 
 #Frequency table by OSA cat 
-tableOSAcat = freq(valid.ahi$OSAcat, style='rmarkdown')
+tableOSAcat = freq(sleep$OSAcat, style='rmarkdown')
 
 #histogram of flow monitoring duration 
 p1 = ggplot(data = sleep, aes(x=fldeutv_min)) + geom_histogram() + geom_vline(xintercept = 240, color = "red")  +
@@ -128,18 +126,18 @@ p2 = ggplot(data = sleep, aes(x=spo2utv_min)) + geom_histogram() + geom_vline(xi
 
 
 # Histogram AHI
-p3 = ggplot(data = valid.ahi, aes(x=ahi)) + geom_histogram()  +
+p3 = ggplot(data = sleep[valid.ahi=='yes',], aes(x=ahi)) + geom_histogram()  +
   ggtitle("Hist Apnea-hypoapnea index") +  xlab("") + 
   geom_vline(xintercept = 5, color = "black", linetype = "twodash") + 
   geom_vline(xintercept = 15, color = "black", linetype = "twodash") + 
   geom_vline(xintercept = 30, color = "black", linetype = "twodash")
 
 # Histogram ODI
-p4 = ggplot(data = valid.t90, aes(x=odi)) + geom_histogram()  +
+p4 = ggplot(data = sleep[valid.t90=='yes',], aes(x=odi)) + geom_histogram()  +
   ggtitle("Hist Oxygen desaturation index") +  xlab("")
 
 # Histogram Sat90% 
-p5 = ggplot(data = valid.t90, aes(x=sat90)) + 
+p5 = ggplot(data = sleep[valid.t90=='yes',], aes(x=sat90)) + 
   geom_histogram(color="black", fill="lightskyblue2") +
   geom_density(alpha=.2, fill="#FF6666") +
   ggtitle("Hist - T90%") +  xlab("") +

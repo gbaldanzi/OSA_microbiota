@@ -12,4 +12,4 @@ ml R_packages
 
 cd $wrf
 
-Rscript cor_SA/Script6_corsa_all.R
+Rscript cor_SA/Script6_corsa_main.R

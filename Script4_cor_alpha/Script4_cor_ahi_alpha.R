@@ -19,10 +19,10 @@
   output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
-  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds") 
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   
-  # Transforming into factor variable
-  valid.ahi[,plate:=as.factor(valid.ahi$plate)]
+  valid.ahi <- pheno[valid.ahi =="yes",] 
+  valid.t90 <- pheno[valid.t90 =="yes",] 
 
 
 #Spearman correlation function ####
@@ -31,24 +31,21 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 #-----------------------------------------------------------------------------#
 # Models ####
 
-# model 1 : adjust for age + sex + alcohol + smoking + plate
+  #Covariates 
+  # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
   model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
-# model 2 = model 1 + BMI 
+  # model 2 = model 1 + BMI 
   model2 <-  c(model1,"BMI")
-# model 3 = model 2 + fiber intake +energy intake+ physical activity + education + country of birth + visit month + medication
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month", 
-               "metformin","hypermed","dyslipmed","ppi")
-# SA = model3 but removed medication users 
-  SA <- c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month")
+  # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
+  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
+  # SA = remove medication users 
+  SA <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month")
+  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
+  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
   
-  # SA2 = model 3 but added sleep duration 
-  SA2 <- c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth","visit.month","sleeptime")
   
   listmodels=list(model1,model2,model3,SA2)
   
-  
-# OLD model 3 = model 2 + diabetes + hypertension + dyslipidemia, medication 
-# OLD model3 = c(model2,"diabd","hypertension","dyslipidemia","diabmed","hypermed","dyslipmed","ppi")
 
 #-----------------------------------------------------------------------------#
 # Correlation between AHI and Shannon ####
@@ -77,7 +74,10 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
   
   # Prepare data 
   dades.sa = copy(valid.ahi)
-  dades.sa <- dades.sa[which(ppi=="no" & metformin=="no" & hypermed == "no" & dyslipmed =="no"), ]
+  dades.sa <- dades.sa[ppi=="no",]
+  dades.sa <- dades.sa[metformin=="no",]
+  dades.sa <- dades.sa[hypermed=="no",]
+  dades.sa <- dades.sa[dyslipmed=="no",]
   
   # Transforming two-level factor variables into numeric variables 
   a= c("Sex")
@@ -122,7 +122,7 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 
   
 #----------------------------------------------------------------------------#
-  print("Sensitivity analysis")
+  message("Sensitivity analysis")
   # Sensitivity analysis 
 
   # BMI group
@@ -136,11 +136,10 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 
   res.alpha = rbind(res.alpha,res.sa)
   
-  #naming coluns
+  #naming columns
   names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                      "N", "method", "covariates","model","bmi")
 
   fwrite(res.alpha, file = paste0(output,"cor_ahi_alpha_bmi",group,".tsv"), sep="\t")
-  print(res.alpha)
   }
 

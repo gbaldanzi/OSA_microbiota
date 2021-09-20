@@ -9,51 +9,43 @@
 pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.table)
 
 rm(list=ls())
-#setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+
+  # Uploading phenotype data ####
+  pheno=fread("/home/baldanzi/Datasets/sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv", header = T, na.strings=c("", "NA"))
+  # Restricting dataset to Uppsala participants only 
+  pheno = pheno[Site=="Site5", ]
 
 
-# Uploading phenotype data ####
-pheno=fread("/home/baldanzi/Datasets/sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv", header = T, na.strings=c("", "NA"))
-# Restricting dataset to Uppsala participants only 
-pheno = pheno[Site=="Site5", ]
+  # Uploading MGS data ####
+  data.MGS = fread("/home/baldanzi/Datasets/MGS/clean/MGS_relative_abundance_4839_upp_4980_malmo.tsv")
 
+  # Restricting to Uppsala participants 
+  data.MGS = data.MGS[SCAPISid %in% grep("5-",data.MGS$SCAPISid, value = T ),] 
+  # 4839 Uppsala participants have gut microbiome data
 
-# Uploading MGS data ####
-data.MGS = fread("/home/baldanzi/Datasets/MGS/clean/MGS_relative_abundance_4839_upp_4980_malmo.tsv")
-
-# Restricting to Uppsala participants 
-data.MGS = data.MGS[data.MGS$SCAPISid %in% grep("5-",data.MGS$SCAPISid, value = T ),] 
-# 4839 Uppsala participants have gut microbiome data
-
-pob = fread("/home/baldanzi/Datasets/Placeofbirth.csv", header=T, sep=",")
-pob$placebirth = factor(pob$q005a, 
+  pob = fread("/home/baldanzi/Datasets/Placeofbirth.csv", header=T, sep=",")
+  pob$placebirth = factor(pob$q005a, 
                         levels = c("scandinavia", "europe", "asia", "other"), 
                         labels = c("Scandinavia", "Europe", "Asia", "other"))
-pob[,q005a:=NULL]
-#restricting to Uppsala 
-pob = pob[pob$SCAPISid %in% grep("5-",pob$SCAPISid, value = T ),]
+  pob[,q005a:=NULL]
+  #restricting to Uppsala 
+  pob = pob[pob$SCAPISid %in% grep("5-",pob$SCAPISid, value = T ),]
 
-# Diet data #### (the data information in use is also available at the _pheno_ file)
-#diet = fread("/home/baldanzi/Datasets/diet_SCAPIS/export-petition-122-V0.0.50-2021-01-13.csv", header=T)
-#a = c("Subject", "Fibrer")
-#diet = diet[,a,with=F]
-#setnames(diet, "Subject", "SCAPISid")
+  # Metabolon data ####
+  metabolon=fread("/home/baldanzi/Datasets/Metabolon/clean/scapis_metabolon_batchnorm_scapisid.tsv", header=T)
 
-# Metabolon data ####
-metabolon=fread("/home/baldanzi/Datasets/Metabolon/clean/scapis_metabolon_batchnorm_scapisid.tsv", header=T)
+  # Metabolon Metadata - collection date ####
+  # Import metabolon metadata 
 
-# Metabolon Metadata - collection date ####
-# Import metabolon metadata 
+  metab_metadata=fread('/home/baldanzi/Datasets/Metabolon/clean/metabolon_metadata_scapisid.tsv', header=T)
+  a = c("SCAPISid", "COLLECTION_DATE")
+  metab_collection_date = metab_metadata[,a,with=F]
+  setnames(metab_collection_date,"COLLECTION_DATE", "metabolon_collection_date")
 
-metab_metadata=fread('/home/baldanzi/Datasets/Metabolon/clean/metabolon_metadata_scapisid.tsv', header=T)
-a = c("SCAPISid", "COLLECTION_DATE")
-metab_collection_date = metab_metadata[,a,with=F]
-setnames(metab_collection_date,"COLLECTION_DATE", "metabolon_collection_date")
-
-# 28 participants have sleep and gut microbiota data but do not have metabolomics data
+  # 28 participants have sleep and gut microbiota data but do not have metabolomics data
 
 
-# Recoding variables ####
+  # Recoding variables ####
 
   #Month of anthropometric collection date
   pheno[,visit.month:=format(as.POSIXct(pheno$AnthropometryCollectionDate),"%B")]
@@ -97,35 +89,37 @@ pheno$diabd = rec(pheno$Diabetes, rec = "NORMOGLYCEMIA=0; ELEV_HBA1C,IFG=1; KNOW
 pheno$diabd = factor(pheno$diabd, levels = c(0,1,2), 
                        labels = c("normoglycemic", "impaired glucose tolerance", "type 2 diabetes" ))
 
-# Fiber adjusted for energy intake ####
-# Removing over- and under- reported based on the 3SD of the natural log of Energy intake
-pheno[Energi_kcal<200 | Energi_kcal >8000, Energi_kcal:=NA] # Removing invalid values
-pheno[,log.energi:= log(pheno$Energi_kcal)] # Calculating the log energy intake
+  # Fiber adjusted for energy intake ####
+  # Removing over- and under- reported based on the 3SD of the natural log of Energy intake
 
-# Estimate sd and mean of energy intake
-male.sd <-  sd(pheno[Sex=="male",log.energi],na.rm=T)
-male.mean <- mean(pheno[Sex=="male",log.energi],na.rm=T)
-female.sd <- sd(pheno[Sex=="female",log.energi],na.rm=T)
-female.mean <- mean(pheno[Sex=="female",log.energi],na.rm=T)
+  # remove extremes outlieers 
+  pheno[Energi_kcal<500 | Energi_kcal >6000, Energi_kcal:=NA] # Removing invalid values
+  pheno[,log.energi:= log(pheno$Energi_kcal)] # Calculating the log energy intake
 
-# Using 3 sd to categorize over- and under-reporters
-pheno[!is.na(Energi_kcal),energi.reporter:="ok"]
+  # Estimate sd and mean of energy intake
+  male.sd <-  sd(pheno[Sex=="male",log.energi],na.rm=T)
+  male.mean <- mean(pheno[Sex=="male",log.energi],na.rm=T)
+  female.sd <- sd(pheno[Sex=="female",log.energi],na.rm=T)
+  female.mean <- mean(pheno[Sex=="female",log.energi],na.rm=T)
 
-ll <- female.mean-(3*female.sd)
-ul <- female.mean+(3*female.sd)
-pheno[Sex=="female" & log.energi<ll, energi.reporter:="under"]
-pheno[Sex=="female" & log.energi>ul, energi.reporter:="over"]
+  # Using 3 sd to categorize over- and under-reporters
+  pheno[!is.na(Energi_kcal),energi.reporter:="ok"]
 
-ll <- male.mean-(3*male.sd)
-ul <- male.mean+(3*male.sd)
-pheno[Sex=="male" & log.energi<ll, energi.reporter:="under"]
-pheno[Sex=="male" & log.energi>ul, energi.reporter:="over"]
+  ll <- female.mean-(3*female.sd)
+  ul <- female.mean+(3*female.sd)
+  pheno[Sex=="female" & log.energi<ll, energi.reporter:="under"]
+  pheno[Sex=="female" & log.energi>ul, energi.reporter:="over"]
 
-# Removing under- or over- reporter
-pheno[,energi.original:=Energi_kcal]
-pheno[energi.reporter!="ok",Energi_kcal:=NA]
-# Consider revising this variable  after excluding those with unreliable FFQ reporting. 
-pheno[,fiber.kcal:=(Fibrer/Energi_kcal)*1000]
+  ll <- male.mean-(3*male.sd)
+  ul <- male.mean+(3*male.sd)
+  pheno[Sex=="male" & log.energi<ll, energi.reporter:="under"]
+  pheno[Sex=="male" & log.energi>ul, energi.reporter:="over"]
+
+  # Removing under- or over- reporter
+  pheno[,energi.original:=Energi_kcal]
+  pheno[energi.reporter!="ok",Energi_kcal:=NA]
+  # Consider revising this variable  after excluding those with unreliable FFQ reporting. 
+  pheno[,fiber.kcal:=(Fibrer/Energi_kcal)*1000]
 
 
 # Self-reported hypertension variable
@@ -237,30 +231,27 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   pheno$received = as.factor(pheno$received)
 
   # Import sleep recording data 
-  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.ahi.rds")
-  valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/valid.t90.rds")
+  sleep <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
   
-  pheno[,valid.ahi:=ifelse(pheno$SCAPISid %in% valid.ahi$SCAPISid, "yes", "no")]
-  pheno[,valid.t90:=ifelse(pheno$SCAPISid %in% valid.t90$SCAPISid, "yes", "no")]
-  pheno <- merge(pheno, valid.t90, by='SCAPISid', all.x=T, all.y=F)
-  
+  sleep[valid.ahi=='no',ahi:=NA]
+  sleep[valid.t90=='no',t90:=NA]
+
+  pheno <- merge(pheno, sleep, by='SCAPISid', all.x=T, all.y=F)
+
   # Save pheno data ####
   saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
   #valid.ahi + pheno
-  nrow(valid.ahi) # 3301 individuals with valid flow and sat monitoring 
-  sum(valid.ahi$SCAPISid %in% pheno$SCAPISid) # 3208 with valid monitoring and pheno and MGS data 
-  valid.ahi = merge(valid.ahi, pheno, by = "SCAPISid", all=F )
-
-  # Excluding 2 individuals with missing information on AHI
-  valid.ahi = valid.ahi[!is.na(ahi),]
+  nrow(sleep[valid.ahi=='yes',]) # 3301 individuals with valid flow and sat monitoring 
+  sum(sleep[valid.ahi=='yes',]$SCAPISid %in% pheno$SCAPISid) # 3208 with valid monitoring and pheno and MGS data 
+  valid.ahi = merge(sleep[valid.ahi=='yes',], pheno, by = "SCAPISid", all=F )
 
   #Saving the data #### 
   write.table(valid.ahi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.MGS.Upp.tsv",row.names = FALSE,
               sep = '\t',quote=FALSE)
 
   # valid.t90 + pheno
-  valid.t90 = merge(valid.t90, pheno, by = "SCAPISid", all=F )
+  valid.t90 = merge(sleep[valid.t90=='yes',], pheno, by = "SCAPISid", all=F )
 
   # Save valid.t90 data
   write.table(valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", row.names = FALSE,
@@ -269,7 +260,7 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   # 3622 individuals have a valid T90 measurement 
 
 # Saving those variables that were managed in Rdata format 
-dat1 = valid.ahi %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
+dat1 = pheno[valid.ahi=='yes',] %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
                             leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
                             hypermed, dyslipmed, ppi, Fibrer, Energi_kcal,ESS,apnea_self, apneatto_self,
                             cpap_self, splint_self, apneasurgery_self,

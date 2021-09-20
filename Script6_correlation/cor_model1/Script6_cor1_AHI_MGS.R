@@ -29,13 +29,13 @@ model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 
   res = res[order(res$q.value),]
 
-  res$model= "model1"
+  #res$model= "model1"
 
-  names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
-                     "N", "method", "covariates","q.value","model")
+  #names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
+   #                  "N", "method", "covariates","q.value","model")
 
   #fwrite(res, file = paste0(output,"cor_ahi_mgs.tsv"), sep="\t")
-  fwrite(res, file = paste0(output,"cor_ahi_mgs_filter001.tsv"), sep="\t")
+  #fwrite(res, file = paste0(output,"cor_ahi_mgs_filter001.tsv"), sep="\t")
   
   res.ahi <- res
 

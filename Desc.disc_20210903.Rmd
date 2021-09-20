@@ -1,0 +1,1073 @@
+---
+title: "Discordant MGS"
+author: "Gabriel Baldanzi"
+date: " `r Sys.time()` "
+output: 
+  html_document:
+    toc: true 
+    fig_width: 6
+    fig_height: 4
+    number_sections: TRUE
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 4
+    theme: united
+    hightlist: espresso
+    css: style.css
+    
+---
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1500px !important;
+      width: 1500px !important;
+    }
+
+    .book .book-body .page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 10px 10px 10px;
+    }
+
+    body {
+      max-width: 1500px !important;
+    }
+    code.r { /* Code block */
+    font-size: 14pt;
+    }
+    pre {
+  font-size: 12px
+    }
+    .tocify-header {
+    text-indent: initial;
+}
+    .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 2em;
+    }
+table.display td { white-space: nowrap; }
+    ```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+options(width = 20)
+library(tidyverse)
+library(vegan)
+library(data.table)
+library(kableExtra)
+library(compareGroups)
+library(DT)
+library(knitr)
+```
+
+```{r,}
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
+ttt = data.frame(AHI=nrow(pheno[valid.ahi=='yes',]),
+                 T90=nrow(pheno[valid.t90=='yes',]),
+                 BMI=nrow(pheno))
+rownames(ttt) <- c("N")
+
+# calculate sum per species
+mgs=grep("____",names(pheno),value=T)
+data_pa <- decostand(x = pheno[,mgs,with=F], "pa")
+data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
+a1 = sum(data_sum$prevalence<5) 
+
+nr_mgs <- ncol(pheno[,grep("___",names(pheno))]) - a1
+```
+    
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+- We investigated which MGS correlated with either AHI, T90 or BMI.
+- MGS present in less than 5 individuals were removed (`r a1`) leaving in total `r nr_mgs`
+
+</div>
+
+&nbsp;
+
+```{r, figure.align='left'}
+  kable(ttt,format = "html", table.attr = "style='width:40%;'", 
+        caption = 'Number of participants examined for each variable') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "left")
+```
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# DAG
+
+```{r DAG, echo=FALSE, out.width="90%", out.height="90%",fig.align='center'}
+knitr::include_graphics("DAG.OSA_210803.jpg")
+```
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# Alpha-diversity {.tabset}
+
+## AHI {.unnumbered}
+     
+```{r, echo=FALSE, fig.align='center', fig.cap="Scatter of AHI and Shannon index", out.width="50%", out.height="50%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.ahi.png")
+```
+
+```{r, echo=FALSE}
+tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_ahi_alpha.tsv')
+tab[,cor:=round(cor.coefficient,3)]
+tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
+tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
+
+cov <- tab[,.(model,covariates)]
+cov[,covariates := gsub("[+]"," ",covariates)]
+for(i in nrow(cov):2){
+   cov[i,covariates:=gsub(cov$covariates[i-1],"",cov$covariates[i])]
+}
+cov[model=="SA2", covariates:= "+sleep.time"]
+cov[model=="SA", covariates:= "medication users excluded"]
+
+t <- tab[,.(model,cor,p.val,N)] 
+
+kable(t,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Correlation - AHI and Shannon index',
+      align = c("l","c","c","c") )%>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+
+```
+
+
+## T90 {.unnumbered}
+     
+```{r, echo=FALSE, fig.align='center', fig.cap="Scatter of T90 and Shannon index", out.width="50%", out.height="50%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.T90.png")
+```
+   
+     
+```{r, echo=FALSE}
+tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_t90_alpha.tsv')
+tab[,cor:=round(cor.coefficient,3)]
+tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
+tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
+
+cov <- tab[,.(model,covariates)]
+cov[,covariates := gsub("[+]"," ",covariates)]
+for(i in nrow(cov):2){
+   cov[i,covariates:=gsub(cov$covariates[i-1],"",cov$covariates[i])]
+}
+cov[model=="SA2", covariates:= "+sleep.time"]
+cov[model=="SA", covariates:= "medication users excluded"]
+cov[1:3,covariates := gsub(" ","+",covariates[1:3])]
+
+t <- tab[,.(model,cor,p.val,N)] 
+
+kable(t,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Correlation - T90 and Shannon index',
+      align = c("l","c","c","c") )%>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+
+
+```
+
+<br>
+
+# {.unlisted .unnumbered}
+
+```{r,echo=FALSE}
+kable(cov,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Models',
+        align = c('l','l')) %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+```
+
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# Beta-diversity 
+
+## AHI {.tabset}
+
+### Plot {-}
+   
+```{r, }
+results.dr = '/home/baldanzi/Sleep_apnea/Results'
+permafiles = list.files(path=results.dr, pattern="*_osa_bc.tsv", full.names=T)
+perma.res.osa = lapply(permafiles, fread)
+names(perma.res.osa) <- c("model1", "model2", "model3", "SA", "SA2")
+
+ps <- lapply(perma.res.osa, function(x) x[variables =="OSAcat", 'Pr(>F)'])
+ps <- lapply(1:5, function(x) ps[[x]][,model:=names(ps)[x]])
+ps <- do.call(rbind,ps)
+ps <- ps[,2:1]
+names(ps) <- c("model", "p.val")
+```
+<div class="container">
+<div class = "row">
+<div class = "col-md-6">
+```{r ,dev=c('svg')}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
+#out.width='50%', out.height='50%', fig.align='center'
+```
+</div>
+<div class = "col-md-6">
+```{r,dev=c('svg')}
+kable(ps, caption = 'PERMANOVA test - p.value') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "left", full_width=TRUE)
+```
+</div>
+</div>
+</div>
+
+<div class="container">
+
+### Tables {.tabset}
+
+
+```{r loopbeta, results='asis', echo=FALSE}
+mod.names <- names(perma.res.osa)
+perma.res.osa = lapply(perma.res.osa,function(dd){
+  apply(dd,2,function(x){ifelse(!is.na(x),x,"")})
+  })
+
+for(m in mod.names){
+  cat(sprintf("\n#### %s {-} \n\n", m))
+  cat(knitr::kable(perma.res.osa[[m]], 
+               caption = paste0("OSA and BC - ", m)) %>% 
+    kable_styling())
+}
+
+```
+
+</div>
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# Step 1 
+
+model1 = age + sex + smoking + alcohol + seq. plate + shannon 
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m1.png")
+
+t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res1.rds')
+setDT(t)
+n = nrow(t)
+
+sketch = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+      th(colspan = 3, 'Cor. Coef.'),
+      th(colspan = 3, 'p-value'),
+      th(colspan = 3, 'q-value'),
+      th(colspan = 3, 'N'),
+    ),
+    tr(
+      lapply(rep(c('   BMI   ', '   AHI   ', '    T90%   '), 4), th)
+    )
+  )
+))
+
+```
+   
+`r n` MGSs correlated with either AHI, BMI, or T90%     
+
+## Tables {.tabset}
+
+### All {-}
+   
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+datatable(t,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only AHI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI>=0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only T90 {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI>=0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI<0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & T90 {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI>=0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI<0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### T90 & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI<0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & T90 & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI<0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+# Step 2 
+
+model2 = model 1 + PA + fiber + energy intake + place of birth + education + visit.month + PPI + metformin +
+antihypertensive med. + cholesterol-lowering med.
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m2.png")
+
+t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res2.rds')
+setDT(t)
+n = nrow(t[q.value_BMI<0.05 | q.value_ahi <0.05 |q.value_t90<0.05,])
+```
+
+`r n` MGSs correlated with either AHI, BMI, or T90% in Step 2
+
+## Tables {.tabset}
+
+### All {-}
+   
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+datatable(t,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only AHI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI>=0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only T90 {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI>=0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI<0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & T90 {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI>=0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI<0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### T90 & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI<0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & T90 & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI<0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+# Sensitivity analysis 
+   
+Sensitivity analysis: remove medication users (ppi,metformin,anti-hypertensive,cholesterol-lowering)
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_sa.png")
+
+t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa.rds')
+setDT(t)
+n = nrow(t)
+```
+
+`r n` MGSs correlated with either AHI, BMI, or T90% in the Sens. An.
+
+## Tables {.tabset}
+
+### All {-}
+   
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+datatable(t,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only AHI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI>=0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only T90 {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI>=0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### Only BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI<0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & T90 {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI>=0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI<0.05 & q.value_t90>=0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### T90 & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi>=0.05 & q.value_BMI<0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+### AHI & T90 & BMI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t1 = t[q.value_ahi<0.05 & q.value_BMI<0.05 & q.value_t90<0.05,]
+
+datatable(t1,container=sketch,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+&nbsp;
+
+***
+
+# Enrichment analysis 
+
+## KEGG modules {.tabset}
+
+Enrichment analysis of KEGG modules among the MGS correlated to AHI, T90, or BMI
+
+### Positive correlation {- .tabset}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_modules_pos.png")
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_modules_table_pos.rds')
+setDT(t)
+t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+t[pval>=0.001,pval:=round(pval,digits = 3)]
+
+t.ahi = t[exposure=="ahi",]
+a = t[exposure!="ahi",name]
+onlyahi = t[exposure=="ahi" & !name %in% a,]
+
+t.t90 = t[exposure=="t90"]
+a = t[exposure!="t90",name]
+onlyt90 = t[exposure=="t90" & !name %in% a,]
+
+t.bmi = t[exposure=="BMI"]
+a = t[exposure!="BMI",name]
+onlybmi = t[exposure=="BMI" & !name %in% a,]
+```
+
+#### AHI {-}
+   
+```{r,}
+t.ahi[,exposure:=NULL]
+datatable(t.ahi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+***
+
+#### Only AHI {-}
+   
+```{r,}
+onlyahi[,exposure:=NULL]
+datatable(onlyahi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+***
+     
+#### T90 {-}
+    
+```{r,}
+t.t90[,exposure:=NULL]
+datatable(t.t90,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+***
+   
+#### Only T90 {- }
+   
+```{r,}
+onlyt90[,exposure:=NULL]
+datatable(onlyt90,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+
+***
+   
+#### BMI {-}
+    
+```{r,}
+t.bmi[,exposure:=NULL]
+datatable(t.bmi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```
+   
+***   
+   
+#### Only BMI {-}
+   
+```{r,}
+onlybmi[,exposure:=NULL]
+datatable(onlybmi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```   
+   
+***
+
+### Negative correlation {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_modules_neg.png")
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_modules_table_neg.rds')
+setDT(t)
+t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+t[pval>=0.001,q.value:=round(pval,digits = 3)]
+
+t.ahi = t[exposure=="ahi",]
+a = t[exposure!="ahi",name]
+onlyahi = t[exposure=="ahi" & !name %in% a,]
+
+t.t90 = t[exposure=="t90"]
+a = t[exposure!="ahi",name]
+onlyt90 = t[exposure=="t90" & !name %in% a,]
+
+t.bmi = t[exposure=="BMI"]
+a = t[exposure!="BMI",name]
+onlyahi = t[exposure=="BMI" & !name %in% a,]
+```
+      
+   **AHI**
+```{r,}
+t.ahi[,exposure:=NULL]
+datatable(t.ahi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```  
+     
+   **T90**   
+      
+   No module was overrepresented among the negative correlations 
+         
+   **BMI**
+```{r,}
+t.bmi[,exposure:=NULL]
+datatable(t.bmi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}")))
+```  
+
+&nbsp;
+
+***
+
+## Metabolic subpathways 
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+- *30 unique MGS were correlated with either sleep apnea or T90 but not to BMI in step 2.*   
+- *Data on MGS-metabolite correlations was available for 24*
+
+</div>
+
+    
+```{r, out.width='70%', out.height='70%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
+knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png")
+```
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# Sleep apnea's signature MGS
+       
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+- *30 unique MGS were correlated with either sleep apnea or T90 but not to BMI in step 2.*   
+
+</div>
+
+   
+# Bar plots 
+
+```{r, echo=FALSE}
+  res.m2 <- fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
+  res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+  mgs.bmi <- res.m2[exposure =="BMI" & q.value<.05,MGS] # MGS correlated to BMI
+  res.ahi <- res.m2[exposure =="ahi" & q.value<.05,] %>% filter(!MGS %in% mgs.bmi) 
+  mgs.ahi <- res.ahi$MGS
+  res.t90 <- res.m2[exposure =="t90" & q.value<.05,] %>% filter(!MGS %in% mgs.bmi)
+  mgs.t90 <- res.t90$MGS
+```
+
+## AHI {.unnumbered .tabset}
+
+```{r, results='asis', echo=FALSE, figures-side, fig.show='hold', out.width='50%'}
+input <- '/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/'
+#plots.ahi <- readRDS(paste0(input,'bar_ahi/barplot_ahi.rds'))
+#plots.ahi.quantile <- readRDS(paste0(input,'bar_ahi/barplot_quant_ahi.rds'))
+
+
+for(m in mgs.ahi){
+  cat(sprintf("\n### %s {-} \n\n", m))
+  cat(paste0("![](bar_ahi/bar_ahi_", mgs.ahi,".png)"), "\n")
+  #print(plots.ahi[[m]])
+  #print(plots.ahi.quantile[[m]])
+  cat("  \n")
+}
+
+```
+
+
+
+
+
+
+
+
+
+

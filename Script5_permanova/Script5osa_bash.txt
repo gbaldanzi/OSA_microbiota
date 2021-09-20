@@ -3,19 +3,16 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 16
-#SBATCH -t 24:00:00
-#SBATCH -J perma_ahi
+#SBATCH -t 48:00:00
+#SBATCH -J perma_t90
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
 ml R_packages
 
-echo "Scriptosa_bash.txt"
+echo "Script5osa_bash.txt"
 
-echo "Added SA2 and visit.month to the analyses" 
 
-cd $wharf 
-
-echo " PERMA with AHI - SA2"
-Rscript perma_ahi_bc/perma_ahi_bc_main.R
+echo " PERMA with T90"
+Rscript perma_t90_bc/perma_t90_bc_main.R
 
