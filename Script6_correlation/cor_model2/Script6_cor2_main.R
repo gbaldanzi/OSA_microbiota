@@ -42,17 +42,19 @@ source("Spearman.correlation.function.R")
   res <- merge(res, taxonomy, by="MGS", all.x=T)
   
   fwrite(res, file = paste0(output,"cor2_all.var_mgs.tsv"))
-
+  
   res$q.value[res$q.value>=0.001] <- round(res$q.value[res$q.value>=0.001] , digits = 3)
-  mgs.m2 <- unique(res[res$q.value<.05,"MGS"]) 
+  
+  setDT(res)
+  
+  mgs.fdr.bmi = res[exposure=='BMI' & q.value<.05,MGS]
+  mgs.fdr.ahi = res[exposure=="ahi" & q.value<.05 &!MGS %in% mgs.fdr.bmi,MGS]
+  mgs.fdr.t90 = res[exposure=='t90' & q.value<.05 & !MGS %in% mgs.fdr.bmi,MGS]
+                     
+  
+  mgs.m2 <- list(mgs.fdr.ahi = mgs.fdr.ahi,
+                 mgs.fdr.t90 = mgs.fdr.t90) 
+  
   
   saveRDS(mgs.m2, paste0(output,'mgs.m2.rds'))
  
-# Merging results with taxonomy information #### 
-
- taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
- setnames(taxonomy,"maintax_mgs","MGS")
-
- res <- merge(res, taxonomy, by="MGS", all.x=T)
-
- fwrite(res, file = paste0(output,"cor2_all.var_mgs.tsv"))

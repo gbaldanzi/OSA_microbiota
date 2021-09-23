@@ -20,18 +20,17 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
   mgs_met <- fread("/home/baldanzi/Datasets/Mgs_metab_correlations/table1_shortmgs.tsv") #Correlation metabolites and MGS
 
   res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
-  
-  res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-
-  # Select the relevant MGSs 
-  mgs.bmi <- res.m2[exposure =="BMI" & q.value<.05,mgs] # MGS correlated to BMI
+  mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
+  mgs.fdr.m2 <- unique(do.call('c',mgs.fdr.m2))
   
   # MGS correlated to either AHI or T90 but not to BMI (relevant mgs)
-  mgs.rel <- res.m2 %>% filter(exposure =="ahi" | exposure == "t90") %>% 
-    filter(q.value<.05) %>% filter(!mgs %in% mgs.bmi) %>% select(mgs)
+  mgs.rel <- res.m2 %>% filter(exposure =="ahi" | exposure == "t90") %>%
+              filter(MGS %in% mgs.fdr.m2) %>% select(mgs)
   mgs.rel <- unique(mgs.rel$mgs)
   
   # Restricting MGS-metabolites correlation results 
+  
+  sum(mgs.rel %in% mgs_met[,mgs]) # 23 MGS are included in the Atlas
   
   mgs.rel_met <- mgs_met[mgs %in% mgs.rel,]
   

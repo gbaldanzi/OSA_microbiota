@@ -79,8 +79,8 @@
     }
     
     # Creating the plots 
-    dir.create("Self_apnea_mgs/pos.mgs")
-    dir.create("Self_apnea_mgs/neg.mgs")
+    if(dir.exists("Self_apnea_mgs/pos.mgs")==FALSE){dir.create("Self_apnea_mgs/pos.mgs")}
+    if(dir.exists("Self_apnea_mgs/neg.mgs")==FALSE){dir.create("Self_apnea_mgs/neg.mgs")}
     
     
     plots.pos <- lapply(mgs.pos, 

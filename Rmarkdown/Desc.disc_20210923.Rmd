@@ -486,6 +486,7 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_m2
 
 t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res2.rds')
 setDT(t)
+
 n = nrow(t[q.value_BMI<0.05 | q.value_ahi <0.05 |q.value_t90<0.05,])
 ```
 
@@ -846,7 +847,15 @@ datatable(t1,container=sketch,rownames = FALSE, options = list(
 
 &nbsp;
 
-## Table for the 30 MGS
+## Table for the Signature MGS
+
+```{r,}
+mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
+mgs.fdr.m2_n <- length(unique(do.call('c',mgs.fdr.m2)))
+```
+
+**`r mgs.fdr.m2_n`** MGS were correlated with AHI or T90, but not with BMI
+
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 
@@ -1195,8 +1204,8 @@ datatable(t.bmi,rownames = FALSE, options = list(
 
 <div class = "blue">
 
-- *30 MGS were correlated with either* **AHI** *or* **T90** *but not to BMI in the fully-adjusted model*   
-- *Data on MGS-metabolite correlations was available for 24*
+- *`r mgs.fdr.m2_n` MGS were correlated with either* **AHI** *or* **T90** *but not to BMI in the fully-adjusted model*   
+- *Data on MGS-metabolite correlations was available for 23*
 
 </div>
 
@@ -1245,7 +1254,7 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
   
 <div class = "blue">
 
-*- 30 MGS were correlated with either AHI or T90 but not to BMI in fully-adjusted model*
+*- `r mgs.fdr.m2_n` MGS were correlated with either AHI or T90 but not to BMI in fully-adjusted model*
 
 </div>
 
@@ -1258,13 +1267,11 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
  </div>
 
 ```{r, echo=FALSE}
-  res.m2 <- fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
-  res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-  mgs.bmi <- res.m2[exposure =="BMI" & q.value<.05,MGS] # MGS correlated to BMI
-  res.ahi <- res.m2[exposure =="ahi" & q.value<.05,] %>% filter(!MGS %in% mgs.bmi) 
-  mgs.ahi <- res.ahi$MGS
-  res.t90 <- res.m2[exposure =="t90" & q.value<.05,] %>% filter(!MGS %in% mgs.bmi)
-  mgs.t90 <- res.t90$MGS
+  mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
+  
+  mgs.ahi <- mgs.fdr.m2$mgs.fdr.ahi
+  mgs.t90 <- mgs.fdr.m2$mgs.fdr.t90
+  
 ```
 
 ## AHI {.unnumbered .tabset}
@@ -1322,37 +1329,65 @@ Among those participant(n=`r n2`) for whom measured sleep apnea was not availabl
 
 <br>
 
-## Correlation table 
+## Correlation table {.tabset}
+
+<br>
 
 ```{r,include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
   res.m2 <-  fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
     res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-    mgs.bmi <- res.m2[q.value<0.05 & exposure=="BMI",MGS]
-    mgs.fdr <- unique(res.m2[q.value<0.05 & exposure %in% c("ahi","t90"),MGS])
-    mgs.fdr <- mgs.fdr[!mgs.fdr %in% mgs.bmi] # The identified MGS #
-  
-    # Determine direction of correlation between MGS and sleep apnea 
-    cor_mgs.fdr <- res.m2[MGS %in% mgs.fdr & exposure %in% c("ahi","t90"),
-                        .(MGS,exposure,cor.coefficient,p.value,q.value)]
-  
-    cor_mgs.fdr <- cor_mgs.fdr %>% pivot_wider(id_cols=MGS, names_from = exposure, values_from = c(cor.coefficient,p.value,q.value))
-    setDT(cor_mgs.fdr)
-  
-    mgs.pos <- cor_mgs.fdr[cor.coefficient_t90>0,MGS]
-    mgs.neg <- cor_mgs.fdr[cor.coefficient_t90<0,MGS]
+  mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
+  mgs.fdr.ahi <- mgs.fdr.m2$mgs.fdr.ahi
+  mgs.fdr.t90 <- mgs.fdr.m2$mgs.fdr.t90
     
-    # Results from the correlations
+    # Results from the correlations with self reported sleep apnea 
     res.self <- fread("/home/baldanzi/Sleep_apnea/Results/cor_self.apnea_mgs.tsv")
     res.self[,cor:=round(cor.coefficient,3)]
     res.self[,pval:=round(p.value,3)]
     
-    t <- res.self[,.(MGS,cor,pval)]
+    # Determine direction of correlation between MGS and measured AHI
+    mgs.pos <- res.m2[MGS %in% mgs.fdr.ahi & exposure %in% c("ahi") & cor.coefficient>0,MGS]
+    mgs.neg <- res.m2[MGS %in% mgs.fdr.ahi & exposure %in% c("ahi") & cor.coefficient<0,MGS]
+    
+    t <- res.self[MGS %in% mgs.fdr.ahi,.(MGS,cor,pval)]
     t <- t[MGS %in% mgs.pos, cor_direction:='pos']
-    t <- t[MGS %in% mgs.neg, cor_direction:='neg']
+    t.ahi <- t[MGS %in% mgs.neg, cor_direction:='neg']
+    
+        # Determine direction of correlation between MGS and measured T90 
+    mgs.pos <- res.m2[MGS %in% mgs.fdr.t90 & exposure %in% c("t90") & cor.coefficient>0,MGS]
+    mgs.neg <- res.m2[MGS %in% mgs.fdr.t90 & exposure %in% c("t90") & cor.coefficient<0,MGS]
+    
+    t <- res.self[MGS %in% mgs.fdr.t90,.(MGS,cor,pval)]
+    t <- t[MGS %in% mgs.pos, cor_direction:='pos']
+    t.t90 <- t[MGS %in% mgs.neg, cor_direction:='neg']
 ```    
+
+### AHI {-}
+
+<br>
+
 ```{r,}    
     
-    datatable(t,rownames = FALSE,  
+    datatable(t.ahi,rownames = FALSE,  
+              options = list(
+            columnDefs = list(list(className = 'dt-center', targets = c(2:3)) )
+            )) %>% formatStyle(c(3), `border-right` = "solid 2px")
+    
+```
+
+<br>
+
+***
+
+<br>
+
+### T90 {-}
+
+<br>
+
+```{r,}    
+    
+    datatable(t.t90,rownames = FALSE,  
               options = list(
             columnDefs = list(list(className = 'dt-center', targets = c(2:3)) )
             )) %>% formatStyle(c(3), `border-right` = "solid 2px")

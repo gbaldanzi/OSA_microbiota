@@ -48,11 +48,8 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
   exposure="self.apnea"
   
   # Outcome
-  res.m2 <-  fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
-  res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-  mgs.bmi <- res.m2[q.value<0.05 & exposure=="BMI",MGS]
-  mgs.fdr <- unique(res.m2[q.value<0.05 & exposure %in% c("ahi","t90"),MGS])
-  mgs.fdr <- mgs.fdr[!mgs.fdr %in% mgs.bmi] # The identified MGS #
+  mgs.fdr <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
+  mgs.fdr <- unique(do.call('c',mgs.fdr.m2))
   
   outcomes <- mgs.fdr
 
