@@ -153,7 +153,12 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
 valid.ahi <- pheno[valid.ahi=='yes',]
 valid.odi <- pheno[valid.t90=='yes',]
-```
+
+# Correlation t90 and ahi
+ncor = round(with(pheno, cor(t90,ahi, method='spearman', use = 'complete.obs')),3)
+``` 
+
+
 <br>   
   
 ***   
@@ -193,6 +198,7 @@ Variables:
 <br>
 3. **Percentage of time with saturation below 90%**  
 - Used for phenotypic characterization of OSA  
+- Correlation between AHI and T90: rho = `r ncor`
 
 <br>   
 
@@ -286,11 +292,6 @@ scroll_box( height = "850px")
 ### Table {-}
 
 ```{r bmi, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
-valid.ahi$BMIcat = 0
-valid.ahi[BMI<25, BMIcat:=1]
-valid.ahi[BMI>=25, BMIcat:=2]
-valid.ahi[BMI>=30, BMIcat:=3]
-valid.ahi$BMIcat = factor(valid.ahi$BMIcat, levels = c(1,2,3), labels = c("BMI<25", "BMI.25-30","BMI>=30"))
 t = valid.ahi %>% group_by(BMIcat) %>% summarise(N=length(BMIcat), mean_ahi = round(mean(ahi),1), median_ahi = median(ahi), sd_ahi = round(sd(ahi),1))
 knitr::kable(as.data.table(t), caption = "AHI and BMI category",table.attr = "style='width:80%;'") %>% 
   kable_styling(bootstrap_options = c("striped", "hover"))
@@ -304,13 +305,14 @@ knitr::kable(as.data.table(t), caption = "AHI and BMI category",table.attr = "st
 ### Box plot {-}
 
 ```{r bmiahiboxplot, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
-
-ggplot(valid.ahi, aes(x=BMIcat, y = ahi, fill=BMIcat)) + geom_boxplot() + ggtitle("AHI by BMI categories") +
+p <- ggplot(valid.ahi, aes(x=BMIcat, y = ahi, fill=BMIcat)) + geom_boxplot() + ggtitle("AHI by BMI categories") +
   ylab("AHI") + xlab("BMI categories") +
    theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5), 
         axis.title = element_text(size = 13, face = "bold"), 
         axis.text.x = element_text(size=13),
         legend.position = "none")
+
+
 ```
 
 
@@ -342,7 +344,7 @@ print(pbmi)
 
 ## BMI and OSA severity  
 ```{r bmicat, echo=FALSE, message=FALSE, warning=FALSE}
-t = compareGroups(BMIcat ~ OSAcat , data = valid.ahi)
+t = compareGroups(BMIcat ~ OSAcat, data = valid.ahi)
 t1 = createTable(t, show.p.overall=F)
 export2md(t1, which.table = "descr",  
           format = "html", strip = TRUE, caption = "BMI vs OSA severity")  %>%
@@ -538,7 +540,7 @@ print(ppob)
 
 _Fiber intake in g/day_
    
-```{r , echo=FALSE, message=FALSE, warning=FALSE }
+```{r, echo=FALSE, message=FALSE, warning=FALSE }
 pfiber = ggplot(valid.ahi, aes(x=Fibrer))+
   geom_histogram(color="black", fill="lightskyblue2") +
   geom_density(alpha=.3, fill="#FF6666") +
@@ -560,7 +562,7 @@ print(pfiber)
 
 _Fiber intake by energy intake in kcal_
    
-```{r , echo=FALSE, message=FALSE, warning=FALSE }
+```{r, echo=FALSE, message=FALSE, warning=FALSE }
 pfiber = ggplot(valid.ahi, aes(x=fiber.kcal))+
   geom_histogram(color="black", fill="lightskyblue2") +
   geom_density(alpha=.3, fill="#FF6666") +
@@ -600,7 +602,7 @@ knitr::kable(as.data.table(t), caption = "Fiber intake by OSA category",table.at
 
 &nbsp;
 
-```{r , echo=FALSE, message=FALSE, warning=FALSE }
+```{r, echo=FALSE, message=FALSE, warning=FALSE }
 pfiber = ggplot(valid.ahi, aes(x=Energi_kcal))+
   geom_histogram(color="black", fill="lightskyblue2") +
   geom_density(alpha=.3, fill="#FF6666") +
@@ -620,7 +622,7 @@ print(pfiber)
 
 _Boxplot by leisure physical activity level_
 
-```{r , echo=FALSE, message=FALSE, warning=FALSE }
+```{r, echo=FALSE, message=FALSE, warning=FALSE }
 pfiber = ggplot(valid.ahi, aes(y=Energi_kcal, x=leisurePA))+
   geom_boxplot(color="black", fill="lightskyblue2") +
   ggtitle("Boxplot Energy intake by leisure physical activity") +
@@ -641,7 +643,7 @@ print(pfiber)
 
 ## Season
 
-```{r , echo=FALSE, message=FALSE, warning=FALSE }
+```{r, echo=FALSE, message=FALSE, warning=FALSE }
   plot.data = valid.ahi %>% group_by(visit.month) %>% 
   summarise(N=length(visit.month), median = median(ahi), q25 = quantile(ahi)[2], 
             q75 = quantile(ahi)[4])
@@ -712,20 +714,19 @@ scroll_box( height = "850px")
 <br>
 
 ```{r missing1, echo = FALSE, warning=FALSE, message=FALSE}
-a = c("cpap_self","splint_self","apneasurgery_self","apneatto_self",
-               "apnea_self","SCAPISid","cpap","splint","OSAcat","ahi","cpap","splint","ESS")
-b=which(names(dat1) %in% a)
-dat2 = dat1[,-b,with=F]
-setDF(dat2)
+dat2 <- valid.ahi %>% select(age, Sex, smokestatus, Alkohol, BMI, educat,
+                    leisurePA, placebirth, diabd, hypertension, dyslipidemia,
+                    diabmed, hypermed, dyslipmed,
+                    ppi,Fibrer,Energi_kcal, visit.month)
+
 miss = data.frame(Missing = apply(dat2,2,function(x){sum(is.na(x))}))
 a = apply(dat2,2,function(x){sum(is.na(x))/length(x)})
-var=c("Age", "Sex", "Smoking","Alcohol","BMI","WHR","Education","Physical activity", 
-  "Place of birth", "Diabetes", "Hypertension", "Dyslipidemia",
+var=c("Age", "Sex", "Smoking","Alcohol","BMI","Education","Physical activity",   "Place of birth", "Diabetes", "Hypertension", "Dyslipidemia",
   "Diabetes medication","Hypertension medication", "Dyslipidemia medication", 
-  "PPI","Fiber","Energy intake", "ODI","T90%")
+  "PPI","Fiber","Energy intake", "Visit month")
 
-misstable = cbind(Variables = var, miss, Percentage = paste0(round(a*100,0)," %"))
-misstable = as.data.frame(misstable %>% arrange(Variables))
+misstable <- cbind(Variables = var, miss, Percentage = paste0(round(a*100,0)," %"))
+misstable <- as.data.frame(misstable %>% arrange(Variables))
 
 knitr::kable(misstable, caption = "Number of missing values by variable", 
              align = rep('c',3), table.attr = "style='width:60%;'") %>% 
@@ -748,7 +749,7 @@ N = **`r a`**
 # Interval between measurements
 
 ```{r dates1, echo=FALSE, message=FALSE, warning=FALSE }
-valid.ahi[,metabolon_collection_date:=as.Date(valid.ahi[,metabolon_collection_date], 
+valid.ahi[,metabolon_collection_date:=as.Date(metabolon_collection_date,
                                               format = "%d-%b-%y")]
 # Number of participants for which metabolon_collection_date is missing 
 n1 = nrow(valid.ahi[is.na(metabolon_collection_date),]) # 1246
@@ -985,7 +986,6 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.
 ##### All {-}
    
 ```{r corrshannonT90, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
-setwd()
 shannoncor = fread("/home/baldanzi/Sleep_apnea/Results/cor_t90_alpha.tsv", header=T)
 temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
@@ -1121,49 +1121,7 @@ PERMANOVA for AHI
 
 ***
 
-### Aitchison distance - OSA groups {-}
-   
-```{r BCOSA2, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Atdist.OSAcat.png")
 
-
-perma_OSA_AD1 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_ad.tsv')
-perma_OSA_AD2 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_ad.tsv')
-perma_OSA_AD3 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_ad.tsv')
-perma_OSA_ADsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_ad.tsv')
-
-n1 = perma_OSA_AD1[variables =="OSAcat", 'Pr(>F)']
-n2 = perma_OSA_AD2[variables =="OSAcat", 'Pr(>F)']
-n3 = perma_OSA_AD3[variables =="OSAcat", 'Pr(>F)']
-nsa = perma_OSA_ADsa[variables =="OSAcat", 'Pr(>F)']
-
-perma_AHI_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_ad.tsv')
-perma_AHI_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_ad.tsv')
-perma_AHI_AD3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_ad.tsv')
-perma_AHI_ADsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_ahi_ad.tsv')
-
-x1 = perma_AHI_AD1[variables =="ahi", 'Pr(>F)']
-x2 = perma_AHI_AD2[variables =="ahi", 'Pr(>F)']
-x3 = perma_AHI_AD3[variables =="ahi", 'Pr(>F)']
-xsa = perma_AHI_ADsa[variables =="ahi", 'Pr(>F)']
-```
-
-PERMANOVA for OSA groups     
-* model 1 - p-value = `r n1`   
-* model 2 - p-value = `r n2`   
-* model 3 - p-value = `r n3`   
-* sens analysis  - p-value = `r nsa`    
-    
-PERMANOVA for AHI     
-* model 1 - p-value = `r x1`     
-* model 2 - p-value = `r x2`    
-* model 3 - p-value = `r x3`    
-* sens analysis  - p-value = `r xsa`   
-
-
-&nbsp; 
-
-***
 
 ### Bray-curtis dissimilarity - T90% {-}
    
@@ -1171,14 +1129,14 @@ PERMANOVA for AHI
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.T90.png")
 
 perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_bc.tsv')
-perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_BC.tsv')
-perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_BC.tsv')
-perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_BC.tsv')
+perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_bc.tsv')
+perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_bc.tsv')
+perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_t90_bc.tsv')
 
-n1 = perma_t90_BC1[variables =="T90", 'Pr(>F)']
-n2 = perma_t90_BC2[variables =="T90", 'Pr(>F)']
-n3 = perma_t90_BC3[variables =="T90", 'Pr(>F)']
-nsa = perma_t90_BCsa[variables =="T90", 'Pr(>F)']
+n1 = perma_t90_BC1[variables =="t90", 'Pr(>F)']
+n2 = perma_t90_BC2[variables =="t90", 'Pr(>F)']
+n3 = perma_t90_BC3[variables =="t90", 'Pr(>F)']
+nsa = perma_t90_BCsa[variables =="t90", 'Pr(>F)']
 ```
 
 PERMANOVA for T90%     
@@ -1187,34 +1145,6 @@ PERMANOVA for T90%
 * model 3 - p-value = `r n3`     
 * sens analysis  - p-value = `r nsa`     
 
-&nbsp; 
-
-***
-
-### Aitchison distance - T90% {-}
-   
-```{r BCOSA4, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Atdist.T90.png")
-
-
-perma_t90_BC1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_ad.tsv')
-perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_ad.tsv')
-perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_ad.tsv')
-perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_ad.tsv')
-
-n1 = perma_t90_BC1[variables =="T90", 'Pr(>F)']
-n2 = perma_t90_BC2[variables =="T90", 'Pr(>F)']
-n3 = perma_t90_BC3[variables =="T90", 'Pr(>F)']
-nsa = perma_t90_BCsa[variables =="T90", 'Pr(>F)']
-```
-
-PERMANOVA for T90%     
-* model 1 - p-value = `r n1`    
-* model 2 - p-value = `r n2`     
-* model 3 - p-value = `r n3`     
-* sens analysis  - p-value = `r nsa`     
-
-&nbsp; 
 
 &nbsp; 
 
@@ -1263,26 +1193,6 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_BC_sever
 
 ***
 
-### Aitchison Dist. {.tabset}
-
-#### Reference: No OSA {-}
-```{r variancebetadiversity3, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_AD_noOSA.png")
-```   
-
-&nbsp; 
-
-***
-
-#### Reference: Severe {-}
-```{r variancebetadiversity4, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="60%", out.height="60%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/Boxplot_AD_severe.png")
-```   
-
-&nbsp; 
-
-***
-
 ## PERMANOVA BC   
     
 ### OSA severity {.tabset}
@@ -1323,24 +1233,13 @@ knitr::kable(perma_OSA_BC3, caption = "OSA and BC - model 3") %>% kable_styling(
 
 ***
 
- #### model 4 {-}
-   
-```{r permanovaOSA4, }
-perma_OSA_BC4= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model4_osa_bc.tsv')
-perma_OSA_BC4 = apply(perma_OSA_BC4,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_BC4, caption = "OSA and BC - model 4") %>% kable_styling()
-```
-
-&nbsp;
-
-***
 
 #### Sens. analysis {-}
    
  Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
    
 ```{r permanovaOSAsa, }
-perma_OSA_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_bc.tsv')
+perma_OSA_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_osa_bc.tsv')
 perma_OSA_BCsa = apply(perma_OSA_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
 knitr::kable(perma_OSA_BCsa, caption = "OSA and BC - Sens. analysis") %>% kable_styling()
 ```
@@ -1387,9 +1286,9 @@ knitr::kable(perma_AHI_BC3, caption = "AHI and BC - model 3") %>% kable_styling(
 Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
   
 ```{r permanovaAHI5, }
-#perma_AHI_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_ahi_bc.tsv')
-#perma_AHI_BCsa = apply(perma_AHI_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
-#knitr::kable(perma_AHI_BCsa, caption = "AHI and BC - Sensitivity analysis") %>% kable_styling()
+perma_AHI_BCsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_ahi_bc.tsv')
+perma_AHI_BCsa = apply(perma_AHI_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
+knitr::kable(perma_AHI_BCsa, caption = "AHI and BC - Sensitivity analysis") %>% kable_styling()
 ```
 <br>
 
@@ -1412,7 +1311,7 @@ knitr::kable(perma_t90_BC1, caption = "T90% and BC - model 1") %>% kable_styling
 #### model 2 {-}
    
 ```{r permanovat902, }
-perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_BC.tsv')
+perma_t90_BC2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_bc.tsv')
 perma_t90_BC2 = apply(perma_t90_BC2,2,function(x){ifelse(!is.na(x),x,"")})
 knitr::kable(perma_t90_BC2, caption = "T90% and BC - model 2") %>% kable_styling()
 ```
@@ -1424,7 +1323,7 @@ knitr::kable(perma_t90_BC2, caption = "T90% and BC - model 2") %>% kable_styling
 #### model 3 {-}
    
 ```{r permanovat903, }
-perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_BC.tsv')
+perma_t90_BC3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_bc.tsv')
 perma_t90_BC3 = apply(perma_t90_BC3,2,function(x){ifelse(!is.na(x),x,"")})
 knitr::kable(perma_t90_BC3, caption = "T90% and BC - model 3") %>% kable_styling()
 ```
@@ -1438,7 +1337,7 @@ knitr::kable(perma_t90_BC3, caption = "T90% and BC - model 3") %>% kable_styling
  Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
    
 ```{r permanovat904, }
-perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_BC.tsv')
+perma_t90_BCsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_SA_t90_bc.tsv')
 perma_t90_BCsa = apply(perma_t90_BCsa,2,function(x){ifelse(!is.na(x),x,"")})
 knitr::kable(perma_t90_BCsa, caption = "T90% and BC - model 3 no medication") %>% kable_styling()
 ```
@@ -1449,15 +1348,7 @@ knitr::kable(perma_t90_BCsa, caption = "T90% and BC - model 3 no medication") %>
 
 <br>
 
-```{r, }
-# Correlation t90 and ahi
-n = round(with(valid.t90[!is.na(ahi),], cor(t90,ahi, method='spearman')),3)
-``` 
 
-
-&nbsp;
-
-***
 
 # Appendix
 
@@ -1528,22 +1419,22 @@ Neverthess, there is high Spearman correlation between relative abundances and c
 
 
 ```{r clr,}
-count.clr = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.mgs_clr_count.tsv",sep='\t')
+#count.clr = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.mgs_clr_count.tsv",sep='\t')
 # Extracting mgs relative abundances 
-a = grep("___",names(valid.ahi),value=T)
-mgs.ra=as.matrix(valid.ahi[,a,with=F])
-rownames(mgs.ra) = valid.ahi[,SCAPISid]
+#a = grep("___",names(valid.ahi),value=T)
+#mgs.ra=as.matrix(valid.ahi[,a,with=F])
+#rownames(mgs.ra) = valid.ahi[,SCAPISid]
 
 # Extracting mgs clr 
-a = grep("HG3A",names(count.clr),value=T)
-mgs.clr = as.matrix(count.clr[,a,with=F])
-rownames(mgs.clr) = count.clr[,SCAPISid]
+#a = grep("HG3A",names(count.clr),value=T)
+#mgs.clr = as.matrix(count.clr[,a,with=F])
+#rownames(mgs.clr) = count.clr[,SCAPISid]
 
 # Correlation between the two mgs transformation by individuals 
-cor.ind=sapply(1:nrow(mgs.clr), function(i){
-  cor(mgs.clr[i,],mgs.ra[i,], method = "spearman")})
+#cor.ind=sapply(1:nrow(mgs.clr), function(i){
+#  cor(mgs.clr[i,],mgs.ra[i,], method = "spearman")})
 
-summary(cor.ind)
+#summary(cor.ind)
 ```
 
 &nbsp;
@@ -1556,7 +1447,12 @@ summary(cor.ind)
 
 ```{r summaryall, }
 # Summary of variables
-summaryall = sapply(names(dat1), function(x) {summary(dat1[[x]])})
+model3 <- c("age", "Sex", "smokestatus", "Alkohol", "BMI", "educat",
+            "leisurePA", "placebirth", "diabd", "hypertension",
+            "dyslipidemia","diabmed", "hypermed", "dyslipmed",
+            "ppi","Fibrer","Energi_kcal", "visit.month")
+
+summaryall = sapply(model3, function(x) {summary(pheno[,x,with=F])})
 print(summaryall)
 ```
 
@@ -1597,239 +1493,3 @@ export2md(t1, which.table = "descr",
 &nbsp; 
 
 ***
-
-## Smoking based on metabolome {#smokemetabolon}
-
-
-* 163 individuals are missing information on smoking status.    
-
-* **One suggested alternative is to use a nicotine metabolite as a proxy of smoking status.** 
-   
-
-Smoking-related metabolites:   
-   
-1. Cotinine - most used and studied
-2. Hydroxycotinine
-3. Cotinine N-oxide
-    
-<br> 
-
-### Plots {.tabset}
-    
-#### Box plots {-}
-  
-    
-```{r nicotine_metabolites_boxplots, out.width="50%", out.height="70%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine.png")
-#knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokhydroxycotinine.png")
-#knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinineNoxide.png")
-``` 
-
-&nbsp;
-
-<br>
-<br>
-<br>
-
-***
-
-#### Histogram {-}
-
-
-```{r nicotine_cotinine_hist, out.width="70%", out.height="60%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_hist.png")
-```
- 
-&nbsp; 
-    
-***
-    
-#### Histograms zoomed at the origin  {-}
-    
-    
-```{r nicotine_cotinine_hist2, out.width="50%", out.height="40%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/smokcotinine_hist_zoomed.png")
-```
-
-&nbsp; 
-
-***
-
-### Missing {-}
-
-```{r nicotine_metabolites1, }
-nicmet=c("MET_848", "MET_100002717", "MET_100002719")
-nicotine = fread("/home/baldanzi/Datasets/Metabolon/nicotine_metab.csv", header = T, 
-                 na.strings = c("NA",""))
-t = apply(nicotine[,nicmet,with=F], 2, function(x) {sum(is.na(x))})
-t = t(as.data.frame(t))
-rownames(t) = "Information missing"
-knitr::kable(t, caption = "Nr participants without informaton for the metabolite",table.attr = "style='width:80%;'", col.names = c("cotinine", "hydroxycotinine", "cotinine N-oxide")) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"))
-```
-   
-&nbsp;
-
-<br>
-<br>
-
-
-***
-
-### Cotinine - categorical {.tabset} 
-
-Cotinine (a nicotine metabolite) can be defined as present or absent in the metabolome based on the min detectable value (min value = 0.0003) or by using a ROC. The ROC can be used to detected an optimal cut-off to distinguish current smokers from non-current smokers
-
-**Cotinine information in those missing information on smokestatus**     
-
-```{r cotinine_smokingstatus_missing, echo=FALSE, message=FALSE, warning=FALSE}
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-valid.ahi = fread("validsleep_MGS.shannon.BC_Upp.tsv", header = T)
-n1 = sum(is.na(valid.ahi[,smokestatus]))
-n2 = sum(valid.ahi[is.na(smokestatus),SCAPISid] %in% nicotine[!is.na(MET_848),SCAPISid])
-n3 = sum(is.na(nicotine[SCAPISid %in% valid.ahi[is.na(smokestatus),SCAPISid], MET_848]))
-```
-Out of `r n1` individuals with missing smoking status information, `r n2` have information on cotinine and of `r n3` them are missing cotinine information 
-
-<br>
-   
-**Cross tabulations with smoking status**    
-    
-#### By min metabolome value {-}
-
-```{r nicotine_cotinine_ct1,echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
-# Cross tabulation Cotinine with min value 
-nicotine[,cotinine_pa:=NULL]
-nicotine[MET_848>0.0003,cotinine_pa:='present']
-nicotine[MET_848<=0.0003,cotinine_pa:='absent']
-t = nicotine %>% tabyl( cotinine_pa, smokestatus ) %>% 
-  adorn_totals( where = c("row", "col") ) %>%
-  adorn_percentages("row") %>%
-  adorn_pct_formatting() %>%
-  adorn_ns( position = "front" ) %>%
-  adorn_title("combined")
-knitr::kable(t, caption = "Cross tabulation- presence of cotinine vs smoking",table.attr = "style='width:100%;'") %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"))
-```
-   
-&nbsp; 
-
-***
-
-#### ROC {-}
-      
-**ROC for Cotinine and current smoker**   
-
-```{r nicotine_cotinine_auc, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="50%", out.height="50%"}      
-# ROC cotinine and current smoking 
-nicotine[smokestatus=="current", current :=1]
-nicotine[smokestatus!="current", current :=0]
-
-my_roc <- roc(nicotine$current, nicotine$MET_848)
-a = coords(my_roc, "best", best.method = "youden", 
-           ret = c("threshold", "specificity", "sensitivity"), 
-           transpose=TRUE)
-a=t(as.data.frame(a))
-rownames(a)=NULL
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/cotinineROC.png")
-knitr::kable(a, table.attr = "style='width:80%;'") %>% 
-  kable_styling()
-```
-    
-&nbsp; 
-
-***    
-    
-### By min ROC cut-off value {-}
-    
-Cotinine cut-off based on the ROC
-
-```{r nicotine_cotinine_ct2,echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
-# Cross tabulation Cotinine with ROC cutoff value 
-nicotine[,cotinine_pa:=NULL]
-nicotine[MET_848>a[1],cotinine_pa:='present']
-nicotine[MET_848<=a[1],cotinine_pa:='absent']
-t = nicotine %>% tabyl( cotinine_pa, smokestatus ) %>% 
-  adorn_totals( where = c("row", "col") ) %>%
-  adorn_percentages("row") %>%
-  adorn_pct_formatting() %>%
-  adorn_ns( position = "front" ) %>%
-  adorn_title("combined")
-knitr::kable(t, caption = "Cross tabulation- presence of cotinine vs smoking",table.attr = "style='width:100%;'") %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"))
-```
-
-&nbsp; 
-
-***  
-
-<br>
-
-### Cotinine and snus {.tabset} 
-   
-Snus may increase the cotinine level for non-smoker and may lead to misclassificaiton of smoking status based on metabolomics data.    
-   
-#### All participants {-}
-   
-```{r nicotine_cotinine_snus_box, echo=FALSE, fig.align='center', out.width="50%", out.height="50%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/snuscotinine.png")
-```   
-
-&nbsp; 
-
-*** 
-
-<br>
-
-#### Non-smokers {-}
-
-```{r nicotine_cotinine_snus_box2, echo=FALSE, fig.align='center', out.width="50%", out.height="50%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/snuscotinine_neversmokers.png")
-```    
-
-&nbsp; 
-
-*** 
-
-<br>   
-   
-### Smoking and snus {.tabset} 
-
-A considerable proportion of smokers also use snus. 
-
-#### Cross-tabulation  {-}
-   
-```{r smoking_snus_cross.tabulation, echo=FALSE, fig.align='center', message=FALSE, warning=FALSE}
-# Cross tabulation snus and smoking missingness 
-load('/home/baldanzi/Sleep_apnea/Descriptive/snus_smoking')
-
-# Cross tabulation snus and smoking 
-t = compareGroups(smoke ~ snus, data = snus_smoking)
-t1 = createTable(t, show.p.overall = F)
-export2md(t1, which.table = "descr", 
-          format = "html", strip = TRUE, caption = "Snus vs smoking")  %>%
-  kable_styling()
-```
-
-<br>
-
-***
-<br>
-
-#### Missing {-}
-
-Overlap between individuals with missing information for smoking and snus use
- 
-```{r smoking_snus_cross.tabulation2, echo=FALSE, fig.align='center', message=FALSE, warning=FALSE}
-t = compareGroups(smoke_missing ~ snus_missing , data = snus_smoking)
-t1 = createTable(t, show.p.overall=F)
-export2md(t1, which.table = "descr",  
-          format = "html", strip = TRUE, caption = "Snus vs smoking missing information")  %>%
-  kable_styling()
-```
-
-<br>
-
-***
-
-<br>
