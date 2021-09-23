@@ -4,7 +4,7 @@
 # Inferential Statistics 
 
 # Version 1: March, 2021
-# Update: July 8, 2021
+# Update: Sep 23, 2021
 
 # This code will investigate the alpha diversity in relation t90, OSAcat, and T90%.  
 # Four models  and a sensitivity analysis will be used 
@@ -140,6 +140,5 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
                      "N", "method", "covariates","model","bmi")
 
   fwrite(res.alpha, file = paste0(output,"cor_t90_alpha_bmi",group,".tsv"), sep="\t")
-  print(res.alpha)
-  }
+    }
 

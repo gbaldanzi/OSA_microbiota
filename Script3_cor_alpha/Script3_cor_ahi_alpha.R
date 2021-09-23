@@ -4,7 +4,7 @@
 # Inferential Statistics 
 
 # Version 1: March, 2021
-# Update: July 8, 2021
+# Update: Sep 23, 2021
 
 # This code will investigate the alpha diversity in relation AHI, OSAcat, and T90%.  
 # Four models  and a sensitivity analysis will be used 
@@ -20,9 +20,6 @@
 
 # Importing data
   pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-  
-  valid.ahi <- pheno[valid.ahi =="yes",] 
-  valid.t90 <- pheno[valid.t90 =="yes",] 
 
 
 #Spearman correlation function ####
@@ -51,7 +48,7 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 # Correlation between AHI and Shannon ####
   
   # Prepare data 
-  dades = copy(valid.ahi)
+  dades = copy(pheno[valid.ahi =="yes",])
   
   # Transforming two-level factor variables into numeric variables 
   a= c("Sex","hypermed","dyslipmed","ppi", "metformin")
@@ -73,7 +70,7 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 # Sensitivity analysis 1
   
   # Prepare data 
-  dades.sa = copy(valid.ahi)
+  dades.sa = copy(pheno[valid.ahi =="yes",])
   dades.sa <- dades.sa[ppi=="no",]
   dades.sa <- dades.sa[metformin=="no",]
   dades.sa <- dades.sa[hypermed=="no",]
@@ -106,7 +103,7 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
   setDT(dades.sa)
 
   # By BMI group 
-  for(group in unique(valid.ahi[,BMIcat])){
+  for(group in unique(pheno[,BMIcat])){
     dades2 = dades[BMIcat==group,]
 
 

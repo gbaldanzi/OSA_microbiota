@@ -88,15 +88,15 @@ detach(sleep)
 #subsetting the dataset to only those with valid flow and sat monitoring 
 valid.ahi = sleep[flutv4h==1 & o2utv4h==1,]
 #subsetting the dataset to only those with valid sat monitoring (enough for analysis with ODI or Sat90%)
-valid.odi = sleep[o2utv4h==1,]
+valid.t90 = sleep[o2utv4h==1,]
 
-correlation = round(with(valid.ahi[!is.na(odi),], cor(ahi,odi)),3)
+correlation = round(with(valid.ahi[!is.na(sat90),], cor(ahi,sat90)),3)
 ```
     
 Total number of individuals    
 N =  **`r nr.idnr`**   
    
-Individuals with valid ODI measurements (at least 4hrs of saturation monitoring)        
+Individuals with valid T90 measurements (at least 4hrs of saturation monitoring)        
 N = **`r sum(sleep$o2utv4h==1)`**   
    
 Individuals with valid AHI measurements (at least 4hrs of saturation and flow monitoring)      
@@ -104,7 +104,7 @@ N  = **`r nr.idnr.valid`**
 
 <br>
 
-Correlation between AHI and ODI in the study pop. = **`r correlation`**   
+Correlation between AHI and T90 in the study pop. = **`r correlation`**   
 <br>
 
 ## Monitoring variables {.tabset}
