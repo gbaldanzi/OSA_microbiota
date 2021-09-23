@@ -10,15 +10,13 @@ library(grid)
 library(ggplot2)
 
 
-  setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-
-  
-# Importing data on individuals with valid.ahi measurement 
-  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
+  # Import data 
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  valid.ahi <- pheno[valid.ahi=='yes',]
   
   
 # Compare the Shannon index across OSA groups using Kruskal-Wallis #### 
-res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
+  res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
 
 # Histogram of Shannon diversity 
   p3_1=ggplot(data=valid.ahi,aes(x=shannon))+
@@ -52,14 +50,17 @@ res=with(valid.ahi, kruskal.test(shannon ~ OSAcat))
   ggsave("scatter.shannon.ahi.png", plot = p1, device = "png", 
         path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
+  
+    # Scatter plot of ranked AHi and randked shannon 
   p2 = ggplot(data=valid.ahi) + 
         geom_point(aes(x=rank(ahi), y= rank(shannon))) + ggtitle("Rank Shannon index and rank AHI") + 
         xlab("Apnea-hypopnea index") +
         ylab("Shannon index") 
 
-ggsave("rank_scatter.shannon.ahi", plot = p2, device = "png", 
+  ggsave("rank_scatter.shannon.ahi", plot = p2, device = "png", 
        path = "/home/baldanzi/Sleep_apnea/Descriptive/")
-
+  
+  # Boxplots/Violin plots on Shannon by OSA severity groups 
   p3=ggplot(valid.ahi, aes(x=OSAcat, y=shannon)) +
       geom_violin(trim=FALSE, fill="indianred3")+
       geom_boxplot(width=0.1)+

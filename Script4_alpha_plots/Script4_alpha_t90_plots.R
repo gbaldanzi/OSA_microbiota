@@ -3,6 +3,8 @@
 
 # Descriptive Statistics 
 
+# Lastest update: 2021-09-23
+
 # This script will create plots and table describing alpha in participants with valid T90 measurement
 
 # Loading packages
@@ -10,7 +12,8 @@ library(ggplot2)
 
 
 # Import data
-  valid.t90 <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/valid.t90_MGS.shannon_Upp.rds")
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  valid.t90 <- pheno[valid.t90=='yes',]
   
 # Scatter plot: Shannon index against T90
   a = with(valid.t90, cor(t90, shannon, method = "spearman"))
@@ -26,18 +29,4 @@ library(ggplot2)
   
   ggsave("scatter.shannon.T90.png", plot = p1, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
-  
-#Box plot
-  res=with(valid.t90, kruskal.test(shannon ~ t90cat))
-  p2 = ggplot(data=valid.t90) + 
-       geom_boxplot(aes(x=t90cat, y= shannon, fill=t90cat)) + 
-       ggtitle(paste0("Shannon index by T90 groups\nKruskal-Wallis: p.value=",
-                   formatC(res$p.value,format= "e", digits=2)))+
-       xlab("T90") +
-       ylab("Shannon index") +
-       theme(title = element_text(hjust=.5, size=14, face = "bold"),
-             axis.title = element_text(size=14))
-  
-  ggsave("box.shannon.T90.png", plot = p2, device = "png", 
-         path = "/home/baldanzi/Sleep_apnea/Descriptive/")
-  
+

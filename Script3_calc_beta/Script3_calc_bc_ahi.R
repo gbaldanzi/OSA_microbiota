@@ -1,30 +1,20 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Descriptive Statistics continued:
+# Latest update: 20201-09-23
 
 # This script will calculate beta diversity and on individuals with valid ahi
-
-rm(list=ls())
-
-# Loading packages
-library(ape)
-
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-
-# Import data
-valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 
 # Bray-curtis dissimilarity #### 
 
 # Create dataset containing exclusively the MGS as columns/variables 
-a=grep("____",names(valid.ahi),value=T)
-MGS=valid.ahi[,a, with=F]
+  mgs.names=grep("____",names(pheno),value=T)
+  MGSmatrix=pheno[valid.ahi=='yes',mgs.names, with=F]
 
 # Estimating the BC index - creates a matrix with the BC index between individual samples 
 # MGS as relative abundances
-BC=as.matrix(vegdist(MGS,method="bray"))
-rownames(BC)=colnames(BC)=valid.ahi$SCAPISid
+BC=as.matrix(vegdist(MGSmatrix,method="bray"))
+rownames(BC)=colnames(BC)=pheno[valid.ahi=='yes',SCAPISid]
 fwrite(BC,'/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")
 
 #BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")

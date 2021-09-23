@@ -6,18 +6,6 @@
 # This script will create plots and table describing beta
 #diversity in relation to AHI and OSA in participants with valid AHI
 
-rm(list=ls())
-
-# Loading packages
-library(pheatmap)
-library(RColorBrewer)
-library(grid)
-library(ggplot2)
-library(data.table)
-
-  # Import pheno data
-  valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
-
   # Import BC
   BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")
   BC = as.matrix(BC)
@@ -25,9 +13,11 @@ library(data.table)
 
   # Import PCoA of BC 
   load("/home/baldanzi/Datasets/sleep_SCAPIS/pc_BC")
+  
+  # pheno data 
+  valid.ahi <- pheno[valid.ahi=='yes',]
 
-
-# Plotting the first 2 principal components 
+  # Plotting the first 2 principal components 
     # First: extracting the principal component value for every sample 
       dat.plot=data.frame(pcoa.bray$vectors, OSAcat = valid.ahi$OSAcat)
       
@@ -67,7 +57,7 @@ library(data.table)
   ggsave("BC.OSAcat_noosa_severe.png", plot = p4, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
 
-# BC heatmap - AHI ####
+  # BC heatmap - AHI ####
 
   paletteLength <- 500
   myColor <- colorRampPalette(c("white","indianred3"))(paletteLength)

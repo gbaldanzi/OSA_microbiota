@@ -3,19 +3,18 @@
 
 # Descriptive Statistics 
 
-# This script will calculate MGS prevalences  
+# This script will calculate MGS prevalence
 
-# Descriptive Statistics 
+# Lastest update: 2021-09-23
 
-rm(list=ls())
 
 # Loading packages
-library(Hmisc)
+  library(vegan)
+  library(tidyverse)
+  library(data.table)
 
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
-# Import pheno data
-valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 
 # MGS prevalence ####
 
@@ -24,8 +23,8 @@ valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
 # presence-absence transformation:
 # If a species is present, it is transformed to 1
 # If it is absent, it is transformed to zero
-mgs = grep("____H",names(valid.ahi))
-data_pa <- decostand(x = valid.ahi[,mgs,with=F], "pa")
+  mgs = grep("____H",names(pheno))
+  data_pa <- decostand(x = pheno[,mgs,with=F], "pa")
 
 # calculate sum per species
   data_sum <- apply(data_pa, 2, sum)

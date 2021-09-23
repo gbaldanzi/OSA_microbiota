@@ -838,12 +838,7 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/family_abundance
 
 ```{r plotsshannon,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 # Hist shannon diversity 
-phistshannon=ggplot(data=valid.ahi,aes(x=shannon))+
-  geom_histogram(color="black", fill="white") +
-  geom_density(alpha=.2, fill="#FF6666") +
-  ggtitle("Histogram - Shannon diversity") +
-  theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5))
-print(phistshannon)
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/hist.shannon.png")
 ```
 <br>
 <br>
@@ -852,19 +847,7 @@ print(phistshannon)
 
 ```{r plotsshannonandahi,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
 # Scatter plot shannon and ahi 
-a = cor(valid.ahi$ahi, valid.ahi$shannon, method = "spearman")
-
-pshannonahi = ggplot(data=valid.ahi,aes(x=ahi, y= shannon)) + 
-  geom_point() + 
-  ggtitle(paste0("Shannon index and AHI \n Spearman cor.= ",round(a,3))) + 
-  xlab("Apnea-hypopnea index") +
-  ylab("Shannon index") +
-  geom_smooth(method='lm', alpha=.8) +
-  geom_vline(xintercept = 5, color = "red", linetype = "twodash") + 
-  geom_vline(xintercept = 15, color = "red", linetype = "twodash") + 
-  geom_vline(xintercept = 30, color = "red", linetype = "twodash") +
-   theme(plot.title = element_text(hjust = 0.5, size = 14))
-print(pshannonahi)
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.ahi.png")
 ```
 <br>
 <br>
