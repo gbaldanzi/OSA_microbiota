@@ -1,0 +1,23 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 30:00
+#SBATCH -J Script2_datadescription
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+ml R_packages
+cd $wrf
+
+# Descriptive plots of sleep records  
+# Worked 
+echo Sleep_records
+# Rscript Script2_descriptive/Script2_descriptive_sleeprecords.R
+
+
+# Descriptive plots and tables of phenotype data merged with sleep records
+
+echo phenotype_descriptive
+Rscript Script2_descriptive/Script2_descriptivestatistics.R

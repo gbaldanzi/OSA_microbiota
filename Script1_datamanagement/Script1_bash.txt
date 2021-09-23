@@ -1,0 +1,26 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 30:00
+#SBATCH -J Script1_datamanagement
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+ml R_packages
+cd $wrf
+
+# Management of the sleep records 
+echo Sleep_records
+Rscript Script1_datamanagement/Script1_sleeprecords.R
+
+
+# Management of the phenotype data and merge with sleep records 
+echo Datamanagement
+Rscript Script1_datamanagement/Script1_datamanagement.R
+
+
+# Calculate Shannon Index for the all the individuals 
+echo calc_alpha.div.R
+Rscript Script1_datamanagement/Script1_calc_alpha.div.R

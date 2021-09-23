@@ -233,10 +233,13 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   # Import sleep recording data 
   sleep <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
   
-  sleep[valid.ahi=='no',ahi:=NA]
-  sleep[valid.t90=='no',t90:=NA]
-
   pheno <- merge(pheno, sleep, by='SCAPISid', all.x=T, all.y=F)
+  
+  # Exclude CPAP users 
+  pheno[cqhe061=='CPAP', c("valid.ahi","valid.t90"):="no"]
+  pheno[cpap=='yes', c("valid.ahi","valid.t90"):="no"]
+  pheno[valid.ahi=='no',ahi:=NA]
+  pheno[valid.t90=='no',t90:=NA]
 
   # Save pheno data ####
   saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
@@ -258,14 +261,6 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
               sep = "\t",quote = FALSE)
 
   # 3622 individuals have a valid T90 measurement 
-
-# Saving those variables that were managed in Rdata format 
-dat1 = pheno[valid.ahi=='yes',] %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
-                            leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
-                            hypermed, dyslipmed, ppi, Fibrer, Energi_kcal,ESS,apnea_self, apneatto_self,
-                            cpap_self, splint_self, apneasurgery_self,
-                            ahi, odi, sat90, cpap, splint)
-save(dat1, file = "data_table1")
 
 
 

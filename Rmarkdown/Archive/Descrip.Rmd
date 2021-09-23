@@ -148,19 +148,11 @@ knitr::kable(a, caption = "Duration of flow monitoring", table.attr = "style='wi
 Uppsala participants with gut microbiome data = **4839**   
    
 ```{r chunk2, message=FALSE, warning=FALSE, include=FALSE}
-# Importing data on valid.ahi
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-# Uploading dataset with variables in factor format
-load("data_table1")
-# Importing data on individuals with valid.ahi measurement 
-valid.ahi = fread("validsleep.MGS.Upp.tsv", header=T, na.strings=c("", "NA"))
-# Importing data on individuals with valid.odi measrurement 
-valid.odi = fread("/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", sep = "\t")
-valid.odi = valid.odi[!is.na(sat90),]
-#merging with the data set that has variables as factor 
-a = names(dat1[,-"SCAPISid"])
-valid.ahi[,(a):=NULL]
-valid.ahi = merge(dat1,valid.ahi, by = "SCAPISid", all=T, all.x=F, all.y=F)
+# Import data
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
+valid.ahi <- pheno[valid.ahi=='yes',]
+valid.odi <- pheno[valid.t90=='yes',]
 ```
 <br>   
   
@@ -274,14 +266,6 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/hist.sat90.png")
 # Population characteristics  
    
  <br>  
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-#setwd("/home/baldanzi/Datasets/sleep_SCAPIS")
-#table1csv = fread("table1.csv", header=T)
-#setnames(table1csv, "p.overall", "p.value")
-#knitr::kable(table1csv, caption = "Variables by groups of OSA severity") %>% 
-#  kable_styling(fixed_thead = T) %>% 
-#  scroll_box(height = "800px")
-```
 
 ```{r table1but2,echo=FALSE, message=FALSE, warning=FALSE}
 datatable1 = as.data.frame(dat1[,-1])  # Passing data to a new object with the SCAPIS ID
@@ -887,9 +871,6 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/family_abundance
 ## Shannon index 
 
 ```{r plotsshannon,echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
-setwd("/home/baldanzi/Datasets/sleep_SCAPIS/")
-valid.ahi <- readRDS("validsleep_MGS.shannon_Upp.rds")
-
 # Hist shannon diversity 
 phistshannon=ggplot(data=valid.ahi,aes(x=shannon))+
   geom_histogram(color="black", fill="white") +
@@ -1039,8 +1020,8 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.
 ##### All {-}
    
 ```{r corrshannonT90, echo=FALSE, message=FALSE, warning=FALSE,fig.align='center'}
-setwd("/home/baldanzi/Sleep_apnea/Results")
-shannoncor = fread('cor_t90_alpha.tsv', header=T)
+setwd()
+shannoncor = fread("/home/baldanzi/Sleep_apnea/Results/cor_t90_alpha.tsv", header=T)
 temp = c(6,7)
 shannoncor = shannoncor[,-temp, with=F]
 setnames(shannoncor, "MGS", "Var 1")
@@ -1501,153 +1482,8 @@ knitr::kable(perma_t90_BCsa, caption = "T90% and BC - model 3 no medication") %>
 
 ***
 
-&nbsp;
-
-## PERMANOVA AD
-
-&nbsp;
-
-### OSA {.tabset}
-   
-#### model 1 {-}
-   
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_osa_ad.tsv')
-perma_OSA_AD1 = apply(perma_OSA_AD1,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_AD1, caption = "OSA and AD - model 1") %>% kable_styling()
-```
 <br>
 
-***
-
-#### model 2 {-}
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_osa_ad.tsv')
-perma_OSA_AD2 = apply(perma_OSA_AD2,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_AD2, caption = "OSA and AD - model 2") %>% kable_styling()
-```
-<br>
-
-***
-
-#### model 3 {-}
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_AD3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_osa_ad.tsv')
-perma_OSA_AD3 = apply(perma_OSA_AD3,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_AD3, caption = "OSA and AD - model 3") %>% kable_styling()
-```
-<br>
-
-***
-
-#### Sens. Analysis {-}
-  
-Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
-  
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-perma_OSA_ADsa <-  fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_osa_ad.tsv')
-perma_OSA_ADsa <-  apply(perma_OSA_ADsa,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_OSA_ADsa, caption = "OSA and AD - model 3 no medication") %>% kable_styling()
-```
-<br>
-
-***
-
-&nbsp;
-
-### AHI {.tabset}
-   
-#### model 1 {-}
-   
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_ahi_ad.tsv')
-perma_AHI_AD1 = apply(perma_AHI_AD1,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_AD1, caption = "AHI and AD - model 1") %>% kable_styling()
-```
-<br>
-
-***
-
-#### model 2 {-}
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_ahi_ad.tsv')
-perma_AHI_AD2 = apply(perma_AHI_AD2,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_AD2, caption = "AHI and AD - model 2") %>% kable_styling()
-```
-<br>
-
-***
-
-#### model 3 {-}
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_AD3= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_ahi_ad.tsv')
-perma_AHI_AD3 = apply(perma_AHI_AD3,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_AD3, caption = "AHI and AD - model 3") %>% kable_styling()
-```
-<br>
-
-***
-
-#### Sens. Analysis  {-}
-  
-Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
-  
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-perma_AHI_ADsa= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_ahi_ad.tsv')
-perma_AHI_ADsa = apply(perma_AHI_ADsa,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_AHI_ADsa, caption = "AHI and AD - model 3 no medication") %>% kable_styling()
-```
-<br>
-
-***
-
-&nbsp;
-
-### T90 {.tabset}
-   
-#### model 1 {-}
-   
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_AD1= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model1_t90_ad.tsv')
-perma_T90_AD1 = apply(perma_T90_AD1,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_AD1, caption = "T90% and AD - model 1") %>% kable_styling()
-```
-<br>
-
-***
-
-#### model 2 {-}
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_AD2= fread('/home/baldanzi/Sleep_apnea/Results/permanova_model2_t90_ad.tsv')
-perma_T90_AD2 = apply(perma_T90_AD2,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_AD2, caption = "T90% and AD - model 2") %>% kable_styling()
-```
-<br>
-
-***
-
-#### model 3 {-}
-```{r , echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_AD3 = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_t90_ad.tsv')
-perma_T90_AD3 = apply(perma_T90_AD3,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_AD3, caption = "T90% and AD - model 3") %>% kable_styling()
-```
-<br>
-
-***
-
-#### Sens. Analysis {-}
-  
-Excluded individuals using PPI, metformin, anti-hypertensive, or cholesterol-lowering medication
-  
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-perma_T90_ADsa = fread('/home/baldanzi/Sleep_apnea/Results/permanova_model3_nomed_t90_ad.tsv')
-perma_T90_ADsa = apply(perma_T90_ADsa,2,function(x){ifelse(!is.na(x),x,"")})
-knitr::kable(perma_T90_ADsa, caption = "T90% and AD - model 3 no medication") %>% kable_styling()
-```
-<br>
-
-***
 ```{r, }
 # Correlation t90 and ahi
 n = round(with(valid.t90[!is.na(ahi),], cor(t90,ahi, method='spearman')),3)

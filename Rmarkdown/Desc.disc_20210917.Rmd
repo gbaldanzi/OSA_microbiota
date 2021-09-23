@@ -652,45 +652,9 @@ datatable(t1,container=sketch,rownames = FALSE, options = list(
 
 ***
 
-# Sensitivity analysis {.tabset}
+# Sensitivity analysis 
    
 Sensitivity analysis: remove medication users (ppi,metformin,anti-hypertensive,cholesterol-lowering)
-
-## Table 
-
-```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-
-t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa_mgs.fdr.rds')
-setDT(t)
-n = nrow(t)
-
-sketch2 = htmltools::withTags(table(
-  class = 'display',
-  thead(
-    tr(
-      th(rowspan = 2, 'MGS'),
-      th(colspan = 2, 'Model2 - AHI'),
-      th(colspan = 3, 'SA - AHI'),
-      th(colspan = 2, 'Model2 - T90'),
-      th(colspan = 3, 'SA - T90'),
-    ),
-    tr(
-      lapply(rep(c(' cor.', ' p-value ', ' cor.', ' p-value ','q-value'), 2), th)
-    )
-  )
-))
-
-datatable(t,container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% formatStyle(c(1,3,6,8), `border-right` = "solid 2px")
-
-```
 
 ## Venn diagram
 
@@ -704,7 +668,8 @@ n = nrow(t)
 
 `r n` MGSs correlated with either AHI, BMI, or T90% in the Sens. Analysis
 
-# {.unlisted .unnumbered}
+<br>
+
 
 ## Tables {.tabset}
 
@@ -880,6 +845,43 @@ datatable(t1,container=sketch,rownames = FALSE, options = list(
 ***
 
 &nbsp;
+
+## Table for the 30 MGS
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa_mgs.fdr.rds')
+setDT(t)
+n = nrow(t)
+
+sketch2 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+      th(colspan = 2, 'Model2 - AHI'),
+      th(colspan = 3, 'SA - AHI'),
+      th(colspan = 2, 'Model2 - T90'),
+      th(colspan = 3, 'SA - T90'),
+    ),
+    tr(
+      lapply(rep(c(' cor.', ' p-value ', ' cor.', ' p-value ','q-value'), 2), th)
+    )
+  )
+))
+
+datatable(t,container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% formatStyle(c(1,3,6,8), `border-right` = "solid 2px")
+
+```
+
 
 
 # Sensitivity Analysis 2 
@@ -1177,13 +1179,19 @@ datatable(t.bmi,rownames = FALSE, options = list(
 
 &nbsp;
 
+<br>
+
 ***
 
 &nbsp;
 
 &nbsp;
 
-# Metabolic subpathways {.tabset}
+<br>
+
+## Metabolic subpathways {.tabset}
+
+<br>
 
 <div class = "blue">
 
@@ -1192,7 +1200,9 @@ datatable(t.bmi,rownames = FALSE, options = list(
 
 </div>
 
-## Both 
+<br>
+
+### Both 
 
 ```{r, out.width='70%', out.height='70%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
 knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png")
@@ -1204,7 +1214,7 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
 
 &nbsp;
 
-## Positive correlations 
+### Positive correlations 
 
 ```{r, out.width='70%', out.height='70%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
 knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_pos.png")
@@ -1216,7 +1226,7 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
 
 &nbsp;
 
-## Negative correlations 
+### Negative correlations 
 
 ```{r, out.width='70%', out.height='70%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
 knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_neg.png")
@@ -1245,8 +1255,6 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
 
  **Bar plots** - number of carriers 
  
- **Scatter plots** - relative abundance. Curves present the predicted values by a quantile regression with restricted cubic splines (4 knots)
- 
  </div>
 
 ```{r, echo=FALSE}
@@ -1262,15 +1270,11 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
 ## AHI {.unnumbered .tabset}
 
 ```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-#input <- '/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/'
-#plots.ahi <- readRDS(paste0(input,'bar_ahi/barplot_ahi.rds'))
-#plots.ahi.quantile <- readRDS(paste0(input,'bar_ahi/barplot_quant_ahi.rds'))
-
 for(m in mgs.ahi){
   cat(sprintf("\n### %s {-} \n\n", m))
   cat(paste0("![](bar_ahi/minibar_ahi_",m,".png)"))
+  cat(' \n')
 }
-
 ```
 
 <br>
@@ -1278,16 +1282,11 @@ for(m in mgs.ahi){
 ## T90 {.unnumbered .tabset}
 
 ```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-#input <- '/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/'
-#plots.ahi <- readRDS(paste0(input,'bar_ahi/barplot_ahi.rds'))
-#plots.ahi.quantile <- readRDS(paste0(input,'bar_ahi/barplot_quant_ahi.rds'))
-
 for(m in mgs.t90){
   cat(sprintf("\n### %s{-} \n\n", m))
   nn <- paste0("![](bar_t90/minibar_t90_",m,".png)")
   cat(nn,'\n')
 }
-
 ```
 
 <br>
@@ -1299,6 +1298,14 @@ for(m in mgs.t90){
 # Self-reported apnea 
 
 &nbsp;
+
+Self-reported sleep apnea by OSA severity based on AHI from Apnealink 
+
+```{r , include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
+t.ahi.self <- compareGroups(OSAcat ~ cqhe058, data=pheno[valid.ahi=='yes',]) 
+export2md(createTable(t.ahi.self), which.table = "descr", format = "html", caption="Self-reported sleep apnea across the OSA severity groups based on measured AHI from Apnealink") %>%  kable_styling()
+```
+
 
 ```{r Self-reported, include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
 all.pheno <- readRDS('/home/baldanzi/Datasets/sleep_SCAPIS/self.apnea.rds')
@@ -1365,10 +1372,8 @@ Among those participant(n=`r n2`) for whom measured sleep apnea was not availabl
 Scatter plot of correlation coefficients from 2 analysis (correlation between AHI or T90 and MGS & correlation between Self-reported apnea and MGS)
 
 ```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-
 knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_ahi.png')
 knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_t90.png')
-
 ```
 
 <br>
@@ -1381,6 +1386,7 @@ knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_t
      
 Plots display the MGS prevalence in all SCAPIS participants (n = `r n2`) by self-reported sleep apnea
  
+<br>
 
 ### Positive correlated {.unnumbered}
 
@@ -1412,9 +1418,11 @@ for(m in mgs.neg){
 
    
 
-## CPAP treatment {.tabset}
+# CPAP treatment {.tabset}
 
-### Self-reported Sleep apnea
+<br>
+
+## BC by CPAP ttment among participants with self-reported apnea
 
 ```{r, out.width='70%', out.height='70%', fig.align='center'}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.self.apnea.png")
@@ -1431,7 +1439,7 @@ knitr::kable(table,
 
 ```
 
-### Severe apnea, measured AHI
+## BC by CPAP ttment among participants with severe apnea, measured AHI
 
 ```{r, out.width='70%', out.height='70%', fig.align='center'}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.sev.apnea.png")
@@ -1449,7 +1457,7 @@ knitr::kable(table,
 ```
 
 
-### Moderate/severe apnea, measured AHI
+## BC by CPAP ttment among participants with moderate/severe apnea, measured AHI
 
 ```{r, out.width='70%', out.height='70%', fig.align='center'}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.mod.apnea.png")
@@ -1467,7 +1475,7 @@ knitr::kable(table,
 ```
 
 
-##{.unlisted .unnumbered}
+#{.unlisted .unnumbered}
 
 <br>
 
@@ -1475,7 +1483,7 @@ knitr::kable(table,
 
 <br>
 
-### Table of sef-reported CPAP
+## Table of sef-reported CPAP
 
 ```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
   library(compareGroups)
@@ -1550,6 +1558,8 @@ knitr::kable(table,
   t <- compareGroups(sleep.study.valid~CPAP+self.apnea+cpap.study.night,data=all.data[SCAPISid %in% sleep$SCAPISid,])
   export2md(createTable(t), which.table = "descr", format = "html", caption="Self-reported CPAP use by valid measurement only in those included in the sleep study") %>%  kable_styling()
 ``` 
+
+<br>
 
 ```{r, message=FALSE, warning=FALSE,echo=FALSE,fig.align='center'}
 
