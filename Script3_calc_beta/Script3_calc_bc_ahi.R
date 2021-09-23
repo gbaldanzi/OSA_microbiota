@@ -23,4 +23,4 @@ fwrite(BC,'/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")
 
 # Principal coordinates analysis based on BC 
 pcoa.bray <- pcoa(BC)
-save(pcoa.bray, file = 'pc_BC')
+save(pcoa.bray, file = '/home/baldanzi/Datasets/sleep_SCAPIS/pc_BC')

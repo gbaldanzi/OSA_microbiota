@@ -69,13 +69,13 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 # Runing PERMANOVA ####
   
   message('perma_t90_bc/perma_model1.R')
-  #source('perma_t90_bc/perma_model1.R')
+  source('perma_t90_bc/perma_model1.R')
 
   message('perma_t90_bc/perma_model2.R')
-  #source('perma_t90_bc/perma_model2.R')
+  source('perma_t90_bc/perma_model2.R')
 
   message('perma_t90_bc/perma_model3.R')
-  #source('perma_t90_bc/perma_model3.R')
+  source('perma_t90_bc/perma_model3.R')
 
   message('perma_t90_bc/perma_SA.R')
   source('perma_t90_bc/perma_SA.R')

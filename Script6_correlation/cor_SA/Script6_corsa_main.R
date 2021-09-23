@@ -3,7 +3,7 @@
 # Gabriel Baldanzi 
 # 2021-09-02
 
-  rm(list = ls())
+ message("Sensitivity Analysis 1")
 
   pacman::p_load(data.table, ppcor, fastDummies,vegan)
 
@@ -28,7 +28,7 @@
   pheno <-  pheno[dyslipmed == "no",] # 239
   
   a= c("Sex")
-  dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
+  pheno[,(a):=as.data.frame(data.matrix(data.frame(unclass(pheno[,a, with=F]))))]
 
   model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
   model2 <- c(model1,"Fibrer","Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")

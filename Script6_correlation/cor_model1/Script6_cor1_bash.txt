@@ -4,10 +4,17 @@
 #SBATCH -p core
 #SBATCH -n 1
 #SBATCH -t 1:00:00
-#SBATCH -J Script6
+#SBATCH -J Script6_cor1
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
 ml R_packages
 
-Rscript cor_model1/Script6_cor1main.R
+Rscript cor_model1/Script6_cor1_main.R
+
+
+echo "Venn"
+Rscript cor_model1/Script6_venn1.R
+
+echo "Table"
+Rscript cor_model1/Script6_table.res1.R

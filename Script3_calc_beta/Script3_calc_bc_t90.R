@@ -24,4 +24,4 @@
 # PCoA of BC
   message("running the PCoA for BC index in participants with valid T90 - this will take a while")
   pcoa.bray.t90=pcoa(BC) 
-  save(pcoa.bray.t90, file = 'pc_BC_t90')
+  save(pcoa.bray.t90, file = '/home/baldanzi/Datasets/sleep_SCAPIS/pc_BC_t90')
