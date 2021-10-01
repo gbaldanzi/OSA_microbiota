@@ -35,7 +35,7 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
   BC = as.matrix(BC)
   row.names(BC) = colnames(BC)
 
-  source('permanova.fun.R')
+  source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/permanova.fun.R')
 
   # Transforming two-level factor variables into numeric variables 
   dades = copy(valid.t90)

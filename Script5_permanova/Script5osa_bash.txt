@@ -3,8 +3,8 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 16
-#SBATCH -t 72:00:00
-#SBATCH -J perma_t90
+#SBATCH -t 96:00:00
+#SBATCH -J perma_all.variables
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
@@ -12,6 +12,7 @@ ml R_packages
 
 cd $wrf
 
+echo Script5.main.R
 
 Rscript Script5.main.R
 

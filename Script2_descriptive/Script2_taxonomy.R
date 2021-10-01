@@ -3,18 +3,18 @@
 
 # Descriptive Statistics - Taxonomy
 
-# Last update: 2021-09-22
-
-  library(data.table)
-  library(tidyverse)
-  library(RColorBrewer)
+# Last update: 2021-09-30
 
   #### Taxonomy ####
+  message("")
   message("Taxonomy")
+  message("")
+  
 # Describe the taxonomic composition by different OSA severity groups. 
 
 # Importing data with taxonomic information for every MGS 
 taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy",data.table = F)
+valid.ahi <- pheno[valid.ahi=='yes',]
 
 # Transforming taxonomic levels into factor variables
 a = c("species", "genus", "family", 'order', 'class', 'phylum')

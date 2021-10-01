@@ -5,6 +5,7 @@
 
 # Version 1: April 2021
 # Update: - Jul 8, 2021: merged models 3 and 4, including medication with other covariates. 
+# Last update: Sep 24, 2021
 
 # This code will investigate the beta-diversity (Bray Curtis Dissimilarity) 
 # in relation to OSA severity groups in 3 different models. 
@@ -25,8 +26,9 @@ rm(list = ls())
 output = "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
-# Importing data
-valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
+  # Importing data
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  valid.ahi <- pheno[valid.ahi=='yes',]
 
 # Importing BC matrix 
 BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
@@ -40,12 +42,8 @@ dades = copy(valid.ahi)
 a= c("Sex","ppi","metformin","hypermed","dyslipmed")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
-# Transforming factor variables 
-dades[,plate:=as.factor(dades$plate)]
-dades[,visit.month:=as.factor(dades$visit.month)]
-
 # Making sure that BC and dades have the same order of observations 
-dades = dades[match(rownames(BC),dades$SCAPISid),]
+  dades <-  dades[match(rownames(BC),dades$SCAPISid),]
 
 # Outcome - character name (length=1) with matrix distance 
 outc = "BC"
@@ -72,10 +70,12 @@ expo = "OSAcat"
   source('perma_osa_bc/perma_model2.R')
 
   source('perma_osa_bc/perma_model3.R')
+  
+  source('perma_osa_bc/perma_SA2.R')
 
   source('perma_osa_bc/perma_SA.R')
   
-  source('perma_osa_bc/perma_SA2.R')
+  
 
 
 #---------------------------------------------------------------------------#

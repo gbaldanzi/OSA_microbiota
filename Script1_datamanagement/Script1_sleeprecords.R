@@ -1,25 +1,34 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Script for data management of sleeping records
+# Last update: 2021-09-30
+
+# Script for data management of sleeping records data
 
 # Data management ####
 
 # Loading packages
-pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.table)
+pacman::p_load(tidyverse, chron, Hmisc, sjmisc, data.table)
 
 rm(list=ls())
 
 # Import sleep recording data 
+sleep <- fread('/home/baldanzi/Datasets/sleep_SCAPIS/original_data/Sleep_SCAPIS_Uppsala_Final.csv',
+               na.strings = c("","NA",NA))
+sleep <- sleep[AttendSleepStudy==TRUE,]
 
-sleep = fread("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/Data_Sleep_SCAPIS_Uppsala.csv", header=T, na.strings=c("", "NA"))
+# Sleep duration only present in the older data set
+sleep.old <- fread('/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/Data_Sleep_SCAPIS_Uppsala.csv',
+                   na.strings = c("","NA",NA))
+sleep.old <- sleep.old[,.(id,sovtid)]
+sleep <- merge(sleep, sleep.old, by="id",all.x = T)
+
+
 setnames(sleep, "id", "SCAPISid") #renaming the id variable
-
 
 # Data summary 
 attach(sleep)
-nr.idnr = length(idnr) # total number individuals 
-nr.idnr.valid = length(idnr[flutv4h==1 & o2utv4h==1]) # number of ind with at least 4h of flow and sat monitoring 
+nr.idnr.valid = nrow(sleep[BothFlO2utv4h==1,]) # number of ind with at least 4h of flow and sat monitoring 
 fl = summary(fldeutv_min) 
 fl = substr(times((fl%/%60 +  fl%%60 /60)/24), 1, 5) # Mean and median duration of flow monitoring 
 
@@ -30,10 +39,22 @@ detach(sleep)
 # Date of recording ####
 
 # Date interval 
-range(as.Date(sleep$date, format = "%Y-%m-%d"),na.rm=T) #highest value with year = 2917
-sleep$date[which(as.Date(sleep$date)>as.Date("2018-12-01")) ] #values that were typo 
-which(as.Date(sleep$date)>as.Date("2018-12-01")) #index of values that were typos 
+sleep[,Date := as.Date(date,format= c("%d%b%Y"))]
+sleep[is.na(Date),Date := as.Date(sleep$date[is.na(sleep$Date)],format= c("%d-%b-%y"))]
 
+range(sleep$Date,na.rm=T) #highest value with year = 2105
+sleep$Date[which(sleep$Date>as.Date("2018-12-01")) ] #typo: "2105-10-29" 
+which(sleep$Date>as.Date("2018-12-01")) #index of values that were typos 
+  
+  # Correct typo 
+  sleep$Date[55:65]
+  sleep$Date[59] <-  "2015-10-29"  # instead of "2105-10-29"
+  
+  range(sleep$Date,na.rm=T) 
+  
+  sum(is.na(sleep$Date)) # date is missing for 145 obs 
+  sum(is.na(sleep$Date[sleep$o2utv4h == 1])) # date is missing for ZERO obs in those with valid sat measurement 
+  
   # sleep duration during the examination 
 
   to.min.fun = function(a){
@@ -45,51 +66,33 @@ which(as.Date(sleep$date)>as.Date("2018-12-01")) #index of values that were typo
     return(in.min)
   }
     
-    
+  sum(is.na(sleep$sovtid))
   sleep$sovtid <- sub("8.","8:",sleep$sovtid)
   sleep[,sovtid:=times(paste0(sovtid,':00'))]
   
   sleep[,sleeptime:=to.min.fun(sovtid)]
-
-# correcting the date values 
-sleep$date[55:65]
-sleep$date[59] = "2015-10-29"  # instead of "2105-10-29"
-
-sleep$date[2220:2230]
-sleep$date[2223] = "2017-09-14" # instead of "2917-09-14"
-
-sleep$date[2705:2715]
-sleep$date[2711] = "2017-11-15" # instead of "2917-11-15"
-
-range(as.Date(sleep$date, format = "%Y-%m-%d"),na.rm=T) 
-
-sum(is.na(sleep$date)) # date is missing for 145 obs 
-sum(is.na(sleep$date[sleep$o2utv4h == 1])) # date is missing for ZERO obs in those with valid sat measurement 
 
 # Subsetting the data for valid flow and sat monitoring ####
 # Analysis using AHI should only include individuals with valid flow and sat monitoring 
 # Analysis using ODI should only include individuals with valid sat monitoring 
 
 #subsetting the dataset to only those with valid flow and sat monitoring 
-sleep[,valid.ahi:=ifelse(sleep$flutv4h==1 & sleep$o2utv4h==1, "yes", "no")]
+sleep[,valid.ahi:=ifelse(sleep$BothFlO2utv4h==1, "yes", "no")]
 sleep[,valid.t90:=ifelse(sleep$o2utv4h==1, "yes", "no")]
 
 
 
 # 2 individuals with missing data for AHI among those with valid flow and sat monitoring
-sleep[is.na(ahi) & valid.ahi=="yes",c("idnr", "fldeutv_min", "spo2utv_min","date","anstart", "anstop", "ahi", "odi")]
-
-# ODI missing for 4 individuals (# 2 are also missing informatio for AHI, 1 is also missing information on sat90%)
-sleep[is.na(sleep$odi) & valid.t90=='yes',idnr]
+  sleep[is.na(ahi) & valid.ahi=="yes",c("SCAPISid", "fldeutv_min","Date", "ahi", "sat90")]
 
 # % of registration with sat≤90% missing for 1 individual 
-sleep[is.na(sleep$sat90) & valid.t90=='yes',idnr]
+  sleep[is.na(sleep$sat90) & valid.t90=='yes',.(SCAPISid,sat90)]
 
 # Excluding 2 individuals with missing information on AHI
-sleep[valid.ahi=='yes' & is.na(ahi),valid.ahi:='no']
+  sleep[valid.ahi=='yes' & is.na(ahi),valid.ahi:='no']
 
 # Excluding 2 individuals with missing information on T90
-sleep[valid.t90=='yes' & is.na(sat90),valid.t90:='no']
+  sleep[valid.t90=='yes' & is.na(sat90),valid.t90:='no']
 
 # Creating a variable OSA severity 
 sleep[valid.ahi=="yes",OSAcat:= rec(ahi, rec = "0:4.9=0; 5:14.9=1; 15:29.9=2 ; 30:max=3")]
@@ -103,6 +106,9 @@ sleep[,splint:= factor(sleep$splint, levels = c(0,1), labels = c("no", "yes"))]
 sleep[is.na(sleep$cpap),cpap:= "no"]
 sleep[is.na(sleep$splint),splint:= "no"]
 sleep[,t90:= sat90]
+
+
+saveRDS(sleep,"/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
 
 
   

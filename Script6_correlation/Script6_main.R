@@ -8,7 +8,7 @@
   source("cor_model1/Script6_table.res1.R")
   
   message("Model 2")
-  source("cor_model2/Script6_cor2_main2.R")
+  source("cor_model2/Script6_cor2_main.R")
   
   source("cor_model2/Script6_venn2.R")
   

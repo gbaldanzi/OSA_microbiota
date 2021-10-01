@@ -224,7 +224,7 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   setnames(cmvar, "subject_id", "SCAPISid")
   setnames(cmvar,"dna.yield..\302\265g.", "dna.yield")
 
-  # merging CM variables with the valid AHI data. 
+  # merging CM variables with the pheno. 
   a = c("SCAPISid", "plate", "received", "read.pairs.per.sample", "dna.yield")
   pheno = merge(pheno, cmvar[,a,with=F], by="SCAPISid", all=F, all.x=T, all.y=F)
   pheno$plate = as.factor(pheno$plate)
@@ -240,6 +240,13 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   pheno[cpap=='yes', c("valid.ahi","valid.t90"):="no"]
   pheno[valid.ahi=='no',ahi:=NA]
   pheno[valid.t90=='no',t90:=NA]
+  
+  # T90 categories 
+  pheno[t90!=0, t90cat :=  cut(t90,breaks = quantile(t90,
+                                                     probs = seq(0,1,by=.33),
+                                                     na.rm=T), include.lowest = T)]
+  pheno[,t90cat:=factor(t90cat, levels = c("0", levels(t90cat)))]
+  pheno[t90==0, t90cat := '0' ]
 
   # Save pheno data ####
   saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")

@@ -8,12 +8,7 @@
 
   # Import data
   valid.t90 <- pheno[valid.t90=='yes',]
-  valid.t90[t90!=0, 
-            t90cat:= cut(t90,breaks = quantile(t90, probs = seq(0,1,by=.33),
-                                               na.rm=T), include.lowest = T)]
-  valid.t90[,t90cat:=factor(t90cat, levels = c("0", levels(t90cat)))]
-  valid.t90[t90==0, t90cat := '0' ]
-    
+
   # Import BC
   BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv',sep=",")
   BC = as.matrix(BC)

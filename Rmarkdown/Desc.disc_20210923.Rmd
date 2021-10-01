@@ -128,7 +128,7 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.
 
 ```{r, echo=FALSE}
 tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_ahi_alpha.tsv')
-tab[,cor:=round(cor.coefficient,3)]
+tab[,rho:=round(cor.coefficient,3)]
 tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
 tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 
@@ -140,7 +140,7 @@ for(i in nrow(cov):2){
 cov[model=="SA2", covariates:= "+sleep.time"]
 cov[model=="SA", covariates:= "medication users excluded"]
 
-t <- tab[,.(model,cor,p.val,N)] 
+t <- tab[,.(model,rho,p.val,N)] 
 
 kable(t,format = "html", table.attr = "style='width:80%;'", 
         caption = 'Correlation - AHI and Shannon index',
@@ -160,7 +160,7 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.
      
 ```{r, echo=FALSE}
 tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_t90_alpha.tsv')
-tab[,cor:=round(cor.coefficient,3)]
+tab[,rho:=round(cor.coefficient,3)]
 tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
 tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 
@@ -173,7 +173,7 @@ cov[model=="SA2", covariates:= "+sleep.time"]
 cov[model=="SA", covariates:= "medication users excluded"]
 cov[1:3,covariates := gsub(" ","+",covariates[1:3])]
 
-t <- tab[,.(model,cor,p.val,N)] 
+t <- tab[,.(model,rho,p.val,N)] 
 
 kable(t,format = "html", table.attr = "style='width:80%;'", 
         caption = 'Correlation - T90 and Shannon index',
@@ -255,16 +255,45 @@ for(m in mod.names){
 
 ```
 
+<br>
 
+***
+
+<br>
+
+# PCA {.tabset}
+
+```{r, message=FALSE, warning=FALSE}
+res.pca <- fread("/home/baldanzi/Sleep_apnea/Results/cor_pc.tsv")
+res.pca[,rho:=round(rho,3)]
+res.pca[,p.value:=round(p.value,5)]
+res.pca[,q.value:=round(q.value,5)]
+
+res.ahi <- res.pca[exposure=="ahi",.(outcome, model, rho, p.value, q.value, N)]
+res.t90 <- res.pca[exposure=="t90",.(outcome, model, rho, p.value, q.value, N)]
+
+outcomes <- unique(res.pca[,outcome])[order(unique(res.pca[,outcome]))]
+```
+
+```{r, results='asis', echo=FALSE, fig.show='hold'}
+for(m in outcomes){
+  cat(sprintf("\n## %s {-} \n\n", m))
+  cat('  \n')
+  cat('\n### AHI {-} \n')
+  cat(kable(res.ahi[outcome==m,-("outcome")],format = "html", table.attr = "style='width:50%;'") %>% kable_styling(position = "center"))
+  cat('\n ### T90 {-} \n')
+  cat(kable(res.t90[outcome==m,-("outcome")],format = "html", table.attr = "style='width:50%;'") %>% kable_styling(position = "center"))
+  cat('  \n')
+}
+```
 &nbsp;
 
 ***
 
-&nbsp;
+<br>
+<br>
+<br>
 
-<br>
-<br>
-<br>
 
 # Method figure
     
@@ -874,7 +903,7 @@ sketch2 = htmltools::withTags(table(
       th(colspan = 3, 'SA - T90'),
     ),
     tr(
-      lapply(rep(c(' cor.', ' p-value ', ' cor.', ' p-value ','q-value'), 2), th)
+      lapply(rep(c(' rho ', ' p-value ', ' rho ', ' p-value ','q-value'), 2), th)
     )
   )
 ))
@@ -918,7 +947,7 @@ sketch2 = htmltools::withTags(table(
       th(colspan = 2, 'SA2 - T90'),
     ),
     tr(
-      lapply(rep(c('   cor.   ', '   p-value   '), 4), th)
+      lapply(rep(c('   rho   ', '   p-value   '), 4), th)
     )
   )
 ))
@@ -966,7 +995,7 @@ sketch2 = htmltools::withTags(table(
       th(colspan = 2, 'SA3 - T90'),
     ),
     tr(
-      lapply(rep(c('   cor.   ', '   p-value   '), 4), th)
+      lapply(rep(c('   rho   ', '   p-value   '), 4), th)
     )
   )
 ))
@@ -1301,211 +1330,3 @@ for(m in mgs.t90){
 ***
 
 <br>
-
-# Self-reported apnea 
-
-&nbsp;
-
-Self-reported sleep apnea by OSA severity based on AHI from Apnealink 
-
-```{r , include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
-t.ahi.self <- compareGroups(OSAcat ~ cqhe058, data=pheno[valid.ahi=='yes',]) 
-export2md(createTable(t.ahi.self), which.table = "descr", format = "html", caption="Self-reported sleep apnea across the OSA severity groups based on measured AHI from Apnealink") %>%  kable_styling()
-```
-
-
-```{r Self-reported, include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
-all.pheno <- readRDS('/home/baldanzi/Datasets/sleep_SCAPIS/self.apnea.rds')
-
-  n <- nrow(all.pheno[cqhe058=="YES",])
-  n2 <- nrow(all.pheno)
-```
-
-<div class = "blue">
-
-Among those participant(n=`r n2`) for whom measured sleep apnea was not available, **`r n`** self-reported having a doctor diagnosis of sleep apnea 
-
-</div>
-
-<br>
-
-## Correlation table {.tabset}
-
-<br>
-
-```{r,include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
-  res.m2 <-  fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
-    res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-  mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
-  mgs.fdr.ahi <- mgs.fdr.m2$mgs.fdr.ahi
-  mgs.fdr.t90 <- mgs.fdr.m2$mgs.fdr.t90
-    
-    # Results from the correlations with self reported sleep apnea 
-    res.self <- fread("/home/baldanzi/Sleep_apnea/Results/cor_self.apnea_mgs.tsv")
-    res.self[,cor:=round(cor.coefficient,3)]
-    res.self[,pval:=round(p.value,3)]
-    
-    # Determine direction of correlation between MGS and measured AHI
-    mgs.pos <- res.m2[MGS %in% mgs.fdr.ahi & exposure %in% c("ahi") & cor.coefficient>0,MGS]
-    mgs.neg <- res.m2[MGS %in% mgs.fdr.ahi & exposure %in% c("ahi") & cor.coefficient<0,MGS]
-    
-    t <- res.self[MGS %in% mgs.fdr.ahi,.(MGS,cor,pval)]
-    t <- t[MGS %in% mgs.pos, cor_direction:='pos']
-    t.ahi <- t[MGS %in% mgs.neg, cor_direction:='neg']
-    
-        # Determine direction of correlation between MGS and measured T90 
-    mgs.pos <- res.m2[MGS %in% mgs.fdr.t90 & exposure %in% c("t90") & cor.coefficient>0,MGS]
-    mgs.neg <- res.m2[MGS %in% mgs.fdr.t90 & exposure %in% c("t90") & cor.coefficient<0,MGS]
-    
-    t <- res.self[MGS %in% mgs.fdr.t90,.(MGS,cor,pval)]
-    t <- t[MGS %in% mgs.pos, cor_direction:='pos']
-    t.t90 <- t[MGS %in% mgs.neg, cor_direction:='neg']
-```    
-
-### AHI {-}
-
-<br>
-
-```{r,}    
-    
-    datatable(t.ahi,rownames = FALSE,  
-              options = list(
-            columnDefs = list(list(className = 'dt-center', targets = c(2:3)) )
-            )) %>% formatStyle(c(3), `border-right` = "solid 2px")
-    
-```
-
-<br>
-
-***
-
-<br>
-
-### T90 {-}
-
-<br>
-
-```{r,}    
-    
-    datatable(t.t90,rownames = FALSE,  
-              options = list(
-            columnDefs = list(list(className = 'dt-center', targets = c(2:3)) )
-            )) %>% formatStyle(c(3), `border-right` = "solid 2px")
-    
-```
-
-<br>
-
-***
-
-<br>
-
-## Scatter plot of correlation coefficients {.tabset}
-    
-&nbsp;
-
-Scatter plot of correlation coefficients from 2 analysis (correlation between AHI or T90 and MGS & correlation between Self-reported apnea and MGS)
-
-```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_ahi.png')
-knitr::include_graphics('/home/baldanzi/Sleep_apnea/Results/Plots/scatter_self_t90.png')
-```
-
-<br>
-
-***
-
-<br>
-
-## Prevalence barplots {.tabset}
-     
-Plots display the MGS prevalence in all SCAPIS participants (n = `r n2`) by self-reported sleep apnea
- 
-<br>
-
-### Positive correlated {.unnumbered}
-
-```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-
-for(m in mgs.pos){
-  nn <- paste0("![](Self_apnea_mgs/pos.mgs/selfapnea_",m,".png)")
-  cat(nn,'\n')
-  }
-
-```
-
-### Negative correlated {.unnumbered}
-
-```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-
-for(m in mgs.neg){
-  nn <- paste0("![](Self_apnea_mgs/neg.mgs/selfapnea_",m,".png)")
-  cat(nn,'\n')
-  }
-
-```
-
-<br>
-
-***
-
-<br>
-
-   
-
-# CPAP treatment {.tabset}
-
-<br>
-
-## BC by CPAP ttment among participants with self-reported apnea
-
-```{r, out.width='70%', out.height='70%', fig.align='center'}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.self.apnea.png")
-```
-
-
-```{r, out.width='70%', out.height='70%', fig.align='center'}
-table <- fread('/home/baldanzi/Sleep_apnea/Results/permanova_self.apnea_bc.tsv')
-table <- apply(table,2,function(x){ifelse(!is.na(x),x,"")})
-
-knitr::kable(table, 
-               caption = "Self-reported sleep apnea and BC") %>% 
-    kable_styling()
-
-```
-
-## BC by CPAP ttment among participants with severe apnea, measured AHI
-
-```{r, out.width='70%', out.height='70%', fig.align='center'}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.sev.apnea.png")
-```
-
-
-```{r, out.width='70%', out.height='70%', fig.align='center'}
-table <- fread('/home/baldanzi/Sleep_apnea/Results/permanova_sev.apnea_bc.tsv')
-table <- apply(table,2,function(x){ifelse(!is.na(x),x,"")})
-
-knitr::kable(table, 
-               caption = "Severe sleep apnea (AHI>=30) and BC") %>% 
-    kable_styling()
-
-```
-
-
-## BC by CPAP ttment among participants with moderate/severe apnea, measured AHI
-
-```{r, out.width='70%', out.height='70%', fig.align='center'}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.mod.apnea.png")
-```
-
-
-```{r, out.width='70%', out.height='70%', fig.align='center'}
-table <- fread('/home/baldanzi/Sleep_apnea/Results/permanova_mod.apnea_bc.tsv')
-table <- apply(table,2,function(x){ifelse(!is.na(x),x,"")})
-
-knitr::kable(table, 
-               caption = "Severe sleep apnea (AHI>=15) and BC") %>% 
-    kable_styling()
-
-```
-

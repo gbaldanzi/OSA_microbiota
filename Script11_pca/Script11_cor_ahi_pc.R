@@ -23,7 +23,8 @@
   
 
   # Build function 
-  cor_apnea_pc.fun <- function(exposure, pc_data, pheno.data, covariates){
+  
+  cor_apnea_pc.fun <-  function(exposure, pc_data, pheno.data, covariates){
     
     dades <- copy(pheno.data)
     a <- c("SCAPISid",exposure,covariates)
@@ -38,22 +39,51 @@
     
     res = res[order(res$q.value),]
     
+    names(res) <- c("outcome", "exposure", "rho", "p.value", "N", "method", "covariates","q.value")
+    
     return(res)
     
   }
+  
+  clean.res.fun <- function(res,models){
+   
+   model.names <- names(list.models)
+   
+   for(i in 1:length(res)){  res[[i]]$model <- model.names[i]   }
+  
+   res.df <- do.call(rbind,res)
+   rownames(res.df) <- NULL
+   return(res.df)
+  
+  }
     
   # Models   
-  model1 <-   c("age", "Sex", "Alkohol","smokestatus")
-  model2 <-   c(model1,"BMI")
+  model1 <- c("age", "Sex", "Alkohol","smokestatus")
+  model2 <- c(model1,"BMI")
+  model3 <- c(model2,"metformin","hypermed","dyslipmed","ppi","Fibrer",
+              "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
+    
+  models <- list(model1 = model1, 
+                      model2 = model2, 
+                      model3 = model3)
   
   # Run correlations 
   
-  res.pc.ahi <- lapply(list(model1,model2),cor_apnea_pc.fun, exposure="ahi",
-                                 pc_data = mgs.pca_valid.ahi,
-                                 pheno.data = pheno[valid.ahi=='yes',])
+  res.pc.ahi <- lapply(list.models,cor_apnea_pc.fun,exposure="ahi",
+                        pc_data = mgs.pca_valid.ahi,
+                        pheno.data = pheno[valid.ahi=='yes',])
     
-  res.pc.t90 <- lapply(list(model1,model2),cor_apnea_pc.fun,exposure="t90",
+  
+  res.pc.ahi <- clean.res.fun(res.pc.ahi, list.models)
+    
+  res.pc.t90 <- lapply(list.models,cor_apnea_pc.fun,exposure="t90",
                                  pc_data = mgs.pca_valid.t90,
                                  pheno.data = pheno[valid.t90=='yes',])
+  
+  res.pc.t90 <- clean.res.fun(res.pc.t90, list.models)
+  
+  res <- rbind(res.pc.ahi, res.pc.t90)
+  
+  fwrite(res, file=paste0(output,"cor_pc.tsv"), sep = '\t')
     
     

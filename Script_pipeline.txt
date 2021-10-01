@@ -1,0 +1,79 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 1:00:00
+#SBATCH -J Run_pipeline_sleep_apnea
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+ml R_packages
+cd $wrf
+
+# Management of the sleep records # Worked
+echo Sleep_records
+Rscript Script1_datamanagement/Script1_sleeprecords.R
+
+
+# Management of the phenotype data and merge with sleep records # Worked 
+
+echo " "
+echo Data_management
+echo " "
+
+Rscript Script1_datamanagement/Script1_datamanagement.R
+
+
+# Calculate Shannon Index for all the individuals # Worked 
+echo calc_alpha.div.R
+Rscript Script1_datamanagement/Script1_calc_alpha.div.R
+
+# Script3 Calculate Bray-Curtis Dissimilarity 
+
+# jid1=$(sbatch Script3_bash.txt|cut -c21-) 
+
+# Run PERMANOVA on BC Dissimilarity (dependency on previous sbatch job)
+echo PERMANOVA_script
+
+# sbatch --dependency=afterok:$jid1 Script5osa_bash.txt
+
+
+# Descriptive Statistics 
+
+echo " "
+echo Descriptive_statistics 
+echo " "
+
+Rscript Script2_descriptive/Script2_main.R
+
+
+# Correlation between phenotypes and alpha-diversity (Shannon index). # Worked 
+
+echo " Correlation Sleep apnea and Shannon diversity "
+Rscript Script4_cor_alpha/Script4_cor_main.R
+
+
+# Correlation between phenotypes and MGS
+echo " Correlation phenotypes and MGS "
+
+Rscript Script6_main.R
+
+# Bar plots 
+
+Rscript Script8_barplot_res_mgs.R
+
+# Enrichment Analysis 
+
+echo "Enrichment analysis"
+
+jid2=$(sbatch Script9_enrichment/Script9_bash_1.txt|cut -c21-)
+sbatch --dependency=afterok:$jid2 Script9_enrichment/Script9_bash_2.txt
+
+echo "END!"  
+
+
+
+
+
+

@@ -5,13 +5,6 @@
 
 # This script will create plots and table describing alpha in participants with valid ahi
 
-# Loading packages
-library(grid)
-library(ggplot2)
-
-
-  # Import data 
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   valid.ahi <- pheno[valid.ahi=='yes',]
   
   

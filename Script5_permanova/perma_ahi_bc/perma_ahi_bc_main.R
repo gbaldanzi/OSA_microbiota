@@ -24,7 +24,8 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
-valid.ahi <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/validsleep_MGS.shannon_Upp.rds")
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+valid.ahi <- pheno[valid.ahi=='yes',]
 
 # Importing BC matrix 
 BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
@@ -38,9 +39,6 @@ dades = copy(valid.ahi)
 a= c("Sex","ppi","metformin","hypermed","dyslipmed")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
-# Transforming factor variables 
-dades[,plate:=as.factor(dades$plate)]
-dades[,visit.month:=as.factor(dades$visit.month)]
 
 # Making sure that BC and dades have the same order of observations 
 dades = dades[match(rownames(BC),dades$SCAPISid),]

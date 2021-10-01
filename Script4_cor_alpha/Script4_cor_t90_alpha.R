@@ -10,47 +10,10 @@
 # Four models  and a sensitivity analysis will be used 
 # Results will be saved in three files depending on the exposure (t90,OSAcat,T90%)
 
-  rm(list = ls())
-
-  pacman::p_load(data.table,ppcor, fastDummies, vegan)
-
-# Defining output folders 
-  output = "/home/baldanzi/Sleep_apnea/Results/"
-  output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-
-# Importing data
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-  
-  valid.t90 <- pheno[valid.t90 =="yes",] 
-
-
-#Spearman correlation function ####
-source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.correlation.function.R')
-
-#-----------------------------------------------------------------------------#
-# Models ####
-
-  #Covariates 
-  # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-  model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  # model 2 = model 1 + BMI 
-  model2 <-  c(model1,"BMI")
-  # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
-  # SA = remove medication users 
-  SA <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month")
-  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
-  
-  
-  listmodels=list(model1,model2,model3,SA2)
-  
-
-#-----------------------------------------------------------------------------#
 # Correlation between t90 and Shannon ####
   
   # Prepare data 
-  dades = copy(valid.t90)
+  dades = copy(pheno[valid.t90=='yes',])
   
   # Transforming two-level factor variables into numeric variables 
   a= c("Sex","hypermed","dyslipmed","ppi", "metformin")
@@ -72,7 +35,7 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 # Sensitivity analysis 1
   
   # Prepare data 
-  dades.sa = copy(valid.t90)
+  dades.sa = copy(pheno[valid.t90=='yes',])
   dades.sa <- dades.sa[ppi=="no",]
   dades.sa <- dades.sa[metformin=="no",]
   dades.sa <- dades.sa[hypermed=="no",]
@@ -105,7 +68,7 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
   setDT(dades.sa)
 
   # By BMI group 
-  for(group in unique(valid.t90[,BMIcat])){
+  for(group in unique(pheno[,BMIcat])){
     dades2 = dades[BMIcat==group,]
 
 

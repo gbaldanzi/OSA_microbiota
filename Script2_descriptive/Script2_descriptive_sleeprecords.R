@@ -7,13 +7,9 @@
 
 output.plot="/home/baldanzi/Sleep_apnea/Descriptive/"
 
+# Import data
+sleep <-  readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
 
-# Saving the datasets ####
-saveRDS(sleep,"/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
-
-
-#Frequency table by OSA cat 
-tableOSAcat = freq(sleep$OSAcat, style='rmarkdown')
 
 #histogram of flow monitoring duration 
 p1 = ggplot(data = sleep, aes(x=fldeutv_min)) + geom_histogram() + geom_vline(xintercept = 240, color = "red")  +

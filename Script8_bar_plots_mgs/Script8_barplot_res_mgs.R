@@ -35,15 +35,6 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
 
   res.list <- lapply(res.list, function(x){x[,rho:=paste0("rho = ",round(cor.coefficient,3))]})
   
-  #Categories
-  pheno[,t90cat:=NULL]
-  pheno[valid.t90=="yes" & t90!=0, t90cat :=  cut(t90,breaks = quantile(t90,
-                                                                  probs = seq(0,1,by=.33),
-                                                                  na.rm=T), include.lowest = T)]
-  pheno[,t90cat:=factor(t90cat, levels = c("0", levels(t90cat)))]
-  pheno[valid.t90=="yes" & t90==0, t90cat := '0' ]
-
-  
   # Bar plots of prevalence 
   noms=unique(c(mgs.ahi, mgs.t90))
   pa <- paste0("pa_",noms)
@@ -84,7 +75,7 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   }
 
   # Creating the plots 
-  dir.create("bar_ahi")
+  if(dir.exists("bar_ahi")==F){dir.create("bar_ahi")}
   
   
   message("Plot OSAcat")
@@ -102,7 +93,7 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
          path = './bar_ahi/')
       }
 
-  dir.create("bar_t90")
+  if(dir.exists("bar_t90")==F){dir.create("bar_t90")}
   
   plots.t90 <- lapply(mgs.t90, 
                     bar.plot.prevalence.fun, 

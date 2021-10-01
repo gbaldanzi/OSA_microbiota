@@ -4,6 +4,7 @@
 # Latest update: 20201-09-23
 
 # This script will calculate beta diversity and on individuals with valid ahi
+  message("Script3_calc_bc_ahi.R") 
 
 # Bray-curtis dissimilarity #### 
 

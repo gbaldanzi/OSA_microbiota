@@ -16,8 +16,6 @@ nrow(dades.sa) #2318
 a= c("Sex")
 dades.sa[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades.sa[,a, with=F]))))]
 
-# Transforming factor variables 
-dades.sa[,plate:=as.factor(dades.sa$plate)]
 
 # Making sure that BC and dades.sa have the same observations 
 BC = as.data.frame(BC) # Transform BC from matrix to data.frame

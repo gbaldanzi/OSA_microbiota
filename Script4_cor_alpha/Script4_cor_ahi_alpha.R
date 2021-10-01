@@ -4,47 +4,13 @@
 # Inferential Statistics 
 
 # Version 1: March, 2021
-# Update: Sep 23, 2021
+# Update: Sep 30, 2021
 
 # This code will investigate the alpha diversity in relation AHI, OSAcat, and T90%.  
 # Four models  and a sensitivity analysis will be used 
 # Results will be saved in three files depending on the exposure (AHI,OSAcat,T90%)
 
-  rm(list = ls())
 
-  pacman::p_load(data.table,ppcor, fastDummies, vegan)
-
-# Defining output folders 
-  output = "/home/baldanzi/Sleep_apnea/Results/"
-  output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-
-# Importing data
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-
-
-#Spearman correlation function ####
-source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.correlation.function.R')
-
-#-----------------------------------------------------------------------------#
-# Models ####
-
-  #Covariates 
-  # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-  model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  # model 2 = model 1 + BMI 
-  model2 <-  c(model1,"BMI")
-  # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
-  # SA = remove medication users 
-  SA <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month")
-  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
-  
-  
-  listmodels=list(model1,model2,model3,SA2)
-  
-
-#-----------------------------------------------------------------------------#
 # Correlation between AHI and Shannon ####
   
   # Prepare data 

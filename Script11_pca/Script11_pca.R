@@ -17,11 +17,12 @@
   mgs.relative.abundance_valid.t90 <- pheno[valid.t90=='yes',mgs,with=F]
   
   # PCA
+  set.seed(1)
   mgs.pca_valid.ahi <- prcomp(mgs.relative.abundance_valid.ahi)
   
   saveRDS(mgs.pca_valid.ahi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/mgs.pca_valid.ahi.rds")
   
-  
+  set.seed(1)
   mgs.pca_valid.t90 <- prcomp(mgs.relative.abundance_valid.t90)
   
   saveRDS(mgs.pca_valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/mgs.pca_valid.t90.rds")

@@ -7,12 +7,7 @@
 
 # This script will create plots and table describing alpha in participants with valid T90 measurement
 
-# Loading packages
-library(ggplot2)
-
-
 # Import data
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   valid.t90 <- pheno[valid.t90=='yes',]
   
 # Scatter plot: Shannon index against T90

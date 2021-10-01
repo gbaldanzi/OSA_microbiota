@@ -3,27 +3,9 @@
 
 # Descriptive Statistics 
 
-# Last update: 2021-09-22
+# Last update: 2021-09-30
 
-message("#Descriptive Statistics#")
-print(Sys.time())
-
-# Loading packages
-library(tidyverse)
-library(data.table)
-library(summarytools)
-library(ggpubr)
-library(Hmisc)
-library(compareGroups)
-library(flextable)
-library(vegan)
-library(RColorBrewer)
-
-
-  # Import data
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-
-#Variables are: SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
+  #Variables are: SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
 #leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
 #hypermed, dyslipmed, ppi, fiber, EI,ESS,apnea_self, apneatto_self,
 #cpap_self, splint_self, apneasurgery_self,
@@ -37,7 +19,7 @@ library(RColorBrewer)
 
 # Variable diagnostics ####
 # Number of individuals 
-nrow(dat1) #3206
+nrow(dat1) #3175
 
 
 # Checking for missingness in the variables. 
@@ -50,11 +32,8 @@ miss = cbind(Variables = rownames(miss), miss, Percentage = paste0(round(a*100,0
 #perrow = apply(dat1, 1, function(x) {any(is.na(x))})
 #sum(perrow) 
 
-# Summary of variables
-summary = sapply(names(dat1), function(x) {summary(dat1[[x]])})
-
 # "Table 1" - Population characteristics ####
-datatable1 = as.data.frame(dat1[,-1])  # Passing data to a new object without the SCAPIS ID
+  datatable1 <-  as.data.frame(dat1)  # Passing data to a new object without the SCAPIS ID
 
 # For the purpose of this table, individuals with missing values for the following variables
 # were included in the "no" category. (only category "yes" is displayed in the table)
@@ -65,7 +44,7 @@ for(i in which(names(datatable1) %in% c('hypertension', 'dyslipidemia', 'diabmed
 }
 
 #Creating labels for the variables 
-mylabel <- c("OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol intake (g)", 
+mylabel <- c("SCAPISid","OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol intake (g)", 
              "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
              "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Diabetes medication",
@@ -88,7 +67,6 @@ t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                     ESS+ cpap+ splint + shannon, data= datatable1, 
                   include.miss = FALSE, chisq.test.perm = TRUE)
 t1 = createTable(t, hide.no = "no")
-t1
 
 saveRDS(t1, file='/home/baldanzi/Sleep_apnea/Descriptive/sleepapnea_table1.rds')
 
@@ -102,37 +80,32 @@ rm(datatable1)
 
 #---------------------------------------------------------------------------#
 # We wanted to check if blood samples for metabolomics and Sleep records (ApneaLink)
-#took place close to each other (difference in calender data between the two)
+#took place close to each other (difference in calender date between the two)
 
 
 #### Dates ####
 # Was sleep apnea assessed close to when metabolomics was collected? 
 valid.ahi[,metabolon_collection_date := as.Date(metabolon_collection_date, 
                                               format = "%d-%b-%y")]
-a = c("date", "metabolon_collection_date", "AnthropometryCollectionDate","LdlSamplingDate" )
-# Number of participants for which metabolon_collection_date is missing 
-nrow(valid.ahi[is.na(metabolon_collection_date),]) # 1229
-
-# Number of participants for which metabolon_colletion and sleep apnea assessment date 
-# are the same
-nrow(valid.ahi[date==metabolon_collection_date,]) # 1502
 
 # range and mean difference between the two dates 
-diff=abs(as.Date(valid.ahi[,date])-valid.ahi[,metabolon_collection_date])
-summary(as.numeric(diff))
-nrow(valid.ahi[diff>30,a,with=F]) # 10 individuals have a difference greater than 
+  diff=abs(valid.ahi[,Date]-valid.ahi[,metabolon_collection_date])
+  summary(as.numeric(diff))
+  sum(diff>30,na.rm=T) # 0 individuals have a difference greater than 
 # 30 days between dates
 
 # Sleep assessment dates and Antropometric Collection Date 
 # Missing data in anthropometric collection 
-sum(is.na(valid.ahi[,AnthropometryCollectionDate])) # ZERO
+  sum(is.na(valid.ahi[,AnthropometryCollectionDate])) # ZERO
 # difference between the two dates 
-diff2=abs(as.Date(valid.ahi[,date])-as.Date(valid.ahi[,AnthropometryCollectionDate]))
-summary(as.numeric(diff2))
-nrow(valid.ahi[diff2>30,a,with=F]) # 23 had a difference greater than 30 days
+  diff2=abs(as.Date(valid.ahi[,Date])-as.Date(valid.ahi[,AnthropometryCollectionDate]))
+  summary(as.numeric(diff2))
+  sum(diff2>30,na.rm=T) # 23 had a difference greater than 30 days
 
 #--------------------------------------------------------------------------#
 #### Missingness #### 
+message("")
+message("Table of complete vs incomplete observations")
 # Variables of interest 
 listvar = c("educat", "leisurePA", "hypertension","smokestatus", 
             "diabd", "placebirth", "Alkohol", "Fibrer", "Energi_kcal")
@@ -176,16 +149,6 @@ t = compareGroups(incomplete_obs ~ ahi + shannon + age + Sex + BMI+  Alkohol + F
                     leisurePA + placebirth + diabd + hypertension+apnea_self, data= datafortable, 
                   include.miss = FALSE, chisq.test.perm = TRUE)
 t1 = createTable(t)
-t1
 
 saveRDS(t1, file='/home/baldanzi/Sleep_apnea/Descriptive/completVSincompletObs.rds')
 
-#---------------------------------------------------------------------------#
-#### Clinical microbiomics variables ####
-# Variables related to how fecal samples were analysed to produce the gut microbiota data
-
-# 
-#tcm = compareGroups(OSAcat~read.pairs.per.sample + dna.yield, data= valid.ahi)
-#t1 = createTable(tcm)
-
-#---------------------------------------------------------------------------#

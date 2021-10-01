@@ -1,0 +1,131 @@
+---
+title: "Comparison of updated sleep data"
+author: "Gabriel Baldanzi"
+date: " `r Sys.time()` "
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning = FALSE, fig.align = 'center')
+```
+
+```{r packages, include=FALSE}
+library(data.table)
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+```
+
+## New data 
+   
+The aim of this document is to present a comparison between the newer data for Uppsala-SCAPIS sleep study (received in 2021-09-29) compared with the older data (received in 2021-03-04) 
+
+```{r , include=FALSE, echo=FALSE}
+# Import data 
+sleep.new <- fread('/home/baldanzi/Datasets/sleep_SCAPIS/original_data/Sleep_SCAPIS_Uppsala_Final.csv')
+sleep.new <- sleep.new[AttendSleepStudy==TRUE,]
+
+sleep.old <- fread('/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/Data_Sleep_SCAPIS_Uppsala.csv')
+
+if(nrow(sleep.new)==nrow(sleep.old)){n <- nrow(sleep.new)}
+```
+  
+Both data contain the same number of participants included in the Sleep Study (n = **`r n`**)
+     
+All participants in the new data were present in the older data.      
+
+```{r, include=FALSE, echo=FALSE}
+n.col.old <- ncol(sleep.old)
+n.col.new <- ncol(sleep.new)
+```
+     
+The new data contain **`r n.col.new`** variables while the older data contain **`r n.col.old`** variables 
+
+The variables not included in the new data are: 
+```{r, include=FALSE, echo=FALSE}
+n <- names(sleep.old)[!names(sleep.old) %in% names(sleep.new)]
+```
+   
+`r n`
+
+### AHI
+
+```{r, include=FALSE, echo=FALSE}
+valid.ahi.new <- sleep.new[BothFlO2utv4h==1,.(id,ahi)]
+setnames(valid.ahi.new, "ahi", "ahi_new")
+valid.ahi.old <- sleep.old[flutv4h==1 & o2utv4h==1, .(id,ahi)]
+setnames(valid.ahi.old, "ahi", "ahi_old")
+
+valid.ahi <- merge(valid.ahi.new, valid.ahi.old, by="id", all=T)
+n = with(valid.ahi, cor(ahi_new, ahi_old, use = "complete.obs"))
+
+```
+```{r,echo=FALSE}
+valid.ahi %>% ggplot(aes(x=ahi_old, y=ahi_new)) +
+  geom_point() + 
+  xlab("AHI - older data") + ylab("AHI - newer data") +
+  ggtitle(label="Correlation newer and older AHI",
+          subtitle = paste0("Pearson=",round(n,3))) +
+  geom_abline(intercept = 0, slope = 1, size = 0.5) +
+  theme_light() +
+  theme(plot.title = element_text(hjust=.5, face="bold", size=12))
+```
+
+<br>
+
+Participants with different ahi values 
+
+<br>
+
+```{r,echo=FALSE}
+kable(valid.ahi[ahi_new!=ahi_old,.(id, ahi_new,ahi_old)],format = "html", table.attr = "style='width:40%;'") %>% kable_styling()
+```
+
+<br>
+
+***
+
+### T90
+
+```{r, include=FALSE, echo=FALSE}
+valid.sat90.new <- sleep.new[o2utv4h==1,.(id,sat90)]
+setnames(valid.sat90.new, "sat90", "sat90_new")
+valid.sat90.old <- sleep.old[o2utv4h==1, .(id,sat90)]
+setnames(valid.sat90.old, "sat90", "sat90_old")
+
+valid.sat90 <- merge(valid.sat90.new, valid.sat90.old, by="id", all=T)
+n = with(valid.sat90, cor(sat90_new, sat90_old, use = "complete.obs"))
+
+```
+```{r,echo=FALSE}
+valid.sat90 %>% ggplot(aes(x=sat90_old, y=sat90_new)) +
+  geom_point() + 
+  xlab("T90 - older data") + ylab("T90 - newer data") +
+  ggtitle(label="Correlation newer and older T90",
+          subtitle = paste0("Pearson=",round(n,3))) +
+  geom_abline(intercept = 0, slope = 1, size = 0.5) +
+  theme_light() +
+  theme(plot.title = element_text(hjust=.5, face="bold", size=12))
+```
+
+<br>
+
+Participants with different T90 values values 
+
+<br>
+
+```{r,echo=FALSE}
+kable(valid.sat90[sat90_new!=sat90_old,.(id, sat90_new,sat90_old)],format = "html", table.attr = "style='width:40%;'") %>% kable_styling()
+```
+
+<br>
+
+
+
+
+
