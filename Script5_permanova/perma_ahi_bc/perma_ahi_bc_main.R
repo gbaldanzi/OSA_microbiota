@@ -25,7 +25,6 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
 pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-valid.ahi <- pheno[valid.ahi=='yes',]
 
 # Importing BC matrix 
 BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
@@ -35,7 +34,7 @@ row.names(BC) = colnames(BC)
 source('permanova.fun.R')
 
 # Transforming two-level factor variables into numeric variables 
-dades = copy(valid.ahi)
+dades = copy(pheno[valid.ahi=='yes',])
 a= c("Sex","ppi","metformin","hypermed","dyslipmed")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
@@ -69,7 +68,9 @@ expo = "ahi"
   source('perma_ahi_bc/perma_model2.R')
 
   source('perma_ahi_bc/perma_model3.R')
+  
+  source('perma_ahi_bc/perma_SA2.R')
 
   source('perma_ahi_bc/perma_SA.R')
   
-  source('perma_ahi_bc/perma_SA2.R')
+  

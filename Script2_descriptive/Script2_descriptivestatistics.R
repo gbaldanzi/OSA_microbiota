@@ -3,7 +3,7 @@
 
 # Descriptive Statistics 
 
-# Last update: 2021-09-30
+# Last update: 2021-10-04
 
   #Variables are: SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
 #leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
@@ -11,11 +11,11 @@
 #cpap_self, splint_self, apneasurgery_self,
 #ahi, odi, sat90, cpap, splint 
   
-  dat1 = pheno[valid.ahi=='yes',] %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
-                                             leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
-                                             hypermed, dyslipmed, ppi, Fibrer, Energi_kcal,ESS,apnea_self, apneatto_self,
-                                             cpap_self, splint_self, apneasurgery_self,
-                                             ahi, odi, sat90, cpap, splint, shannon)
+dat1 = pheno[valid.ahi=='yes',] %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
+                                           leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
+                                           hypermed, dyslipmed, ppi, Fibrer, Energi_kcal,ESS,apnea_self, apneatto_self,
+                                           cpap_self, splint_self, apneasurgery_self,
+                                           ahi, odi, sat90, cpap, splint, shannon)
 
 # Variable diagnostics ####
 # Number of individuals 
@@ -33,14 +33,14 @@ miss = cbind(Variables = rownames(miss), miss, Percentage = paste0(round(a*100,0
 #sum(perrow) 
 
 # "Table 1" - Population characteristics ####
-  datatable1 <-  as.data.frame(dat1)  # Passing data to a new object without the SCAPIS ID
+datatable1 <-  as.data.frame(dat1)  # Passing data to a new object without the SCAPIS ID
 
 # For the purpose of this table, individuals with missing values for the following variables
 # were included in the "no" category. (only category "yes" is displayed in the table)
 for(i in which(names(datatable1) %in% c('hypertension', 'dyslipidemia', 'diabmed',
-                                'hypermed','dyslipmed', 'ppi','apnea_self', 'apneatto_self',
-                                'cpap_self', 'splint_self', 'apneasurgery_self','cpap', 'splint'))){
- datatable1[is.na(datatable1[i]),i] = "no"
+                                        'hypermed','dyslipmed', 'ppi','apnea_self', 'apneatto_self',
+                                        'cpap_self', 'splint_self', 'apneasurgery_self','cpap', 'splint'))){
+  datatable1[is.na(datatable1[i]),i] = "no"
 }
 
 #Creating labels for the variables 
@@ -70,7 +70,67 @@ t1 = createTable(t, hide.no = "no")
 
 saveRDS(t1, file='/home/baldanzi/Sleep_apnea/Descriptive/sleepapnea_table1.rds')
 
+t2 = createTable(t, hide.no = "no", show.all=T)
+
+saveRDS(t2, file='/home/baldanzi/Sleep_apnea/Descriptive/sleepapnea_ahi_table1.rds')
+
+
+#----------------------------------------------------------------------------
+
+dat1 = pheno[valid.t90=='yes',] %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, WaistHip, educat,
+                                           leisurePA, placebirth, diabd, hypertension, dyslipidemia, diabmed, 
+                                           hypermed, dyslipmed, ppi, Fibrer, Energi_kcal,ESS,apnea_self, apneatto_self,
+                                           cpap_self, splint_self, apneasurgery_self,
+                                           ahi, odi, sat90, cpap, splint, shannon, t90cat)
+
+# Variable diagnostics ####
+# Number of individuals 
+nrow(dat1) #3573
+
+# Number of individuals having at least one missing value for the covariates
+#perrow = apply(dat1, 1, function(x) {any(is.na(x))})
+#sum(perrow) 
+
+# "Table 1" - Population characteristics ####
+datatable1 <-  as.data.frame(dat1)  # Passing data to a new object without the SCAPIS ID
+
+# For the purpose of this table, individuals with missing values for the following variables
+# were included in the "no" category. (only category "yes" is displayed in the table)
+for(i in which(names(datatable1) %in% c('hypertension', 'dyslipidemia', 'diabmed',
+                                        'hypermed','dyslipmed', 'ppi','apnea_self', 'apneatto_self',
+                                        'cpap_self', 'splint_self', 'apneasurgery_self','cpap', 'splint'))){
+  datatable1[is.na(datatable1[i]),i] = "no"
+}
+
+#Creating labels for the variables 
+mylabel <- c("SCAPISid","OSA severity", "Age (yrs)", "Sex", "Smoking status", "Alcohol intake (g)", 
+             "BMI (kg/m2)", "WHR","Highest education achieved", "Self-reported leisure physical activity", 
+             "Place of birth", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
+             "Diabetes medication",
+             "Hypertension medication", "Dyslipidemia medication", "PPI","Fiber (g/day)","Energy intake",
+             "ESS", "Sleep apnea (self-reported)", "Sleep apnea treatment", "CPAP", "Oral appliance",
+             "Surgery", "AHI (events/h)", "ODI (events/h)", 
+             "T90%", "CPAP during examination", "Oral appliance during examination", "Shannon Index", "T90 categories")
+
+j=1
+for(i in names(datatable1)){
+  label(datatable1[[i]]) <- mylabel[j]
+  j=j+1
+}
+
+# Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
+t = compareGroups(t90cat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
+                    leisurePA + placebirth + diabd + hypertension + dyslipidemia + diabmed + 
+                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ESS+apnea_self+apneatto_self+
+                    cpap_self+ splint_self+ apneasurgery_self+ahi+ odi+ sat90+
+                    ESS+ cpap+ splint + shannon, data= datatable1, 
+                  include.miss = FALSE, chisq.test.perm = TRUE)
+t1 = createTable(t, hide.no = "no",  show.all=T)
+
+saveRDS(t1, file='/home/baldanzi/Sleep_apnea/Descriptive/sleepapnea_t90_table1_.rds')
+
 rm(datatable1)
+
 
 #______________________________________________________________________________
 

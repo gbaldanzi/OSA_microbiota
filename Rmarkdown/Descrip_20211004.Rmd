@@ -271,9 +271,13 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/hist.sat90.png")
 
 # Population characteristics  
    
- <br>  
+<br>
 
-```{r table1but2,echo=FALSE, message=FALSE, warning=FALSE}
+## Descriptive table {.tabset}
+
+### By OSA severity 
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
 t1 <- readRDS('/home/baldanzi/Sleep_apnea/Descriptive/sleepapnea_table1.rds')
 
 export2md(t1, which.table = "descr", header.labels = c(p.overall = "p-value"), 
@@ -281,9 +285,49 @@ export2md(t1, which.table = "descr", header.labels = c(p.overall = "p-value"),
   kable_styling(fixed_thead = T) %>% 
 scroll_box( height = "850px")
 ```
+
 <br>
 <br>
 <br>
+
+
+***
+
+### With ALL column
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+t1 <- readRDS('/home/baldanzi/Sleep_apnea/Descriptive/sleepapnea_ahi_table1.rds')
+
+export2md(t1, which.table = "descr", header.labels = c(p.overall = "p-value"), 
+          format = "html", strip = TRUE) %>% 
+  kable_styling(fixed_thead = T) %>% 
+scroll_box( height = "850px")
+```
+
+
+<br>
+<br>
+<br>
+
+
+***
+
+### By T90 category
+
+```{r table1but2,echo=FALSE, message=FALSE, warning=FALSE}
+t1 <-readRDS('/home/baldanzi/Sleep_apnea/Descriptive/sleepapnea_t90_table1_.rds')
+
+export2md(t1, which.table = "descr", header.labels = c(p.overall = "p-value"), 
+          format = "html", strip = TRUE) %>% 
+  kable_styling(fixed_thead = T) %>% 
+scroll_box( height = "850px")
+```
+
+
+<br>
+<br>
+<br>
+
 
 ***
 
@@ -755,8 +799,8 @@ valid.ahi[,metabolon_collection_date:=as.Date(metabolon_collection_date,
 n1 = nrow(valid.ahi[is.na(metabolon_collection_date),]) # 1246
 # Number of participants for which metabolon_colletion and sleep apnea assessment date 
 # are the same
-n2 = nrow(valid.ahi[date==metabolon_collection_date,]) # 1511
-diff=abs(as.Date(valid.ahi[,date])-valid.ahi[,metabolon_collection_date])
+n2 = nrow(valid.ahi[Date==metabolon_collection_date,]) # 1511
+diff=abs(valid.ahi[,Date]-valid.ahi[,metabolon_collection_date])
 n4 = paste0(median(as.numeric(diff),na.rm=T),
             " [", IQR(as.numeric(diff),na.rm=T),"]")
 
@@ -766,7 +810,7 @@ n5 = nrow(valid.ahi[diff>30,a,with=F]) # 10 individuals have a difference greate
 # Missing data in anthropometric collection 
 n6 = sum(is.na(valid.ahi[,AnthropometryCollectionDate])) # ZERO
 # difference between the two dates 
-diff2=abs(as.Date(valid.ahi[,date])-as.Date(valid.ahi[,AnthropometryCollectionDate]))
+diff2=abs(valid.ahi[,Date]-as.Date(valid.ahi[,AnthropometryCollectionDate]))
 n7 = paste0(median(as.numeric(diff),na.rm=T),
             " [", IQR(as.numeric(diff),na.rm=T),"]")
 n8 = nrow(valid.ahi[diff2>30,a,with=F]) # 23 had a difference greater than 30 days

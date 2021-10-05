@@ -5,7 +5,7 @@
 # Sensitivity analysis excluding medication users 
 
 # Sensitivity analysis - remove individuals who use medication 
-dades.sa<-  copy(valid.ahi)
+dades.sa<-  copy(pheno[valid.ahi=='yes',])
 dades.sa<-  dades.sa[ppi == "no",] #60
 dades.sa <-  dades.sa[metformin == "no",] #57 
 dades.sa <-  dades.sa[hypermed == "no",] #593
@@ -15,9 +15,6 @@ nrow(dades.sa) #2318
 # Transforming two-level factor variables into numeric variables 
 a= c("Sex")
 dades.sa[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades.sa[,a, with=F]))))]
-
-# Transforming factor variables 
-dades.sa[,plate:=as.factor(dades.sa$plate)]
 
 # Making sure that BC and dades.sa have the same observations 
 BCsa <- BC

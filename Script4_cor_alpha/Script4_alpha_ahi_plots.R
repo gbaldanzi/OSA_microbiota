@@ -20,7 +20,7 @@
     theme(plot.title = element_text(size = 16, face = "bold", hjust=0.5),
           axis.title.x = element_text(size=14))
   
-  ggsave("hist.shannon", plot = p3_1, device = "png", 
+  ggsave("hist.shannon.png", plot = p3_1, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Descriptive/")
   
 # Scatter plot: Shannon index against AHI 
