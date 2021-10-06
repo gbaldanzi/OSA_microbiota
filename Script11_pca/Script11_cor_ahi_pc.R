@@ -45,7 +45,7 @@
     
   }
   
-  clean.res.fun <- function(res,models){
+  clean.res.fun <- function(res,list.models){
    
    model.names <- names(list.models)
    
@@ -69,18 +69,18 @@
   
   # Run correlations 
   
-  res.pc.ahi <- lapply(list.models,cor_apnea_pc.fun,exposure="ahi",
+  res.pc.ahi <- lapply(models,cor_apnea_pc.fun,exposure="ahi",
                         pc_data = mgs.pca_valid.ahi,
                         pheno.data = pheno[valid.ahi=='yes',])
     
   
-  res.pc.ahi <- clean.res.fun(res.pc.ahi, list.models)
+  res.pc.ahi <- clean.res.fun(res.pc.ahi, models)
     
-  res.pc.t90 <- lapply(list.models,cor_apnea_pc.fun,exposure="t90",
+  res.pc.t90 <- lapply(models,cor_apnea_pc.fun,exposure="t90",
                                  pc_data = mgs.pca_valid.t90,
                                  pheno.data = pheno[valid.t90=='yes',])
   
-  res.pc.t90 <- clean.res.fun(res.pc.t90, list.models)
+  res.pc.t90 <- clean.res.fun(res.pc.t90, models)
   
   res <- rbind(res.pc.ahi, res.pc.t90)
   
