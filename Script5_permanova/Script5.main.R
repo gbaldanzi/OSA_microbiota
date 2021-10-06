@@ -10,4 +10,4 @@ pacman::p_load(data.table, vegan, ggplot2,parallel)
 
   source('perma_ahi_bc/perma_ahi_bc_main.R')
 
-  source('perma_ahi_t90/perma_t90_bc_main.R')
+  source('perma_t90_bc/perma_t90_bc_main.R')
