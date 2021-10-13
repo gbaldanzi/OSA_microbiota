@@ -22,6 +22,13 @@ rm(list=ls())
   # Restricting to Uppsala participants 
   data.MGS = data.MGS[SCAPISid %in% grep("5-",data.MGS$SCAPISid, value = T ),] 
   # 4839 Uppsala participants have gut microbiome data
+  
+  # Fixing MGS names to latest annotation 
+  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  
+  mgs.names.index <- grep("____",names(data.MGS))
+  names(data.MGS)[mgs.names.index] <- taxonomy$maintax_mgs
+  
 
   pob = fread("/home/baldanzi/Datasets/Placeofbirth.csv", header=T, sep=",")
   pob$placebirth = factor(pob$q005a, 

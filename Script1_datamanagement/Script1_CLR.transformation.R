@@ -7,6 +7,7 @@ rm(list=ls())
 
 # Loading packages
 library(ape)
+library(robCompositions)
 
   # Import count data 
   count = readRDS('/home/baldanzi/Datasets/MGS/clean/upugut03.mgsCounts_clean.rds')

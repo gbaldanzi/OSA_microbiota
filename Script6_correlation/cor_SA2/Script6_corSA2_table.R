@@ -56,6 +56,6 @@
   
   saveRDS(res.table,file="/home/baldanzi/Sleep_apnea/Results/table.res_sa2.rds")
   
-  
+  message("Saved table with results for sensitivity analysis 2q")
   
   

@@ -3,7 +3,12 @@
 
 # Descriptive Statistics - Taxonomy
 
-# Last update: 2021-09-30
+# Last update: 2021-10-11
+
+# We found some MGS that were annotated as unclassified all the way to the kingdom level. After 
+# discussion with CM, we found that they belonged to the order Clostridiales. Such order does not 
+# exist anymore. Therefore, their annotation will be updated to Order: unclassified, Class: Clostridia.
+# Phylum: Firmicutes. 
 
   #### Taxonomy ####
   message("")
@@ -13,7 +18,7 @@
 # Describe the taxonomic composition by different OSA severity groups. 
 
 # Importing data with taxonomic information for every MGS 
-taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy",data.table = F)
+taxonomy = fread("/home/baldanzi/Datasets/MGS/clean/",data.table = F)
 valid.ahi <- pheno[valid.ahi=='yes',]
 
 # Transforming taxonomic levels into factor variables
