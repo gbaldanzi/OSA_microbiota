@@ -22,11 +22,21 @@
       dat.plot=data.frame(pcoa.bray$vectors, OSAcat = valid.ahi$OSAcat)
       
     # Second: creating the scatter plot ####
+      
+      centroids <- aggregate(cbind(Axis.1,Axis.2)~OSAcat,dat.plot,mean)
+      f         <- function(z)sd(z)/sqrt(length(z)) # function to calculate std.err
+      se        <- aggregate(cbind(se.Axis.1=Axis.1,se.Axis.2=Axis.2)~OSAcat,dat.plot,f)
+      centroids <- merge(centroids,se, by="OSAcat") 
+      
+      
       p4=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
-          geom_point(size=1.1,aes(color=OSAcat)) +
-          stat_ellipse(type = "t", size=1.3) +
+         # geom_point(size=1.1) +
+          geom_point(data=centroids, size=5)+
+          geom_errorbar(data=centroids,aes(ymin=Axis.2-se.Axis.2,ymax=Axis.2+se.Axis.2),width=0.001)+
+          geom_errorbarh(data=centroids,aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
+          #stat_ellipse(type = "t", size=1.3) +
          scale_color_manual(values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
-          ggtitle("Bray-curtis dissimilarity - AHI") +
+          ggtitle("Bray-curtis dissimilarity - OSA severity") +
           xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
           theme_light()+

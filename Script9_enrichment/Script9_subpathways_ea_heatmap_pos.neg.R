@@ -37,7 +37,7 @@ library(tidyverse)
   res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_pos.tsv", data.table = F, sep = "\t")
   
   # Filter to only the pathways that are nominally associated with one MGS
-  table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(pval<.05))
+  table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(padj<.05))
   hm.pathways <- table.pathways$pathway[table.pathways$nr_p.05>0]
   
   hm.matrix <- res.table %>% select(MGS, pathway, NES)%>% 

@@ -1,7 +1,7 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi, 2021-09-06
 
-# Last update: 2021-09-20
+# Last update: 2021-10-15
 
 # To investigate non-linear associations between MGS and AHI
 
@@ -33,7 +33,7 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   # Result list 
   res.list <- list(ahi = res.ahi, t90 = res.t90)
 
-  res.list <- lapply(res.list, function(x){x[,rho:=paste0("rho = ",round(cor.coefficient,3))]})
+  res.list <- lapply(res.list, function(x){x[,rho:=round(cor.coefficient,3)]})
   
   # Bar plots of prevalence 
   noms=unique(c(mgs.ahi, mgs.t90))
@@ -60,17 +60,20 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     names(dades) <- gsub("pa_","",names(dades))
   
     r <- res.list[[exposure]][MGS==y.axis,rho]
-  
-  
+    
     ggplot(dades) + geom_bar(aes_string(x=group, y=y.axis), stat = 'identity') + 
-      ggtitle(y.axis, subtitle = r) + 
-      xlab(group) + ylab(y.axis) +
-      scale_x_discrete(labels=paste0(names(n.gr),'\nn=',n.gr)) +
+      ggtitle(gsub("____","\n",y.axis), subtitle = paste0("\u03C1=",r)) + 
+      scale_x_discrete(labels=names(n.gr)) +
+      scale_y_continuous(expand=c(0,0)) +
       theme_classic() +
-      theme(plot.title = element_text(hjust = .5, face = 'bold'),
-          plot.subtitle = element_text(hjust = .5, face = 'bold', size=16),
-          axis.text.x = element_text(size = 14),
-          axis.text.y = element_text(size = 10)) 
+      theme(plot.title = element_text(hjust = .5, face = 'bold',size=7),
+          plot.subtitle = element_text(hjust = .5, face = 'bold', size=8),
+          axis.text.x = element_text(size = 7, angle = 45,hjust = 1),
+          axis.text.y = element_text(size = 5), 
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          panel.border = element_blank()) 
 
   }
 
@@ -111,7 +114,7 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   }
 
 
-  source('Script8_minibarplots.R')
+ # source('Script8_minibarplots.R')
   
   
   

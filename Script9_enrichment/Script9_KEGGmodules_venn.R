@@ -2,6 +2,8 @@
 # Gabriel Baldanzi 
 # Script created in 2021-06-24
 
+# Last update: 2021-10-18
+
 # Inferential Statistics 
 
 # This code will produce a Venn Diagram from the overrepresentation analysis of KEGG modules
@@ -14,7 +16,9 @@
   # input and output folders 
   input = "/home/baldanzi/Sleep_apnea/Results/"
   output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-
+  #output.plot= "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512"
+  
+  
   # Importing results
   res.both <- fread(paste0(input,"ea_modules_both.tsv"))
   res.pos <- fread(paste0(input,"ea_modules_pos.tsv"))
@@ -45,7 +49,7 @@
                   stroke_size = .2, 
                   show_percentage = F, 
                   fill_alpha = .6) +
-    ggtitle("Modules overrepresented in the AHI, T90, and BMI") +
+    ggtitle("KEGG modules enriched the MGSs correlated \nwith AHI, T90, or BMI") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
   ggsave("Venn_modules_both.png",plot = venn1,device = "png", path=output.plot)
   
@@ -59,7 +63,7 @@
                     stroke_size = .2, 
                     show_percentage = F, 
                     fill_alpha = .6) +
-    ggtitle("Modules overrepresented in the AHI, T90, and BMI positive correlations") +
+    ggtitle("KEGG modules enriched among MGSs positively \ncorrelated to AHI, T90, or BMI") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
   ggsave("Venn_modules_pos.png",plot = venn2,device = "png", path=output.plot)
   
@@ -72,7 +76,7 @@
                     stroke_size = .2, 
                     show_percentage = F, 
                     fill_alpha = .6) +
-    ggtitle("Modules overrepresented in the AHI, T90, and BMI negative correlations") +
+    ggtitle("KEGG modules enriched among the MGSs negatively \ncorrelated to AHI, T90, or BMI") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
   ggsave("Venn_modules_neg.png",plot = venn3,device = "png", path=output.plot)
   
