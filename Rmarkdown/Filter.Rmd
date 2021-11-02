@@ -131,19 +131,21 @@ Only a few  MGSs are present in a high number of individuals.
     
 ```{r mgstable2, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center'}
 # MGS names into a object 
-noms=grep("____",names(dades.real),value=T)
+noms=grep("____",names(pheno),value=T)
 # Filtering out rare species (Filter based on presence or absence ) ####
 # presence-absence transformation: If a species is present, it becomes 1. If absent, becomes zero
-data_pa <- decostand(x = dades.real[,noms], "pa")
+data_pa <- decostand(x = pheno[,noms,with=F], "pa")
 # calculate sum per species
-  data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
+  data_sum <- data.frame(prevalence=apply(data_pa, 2, sum), 
+                         prevalence_percentage = (apply(data_pa, 2, sum)/nrow(pheno))*100 )
   data_sum$MGS = rownames(data_sum)
   cut.offs = c(1,10,20,30,50,100,150,1000,2000)
+  cut.offs.p=c(1,3,5,10)
 # Data set with the MGS divided by how prevalent they are
-  t = sapply(cut.offs, function(x) {nrow(data_sum[data_sum$prevalence>=x,])})
-  t = data.frame(Present=t)
-  t$Threshold = factor(paste0(cut.offs," indiv."),
-                       levels = paste0(cut.offs," indiv."))
+  t = sapply(cut.offs.p, function(x) {nrow(data_sum[data_sum$prevalence_percentage>=x,])})
+  t = data.frame(MGS.present=t)
+  t$cut.off = factor(paste0(cut.offs.p,"%"),
+                       levels = paste0(cut.offs.p,"%"))
   t$Absent = n3 - t$Present
   t = t[,c(2,1,3)]
 t_long = gather(t, p_a, numberMGS, Present:Absent, factor_key=T)
