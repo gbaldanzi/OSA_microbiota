@@ -33,8 +33,6 @@ dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
   names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                "N", "method", "covariates","q.value","model")
 
-  fwrite(res, file = paste0(output,"cor2_BMI_mgs.tsv"), sep="\t")
-  #fwrite(res, file = paste0(output,"cor2_BMI_mgs_filter001.tsv"), sep="\t")
   
   res.bmi <- res
 
