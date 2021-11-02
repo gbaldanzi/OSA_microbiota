@@ -39,9 +39,10 @@
           ggtitle("Bray-curtis dissimilarity - OSA severity") +
           xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
+          xlim(-0.12, 0.04) + ylim(-0.08, .08) +
           theme_light()+
           theme(axis.text.x = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5, face="bold", size=12),
+              plot.title = element_text(hjust = 0.5, face="bold", size=14),
               legend.text = element_text(size=10))
 
   ggsave("BC.OSAcat.png", plot = p4, device = "png", 
