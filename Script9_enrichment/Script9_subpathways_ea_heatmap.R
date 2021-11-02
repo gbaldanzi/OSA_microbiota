@@ -200,8 +200,9 @@ h1 = Heatmap(hm.matrix_pos,
              cluster_columns = F,
              show_column_dend = F,
              
-             column_split = factor(c(rep("Increased species\nin sleep apnea",n.increased),rep("Decreased species\nin sleep apnea",n.decreased))),
+             column_split = factor(c(rep("Increased abundance\nwith sleep apnea",n.increased),rep("Decreased abundance\nwith sleep apnea",n.decreased))),
              column_title_gp = gpar(fontsize=7),
+             column_gap = unit(2,"mm"),
              
              cluster_rows = TRUE,
              row_names_side = "left",
@@ -228,8 +229,9 @@ h1 = Heatmap(hm.matrix_pos,
           cluster_columns = F,
           show_column_dend = F,
           
-          column_split = factor(c(rep("Increased species\nin sleep apnea",n.increased),rep("Decreased species\nin sleep apnea",n.decreased))),
+          column_split = factor(c(rep("Increased abundance\nwith sleep apnea",n.increased),rep("Decreased abudance\nwith sleep apnea",n.decreased))),
           column_title_gp = gpar(fontsize=7),
+          column_gap = unit(2,"mm"),
           
           cluster_rows = TRUE,
           row_names_side = "left",
