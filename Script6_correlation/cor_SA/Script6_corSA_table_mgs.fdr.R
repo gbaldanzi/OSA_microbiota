@@ -5,7 +5,7 @@
 # This code will create a table with the results for the SA for the relevant MGS
 
   library(data.table)
-  #library(tidyverse)
+  library(tidyverse)
 
   # Importing results 
   res.m2 <-  fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
@@ -14,51 +14,35 @@
   res.sa[q.value>=0.001, q.value:=round(q.value, digits = 3)]
   res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
   
-  mgs.bmi <- res.m2[q.value<0.05 & exposure=="BMI",MGS]
-  mgs.fdr <- unique(res.m2[q.value<0.05 & exposure %in% c("ahi","t90"),MGS])
-  mgs.fdr <- mgs.fdr[!mgs.fdr %in% mgs.bmi]
+  res.sa[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+  res.m2[p.value>=0.001, p.value:=round(p.value, digits = 3)]
+  
+  res.sa[, rho:=round(rho, digits = 3)]
+  res.m2[, rho:=round(rho, digits = 3)]
+  
+  res.sa[,rho:=cor.coefficient]
+  res.m2[,rho:=cor.coefficient]
+  
+  mgs.fdr <- readRDS("/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds")
   
   # Keep only the significant MGS
-  a <- c("MGS","cor.coefficient", "p.value","q.value")
-  res.saahi <- res.sa[MGS %in% mgs.fdr & exposure=="ahi", a, with = F]
-  res.sat90 <- res.sa[MGS %in% mgs.fdr & exposure=="t90", a, with = F]
-  a <- c("MGS","cor.coefficient", "p.value")
-  res.m2ahi <- res.m2[MGS %in% mgs.fdr & exposure == "ahi", a, with = F]
-  res.m2t90 <- res.m2[MGS %in% mgs.fdr & exposure == "t90", a, with = F]
+  a <- c("MGS","rho", "p.value","q.value","model")
+  res.saahi <- res.sa[MGS %in% mgs.fdr$mgs.fdr.ahi & exposure=="ahi", a, with = F]
+  res.sat90 <- res.sa[MGS %in% mgs.fdr$mgs.fdr.t90 & exposure=="t90", a, with = F]
+  res.m2ahi <- res.m2[MGS %in% mgs.fdr$mgs.fdr.ahi & exposure == "ahi", a, with = F]
+  res.m2t90 <- res.m2[MGS %in% mgs.fdr$mgs.fdr.t90 & exposure == "t90", a, with = F]
   
-  res.list <- list(m2ahi= res.m2ahi, saahi=res.saahi,
-                   m2t90=res.m2t90, sat90=res.sat90)
+  res.ahi <- rbind(res.m2ahi, res.saahi) %>% 
+    pivot_wider(id_cols = MGS, names_from=model, values_from = c("rho", "p.value" ,"q.value"))                                                     
   
-  name.cols <- NULL
   
-  res.list[[2]] <- res.list[[2]][q.value>.001, q.value:=round(q.value,3)]
-  res.list[[4]] <- res.list[[4]][q.value>.001, q.value:=round(q.value,3)]
+  res.t90 <- rbind(res.m2t90, res.sat90) %>% 
+    pivot_wider(id_cols = MGS, names_from=model, values_from = c(rho, p.value,q.value))                                                     
   
-  for(i in 1:4){
-    setnames(res.list[[i]], "cor.coefficient", "cor")
-    
-    res.list[[i]] <- res.list[[i]][order(MGS)]
-    
-    res.list[[i]][,MGS:=NULL]
-    
-    res.list[[i]] <- res.list[[i]][p.value>.001, p.value:=round(p.value,3)]
-    res.list[[i]] <- res.list[[i]][, cor:=round(cor,3)]
-    
-    names(res.list[[i]]) <- paste0(names(res.list[[i]]),"_",names(res.list[i]))
-    
-    name.cols <- c(name.cols, names(res.list[[i]]))
-    
-  }
-  
+  list.res <- list(ahi = res.ahi, t90 = res.t90)
 
   
-  res.table <- do.call(cbind,res.list)
-  names(res.table) <- name.cols
-  res.table$MGS <- mgs.fdr[order(mgs.fdr)]
-  
-  res.table <- res.table[,c(11,1:10)]
-  
-  saveRDS(res.table,file="/home/baldanzi/Sleep_apnea/Results/table.res_sa_mgs.fdr.rds")
+  saveRDS(list.res,file="/home/baldanzi/Sleep_apnea/Results/table.res_sa_mgs.fdr.rds")
   
   
   
