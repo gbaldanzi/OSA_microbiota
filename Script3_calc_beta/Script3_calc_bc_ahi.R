@@ -11,11 +11,13 @@
 # Create dataset containing exclusively the MGS as columns/variables 
   mgs.names=grep("____",names(pheno),value=T)
   MGSmatrix=pheno[valid.ahi=='yes',mgs.names, with=F]
+  rownames(MGSmatrix) <- pheno[valid.ahi=="yes", SCAPISid]
 
 # Estimating the BC index - creates a matrix with the BC index between individual samples 
 # MGS as relative abundances
 BC=as.matrix(vegdist(MGSmatrix,method="bray"))
-rownames(BC)=colnames(BC)=pheno[valid.ahi=='yes',SCAPISid]
+  rownames(BC) <- pheno[valid.ahi=='yes',SCAPISid]
+  colnames(BC) <- pheno[valid.ahi=='yes',SCAPISid]
 fwrite(BC,'/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")
 
 #BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv',sep=",")
