@@ -5,6 +5,10 @@
 # Heatmap on the Enrichment analysis of subpathways among the metabolites 
 # correlated to the identified MGSs
 
+
+
+# Last update: 2021-11-02
+
 rm(list=ls())
 
 
@@ -14,114 +18,251 @@ library(circlize)
 library(data.table)
 library(tidyverse)
 
-  # Import data
-  res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways.tsv", data.table = F, sep = "\t")
+# Import results from enrichment analysis (positive correlations)
+# Import data
+res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_pos.tsv", data.table = F, sep = "\t")
+
+# Important the relevant MGS for the heatmap 
+input = "/home/baldanzi/Sleep_apnea/Results/"
+
+# results from the MGS-AHI/T90/BMI correlation - Full model 
+
+res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+
+# Slee apnea signature mgs 
+
+mgs.m2 = readRDS(paste0(input, "mgs.m2.rds"))
+mgs.rel = unique(c(mgs.m2$mgs.fdr.ahi,mgs.m2$mgs.fdr.t90))
+mgs.rel <- mgs.rel[mgs.rel %in% res.table$MGS]
+
+mgs.ahi <- mgs.m2$mgs.fdr.ahi
+mgs.t90 <- mgs.m2$mgs.fdr.t90
+
+mgs.ahi.increased <- res.m2[cor.coefficient>0 & MGS %in% mgs.ahi & exposure=="ahi", MGS]
+mgs.ahi.decreased <- res.m2[cor.coefficient<0 & MGS %in% mgs.ahi & exposure=="ahi", MGS]
+
+exclusive.mgs.t90 <- mgs.t90[!mgs.t90 %in% mgs.ahi]
+
+mgs.t90.increased <- res.m2[cor.coefficient>0 & MGS %in% exclusive.mgs.t90 & exposure=="t90", MGS]
+mgs.t90.decreased <- res.m2[cor.coefficient<0 & MGS %in% exclusive.mgs.t90 & exposure=="t90", MGS]
+
+mgs.increased <- c(mgs.ahi.increased,mgs.t90.increased)
+mgs.decreased <- c(mgs.ahi.decreased, mgs.t90.decreased)
+
+# Positive 
+
+
+
+# Filter to only the pathways that are FDR associated with one MGS
+table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(padj<.05))
+hm.pathways <- table.pathways$pathway[table.pathways$nr_p.05>0]
+
+  hm.pathways <- hm.pathways[-which(hm.pathways=="Partially_Characterized_Molecules")]
+
+
+hm.matrix <- res.table %>% select(MGS, pathway, NES)%>% 
+  filter(pathway %in% hm.pathways) %>% 
+  spread(key=pathway, value = NES)
+
+rownames(hm.matrix) <- hm.matrix$MGS
+hm.matrix$MGS <- NULL
+
+hm.matrix <- as.matrix(hm.matrix)
+hm.matrix_pos <- t(hm.matrix)
+hm.matrix_pos[is.na(hm.matrix_pos)] <- 0
+
+rownames(hm.matrix_pos) <- gsub("__","_",rownames(hm.matrix_pos))
+rownames(hm.matrix_pos) <- gsub("_"," ",rownames(hm.matrix_pos))
+
+
+qvalues_pos <- res.table %>% select(MGS, pathway, padj)%>% 
+  filter(pathway %in% hm.pathways) %>% 
+  spread(key=pathway, value = padj)
+
+rownames(qvalues_pos) <- qvalues_pos$MGS
+qvalues_pos$MGS <- NULL
+
+qvalues_pos <- t(as.matrix(qvalues_pos))
+qvalues_pos[is.na(qvalues_pos)] <- 1
+
+
+# Negative 
+
+# Import data
+res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_neg.tsv", data.table = F, sep = "\t")
+
+# Filter to only the pathways that are FDR associated with one MGS
+table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(padj<.05))
+hm.pathways <- table.pathways$pathway[table.pathways$nr_p.05>0]
+
   
-  # Filter to only the pathways that are nominaly associated with one MGS
-  table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(pval<.05))
-  hm.pathways <- table.pathways$pathway[table.pathways$nr_p.05>0]
-  
-  hm.matrix <- res.table %>% select(MGS, pathway, NES)%>% 
-    filter(pathway %in% hm.pathways) %>% 
-    spread(key=pathway, value = NES)
-  
-  rownames(hm.matrix) <- hm.matrix$MGS
-  hm.matrix$MGS <- NULL
-  
-  hm.matrix <- as.matrix(hm.matrix)
-  hm.matrix <- t(hm.matrix)
-  
-  # annotation for AHI or T90 correlated MGS
-  input = "/home/baldanzi/Sleep_apnea/Results/"
-  
-    res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
-  
-    res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-  
-    # Select the relevant MGSs 
-    mgs.bmi <- res.m2[exposure =="BMI" & q.value<.05,MGS] # MGS correlated to BMI
-    mgs.ahi <- res.m2[exposure =="ahi" & q.value<.05,MGS]
-    mgs.t90 <- res.m2[exposure =="t90" & q.value<.05,MGS]
-  
-    # MGS correlated to either AHI or T90 but not to BMI (relevant mgs)
-    mgs.rel <- res.m2 %>% filter(exposure =="ahi" | exposure == "t90") %>% 
-      filter(q.value<.05) %>% filter(!MGS %in% mgs.bmi) %>% select(MGS)
-    mgs.rel <- unique(mgs.rel$MGS)
-      
-      #noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , mgs.rel) ) )
-      #mgs.rel <- paste0(noms$V1, " (", noms$V2, ")" )
-      
-      mgs.rel <- mgs.rel[mgs.rel %in% colnames(hm.matrix)]
-      
-      annotation <- data.table(mgs.rel = mgs.rel, 
-                               correlated = as.character())
-      
-      annotation[mgs.rel %in% mgs.ahi, correlated := "AHI"]
-      annotation[mgs.rel %in% mgs.t90, correlated := "T90"]
-      annotation[mgs.rel %in% mgs.ahi & mgs.rel %in% mgs.t90, correlated := "Both"]
-  
-      setDF(annotation)
-      
-      
-      
-      rownames(annotation) <- annotation$mgs.rel 
-      
-      map.col = c("orange", "cornflowerblue", "red")
-      names(map.col) = c("AHI", "T90", "Both")
-      
-      
-      noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix)) ) )
-      noms <- paste0(noms$V1, " (", noms$V2, ")" )
-      colnames(hm.matrix) <- noms
-      
-      noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , rownames(annotation)) ) )
-      noms <- paste0(noms$V1, " (", noms$V2, ")" )
-      rownames(annotation) <- noms
-      
-  ha = HeatmapAnnotation(Correlation=annotation$correlated,which = "col",
-                       name="Correlation",
-                       col =  list(Correlation = c(map.col)),
-                       annotation_legend_param = list(labels_gp = gpar(fontsize=4),
-                                                      title_gp = gpar(fontsize=5),
-                                                      grid_width = unit(2, "mm")),
-                       annotation_label = "Correlation",
-                       annotation_name_gp=gpar(fontsize = 5),
-                       annotation_name_side = "right")
+hm.matrix <- res.table %>% select(MGS, pathway, NES)%>% 
+  filter(pathway %in% hm.pathways) %>% 
+  spread(key=pathway, value = NES)
+
+rownames(hm.matrix) <- hm.matrix$MGS
+hm.matrix$MGS <- NULL
+
+hm.matrix <- as.matrix(hm.matrix)
+hm.matrix_neg <- t(hm.matrix)
+hm.matrix_neg[is.na(hm.matrix_neg)] <- 0
+
+rownames(hm.matrix_neg) <- gsub("__","_",rownames(hm.matrix_neg))
+rownames(hm.matrix_neg) <- gsub("_"," ",rownames(hm.matrix_neg))
+
+rownames(hm.matrix_neg) <- gsub("PE","",rownames(hm.matrix_neg))
+rownames(hm.matrix_neg) <- gsub("PC","",rownames(hm.matrix_neg))
+
+
+qvalues_neg <- res.table %>% select(MGS, pathway, padj)%>% 
+  filter(pathway %in% hm.pathways) %>% 
+  spread(key=pathway, value = padj)
+
+rownames(qvalues_neg) <- qvalues_neg$MGS
+qvalues_neg$MGS <- NULL
+
+qvalues_neg <- t(as.matrix(qvalues_neg))
+qvalues_neg[is.na(qvalues_neg)] <- 1
+
+
+# annotation for AHI or T90 correlated MGS
+
+mgs.rel <- mgs.rel[mgs.rel %in% rownames(hm.matrix)]
+
+annotation <- data.table(mgs.rel = mgs.rel, 
+                         correlated = as.character())
+
+annotation[mgs.rel %in% mgs.ahi, correlated := "AHI"]
+annotation[mgs.rel %in% mgs.t90, correlated := "T90"]
+annotation[mgs.rel %in% mgs.ahi & mgs.rel %in% mgs.t90, correlated := "Both"]
+
+annotation[,correlated:=factor(correlated, levels=c("AHI" , "Both" , "T90"))]
+
+setDF(annotation)
+
+  annotation_increased <- annotation[mgs.rel %in% mgs.increased,]
+  annotation_decreased <- annotation[mgs.rel %in% mgs.decreased,]
+
+  annotation_increased <- annotation_increased[order(annotation_increased$correlated),]
+  annotation_decreased <- annotation_decreased[order(annotation_decreased$correlated),]
+
+  n.increased = nrow(annotation_increased)
+  n.decreased = nrow(annotation_decreased)
+
+  annotation <- rbind(annotation_increased,annotation_decreased)
+
+  rownames(annotation) <- annotation$mgs.rel 
+
+
+  hm.matrix_neg <- hm.matrix_neg[,match(annotation$mgs.rel,colnames(hm.matrix_neg))]
+  hm.matrix_pos <- hm.matrix_pos[,match(annotation$mgs.rel,colnames(hm.matrix_pos))]
+
+
+qvalues_pos <- qvalues_pos[,match(annotation$mgs.rel,colnames(qvalues_pos))]
+qvalues_neg <- qvalues_neg[,match(annotation$mgs.rel,colnames(qvalues_neg))]
+
+map.col = c("orange", "cornflowerblue", "red")
+names(map.col) = c("AHI", "T90", "Both")
+
+
+noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_pos)) ) )
+noms <- paste0(noms$V1, " (", noms$V2, ")" )
+colnames(hm.matrix_pos) <- noms
+
+noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_neg)) ) )
+noms <- paste0(noms$V1, " (", noms$V2, ")" )
+colnames(hm.matrix_neg) <- noms
+
+noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , rownames(annotation)) ) )
+noms <- paste0(noms$V1, " (", noms$V2, ")" )
+rownames(annotation) <- noms
+
+ha = HeatmapAnnotation(Correlation=annotation$correlated,which = "col",
+                                 name="Phenotype",
+                                 col =  list(Correlation = c(map.col)),
+                                 annotation_legend_param = list(labels_gp = gpar(fontsize=4),
+                                                                title_gp = gpar(fontsize=5),
+                                                                grid_width = unit(2, "mm")),
+                                 annotation_label = "Phenotype",
+                                 annotation_name_gp=gpar(fontsize = 5),
+                                 annotation_name_side = "left")
+
+
 set.seed(1)
-  h1 = Heatmap(hm.matrix, 
-               column_names_rot =  90,
-               column_names_side = "bottom",
-               cluster_columns = TRUE,
-               show_column_dend = T,
-               
-               cluster_rows = TRUE,
-               row_names_side = "left",
-               show_row_dend = F,
-               
-               col = colorRamp2(c(0,2.3),c("gray95","darkred")),
-               name="NES",
-               column_labels = colnames(hm.matrix),
-               column_names_gp = gpar(fontsize = 6),
-               row_names_gp = gpar(fontsize = 6),
-               #column_title_gp = gpar(fontsize = 7,fontface='bold'),
-               heatmap_legend_param = list(labels_gp = gpar(fontsize=4),
-                                           title_gp = gpar(fontsize=5),
-                                           grid_width = unit(1.5, "mm")),
-               top_annotation = ha) 
+h1 = Heatmap(hm.matrix_pos, 
+             cell_fun = function(j, i, x, y, w, h, fill) {
+               if(qvalues_pos[i, j] < 0.05) {
+                 grid.text('*', x, y)
+               } },
+             column_names_rot =  90 , 
+             column_names_side = "bottom",
+             cluster_columns = F,
+             show_column_dend = F,
+             
+             column_split = factor(c(rep("Increased species\nin sleep apnea",n.increased),rep("Decreased species\nin sleep apnea",n.decreased))),
+             column_title_gp = gpar(fontsize=7),
+             
+             cluster_rows = TRUE,
+             row_names_side = "left",
+             show_row_dend = F,
+             
+             col = colorRamp2(c(0,1.5,3),c("white","indianred2", "red3")),
+             name="NES (pos)",
+             column_labels = colnames(hm.matrix_pos),
+             column_names_gp = gpar(fontsize = 6),
+             row_names_gp = gpar(fontsize = 6),
+             #column_title_gp = gpar(fontsize = 7,fontface='bold'),
+             heatmap_legend_param = list(labels_gp = gpar(fontsize=4),
+                                         title_gp = gpar(fontsize=5),
+                                         grid_width = unit(1.5, "mm")),
+             top_annotation = ha) %v%
+  
+  Heatmap(hm.matrix_neg, 
+          cell_fun = function(j, i, x, y, w, h, fill) {
+            if(qvalues_neg[i, j] < 0.05) {
+              grid.text('*', x, y)
+            } },
+          column_names_rot =  90,
+          column_names_side = "bottom",
+          cluster_columns = F,
+          show_column_dend = F,
+          
+          column_split = factor(c(rep("Increased species\nin sleep apnea",n.increased),rep("Decreased species\nin sleep apnea",n.decreased))),
+          column_title_gp = gpar(fontsize=7),
+          
+          cluster_rows = TRUE,
+          row_names_side = "left",
+          show_row_dend = F,
+          
+          col = colorRamp2(c(0,1.5,3),c("white","dodgerblue1","blue4" )),
+          name="NES (neg)",
+          column_labels = colnames(hm.matrix_neg),
+          column_names_gp = gpar(fontsize = 6),
+          row_names_gp = gpar(fontsize = 6),
+          #column_title_gp = gpar(fontsize = 7,fontface='bold'),
+          heatmap_legend_param = list(labels_gp = gpar(fontsize=4),
+                                      title_gp = gpar(fontsize=5),
+                                      grid_width = unit(1.5, "mm"))) 
 
-#pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.pdf", width = 9, height = 5)
-#set.seed(1)
-#draw(h1, column_title = "Subpathways enrichment analysis",
-#     column_title_gp = gpar(fontsize = 10, fontface="bold"),
-#     heatmap_legend_side = "bottom", annotation_legend_side = "bottom", merge_legend=T)
 
-#dev.off()
 
-png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png", 
-    width = 6, height = 8, units = 'in', res = 1500 )
+
+
+pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.pdf", width = 8, height = 8)
 set.seed(1)
-draw(h1, column_title = "Subpathways enrichment analysis",
-     column_title_gp = gpar(fontsize = 10, fontface="bold"),
-     heatmap_legend_side = "right", annotation_legend_side = "bottom", merge_legend=T)
+draw(h1, column_title = "Metabolic subpathways enrichment analysis",
+     column_title_gp = gpar(fontsize = 12, fontface="bold"),
+     heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
 
 dev.off()
+
+png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png", 
+width = 8, height = 8, units = 'in', res = 1500 )
+set.seed(1)
+draw(h1, column_title = "Metabolic subpathways enrichment analysis",
+     column_title_gp = gpar(fontsize = 12, fontface="bold"),
+     heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
+
+dev.off()
+
