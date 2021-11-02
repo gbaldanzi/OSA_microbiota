@@ -1,5 +1,9 @@
 # Script 6 Main 
 
+model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+model2 <- c(model1,"metformin","hypermed","dyslipmed","ppi","Fibrer",
+            "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
+
   message("Model 1")
   source("cor_model1/Script6_cor1main.R")
   
