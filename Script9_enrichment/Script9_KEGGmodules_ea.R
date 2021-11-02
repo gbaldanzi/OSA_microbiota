@@ -1,4 +1,4 @@
-# Script 7 - Enrichment analysis using model2 correlation coefficients 
+# Script 9 - Enrichment analysis using model2 correlation coefficients 
 
 # Gabriel Baldanzi v1 2021-06-30
 
