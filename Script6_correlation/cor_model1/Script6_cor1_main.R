@@ -2,7 +2,9 @@
 # Gabriel Baldanzi 
 # Script created in 2021-08-24
 
-rm(list = ls())
+model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+model2 <- c(model1,"metformin","hypermed","dyslipmed","ppi","Fibrer",
+            "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
 
 # Loading packages 
 pacman::p_load(data.table, ppcor, fastDummies, vegan)
@@ -31,6 +33,7 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   
 # Correlations 
     source(paste0(input1,"Spearman.correlation.function.R")) # Correlation function 
+  
     source('cor_model1/Script6_cor1_AHI_MGS.R')
     source('cor_model1/Script6_cor1_T90_MGS.R')
     source('cor_model1/Script6_cor1_BMI_MGS.R')
