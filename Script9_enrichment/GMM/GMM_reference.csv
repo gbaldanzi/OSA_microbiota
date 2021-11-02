@@ -1,0 +1,104 @@
+Module,Name,HL1,HL2
+MF0001,arabinoxylan degradation,carbohydrate degradation,polysaccharide degradation
+MF0002,fructan degradation,carbohydrate degradation,polysaccharide degradation
+MF0003,pectin degradation I,carbohydrate degradation,polysaccharide degradation
+MF0004,pectine degradation II,carbohydrate degradation,polysaccharide degradation
+MF0005,starch degradation,carbohydrate degradation,polysaccharide degradation
+MF0006,lactose degradation,carbohydrate degradation,disaccharide degradation
+MF0007,lactose and galactose degradation,carbohydrate degradation,disaccharide degradation
+MF0008,maltose degradation,carbohydrate degradation,disaccharide degradation
+MF0009,melibiose degradation,carbohydrate degradation,disaccharide degradation
+MF0010,sucrose degradation I,carbohydrate degradation,disaccharide degradation
+MF0011,sucrose degradation II,carbohydrate degradation,disaccharide degradation
+MF0012,trehalose degradation,carbohydrate degradation,disaccharide degradation
+MF0013,allose degradation,carbohydrate degradation,monosaccharide degradation
+MF0014,arabinose degradation,carbohydrate degradation,monosaccharide degradation
+MF0015,fructose degradation,carbohydrate degradation,monosaccharide degradation
+MF0016,fucose degradation,organic acid metabolism,propionate metabolism
+MF0017,galactose degradation,carbohydrate degradation,monosaccharide degradation
+MF0018,mannose degradation,carbohydrate degradation,monosaccharide degradation
+MF0019,rhamnose degradation,carbohydrate degradation,monosaccharide degradation
+MF0020,ribose degradation,carbohydrate degradation,monosaccharide degradation
+MF0021,xylose degradation,carbohydrate degradation,monosaccharide degradation
+MF0022,galacturonate degradation I,carbohydrate degradation,sugar acid degradation
+MF0023,galacturonate degradation II,carbohydrate degradation,sugar acid degradation
+MF0024,phenylalanine degradation,amino acid degradation,aromatic amino acid degradation
+MF0025,tryptophan degradation,amino acid degradation,aromatic amino acid degradation
+MF0026,tyrosine degradation I,amino acid degradation,aromatic amino acid degradation
+MF0027,tyrosine degradation II,amino acid degradation,aromatic amino acid degradation
+MF0028,aspartate degradation I,amino acid degradation,negatively charged amino acid degradation
+MF0029,aspartate degradation II,amino acid degradation,negatively charged amino acid degradation
+MF0030,glutamate degradation I,amino acid degradation,negatively charged amino acid degradation
+MF0031,glutamate degradation II,amino acid degradation,negatively charged amino acid degradation
+MF0032,glutamate degradation III,amino acid degradation,negatively charged amino acid degradation
+MF0033,alanine degradation I,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0034,alanine degradation II,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0035,glycine degradation,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0036,isoleucine degradation,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0037,leucine degradation,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0038,methionine degradation I,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0039,methionine degradation II,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0040,proline degradation,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0041,valine degradation I,amino acid degradation,"nonpolar, aliphatic amino acid degradation"
+MF0042,asparagine degradation,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0043,cysteine biosynthesis/homocysteine degradation,amino acid degradation," polar, uncharged amino acid degradation"
+MF0044,cysteine degradation I,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0045,cysteine degradation II,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0046,glutamine degradation I,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0047,glutamine degradation II,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0048,serine degradation,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0049,threonine degradation I,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0050,threonine degradation II,amino acid degradation,"polar, uncharged amino acid degradation"
+MF0051,arginine degradation I,amino acid degradation,positively charged amino acid degradation
+MF0052,arginine degradation II,amino acid degradation,positively charged amino acid degradation
+MF0053,arginine degradation III,amino acid degradation,positively charged amino acid degradation
+MF0054,arginine degradation IV,amino acid degradation,positively charged amino acid degradation
+MF0055,arginine degradation V,amino acid degradation,positively charged amino acid degradation
+MF0056,histidine degradation,amino acid degradation,positively charged amino acid degradation
+MF0057,lysine degradation I,amino acid degradation,positively charged amino acid degradation
+MF0058,lysine degradation II,amino acid degradation,positively charged amino acid degradation
+MF0059,anaerobic fatty acid beta-oxidation,lipid degradation,beta-oxidation
+MF0060,glycerol degradation I,lipid degradation,glycerol degradation
+MF0061,glycerol degradation II,lipid degradation,glycerol degradation
+MF0062,glycerol degradation III,lipid degradation,glycerol degradation
+MF0063,glyoxylate bypass,lipid degradation,glyoxylate bypass
+MF0064,triacylglycerol degradation,lipid degradation,triacylglycerol degradation
+MF0065,Bifidobacterium shunt,central metabolism,energy metabolism
+MF0066,Entner-Doudoroff pathway,central metabolism,energy metabolism
+MF0067,glycolysis (preparatory phase),central metabolism,energy metabolism
+MF0068,glycolysis (pay-off phase),central metabolism,energy metabolism
+MF0069,NADH:ferredoxin oxidoreductase,gas metabolism,hydrogen metabolism
+MF0070,pentose phosphate pathway (oxidative phase),central metabolism,energy metabolism
+MF0071,pentose phosphate pathway (non-oxidative branch),central metabolism,energy metabolism
+MF0072,pyruvate dehydrogenase complex,central metabolism,energy metabolism
+MF0073,pyruvate:ferredoxin oxidoreductase,central metabolism,energy metabolism
+MF0074,pyruvate:formate lyase,central metabolism,energy metabolism
+MF0075,acetate to acetyl-CoA,organic acid metabolism,acetate metabolism
+MF0076,4-aminobutyrate degradation,amino acid degradation,positively charged amino acid degradation
+MF0077,formate conversion,organic acid metabolism,formate metabolism
+MF0078,lactaldehyde degradation,organic acid metabolism,propionate metabolism
+MF0079,lactate consumption I,organic acid metabolism,lactate metabolism
+MF0080,lactate consumption II,organic acid metabolism,propionate metabolism
+MF0081,methanol conversion,gas metabolism,methanogenesis
+MF0082,putrescine degradation,amines and polyamines degradation,biogenic amine degradation
+MF0083,succinate consumption,organic acid metabolism,butyrate metabolism
+MF0084,succinate conversion to propionate,organic acid metabolism,succinate metabolism
+MF0085,urea degradation,amines and polyamines degradation,urea degradation
+MF0086,acetyl-CoA to acetate,organic acid metabolism,acetate metabolism
+MF0087,acetyl-CoA to crotonyl-CoA,organic acid metabolism,butyrate metabolism
+MF0088,butyrate production I,organic acid metabolism,butyrate metabolism
+MF0089,butyrate production II,organic acid metabolism,butyrate metabolism
+MF0090,ethanol production I,alcohol metabolism,ethanol metabolism
+MF0091,ethanol production II,alcohol metabolism,ethanol metabolism
+MF0092,lactate production,organic acid metabolism,lactate metabolism
+MF0093,propionate production I,organic acid metabolism,propionate metabolism
+MF0094,propionate production II,organic acid metabolism,propionate metabolism
+MF0095,propionate production III,organic acid metabolism,propionate metabolism
+MF0096,succinate production,organic acid metabolism,succinate metabolism
+MF0097,homoacetogenesis,gas metabolism,acetogenesis
+MF0098,hydrogen metabolism,gas metabolism,hydrogen metabolism
+MF0099,methanogenesis - methyl-coM,gas metabolism,methanogenesis
+MF0100,methanogenesis from carbon dioxide,gas metabolism,methanogenesis
+MF0101,nitrate reduction (dissimilatory),inorganic nutrient metabolism,nitrogen
+MF0102,sulfate reduction (dissimilatory),gas metabolism,sulfate metabolism
+MF0103,mucin degradation,glycoprotein degradation,mucus degradation
