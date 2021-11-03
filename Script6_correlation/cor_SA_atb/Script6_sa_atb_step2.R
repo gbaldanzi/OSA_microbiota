@@ -39,7 +39,8 @@
   
   #res[q.value>=0.001, q.value:=round(q.value, digits = 3)]
   
-  mgs.m1  = readRDS(paste0(input,'mgs.m1.rds'))
+  mgs.fdr  = readRDS(paste0(input,'mgs.m2.rds'))  # Signature MGSs 
+  
   
   #Model 2
   #  adjust for model1 + place birth + education + leisure PA + fiber + total energy intake +
@@ -50,23 +51,21 @@
   
   # Correlations 
   source(paste0(input1,"Spearman.correlation.function.R")) # Correlation function 
-  source('cor_model2/Script6_cor2_AHI_MGS.R')
-  source('cor_model2/Script6_cor2_T90_MGS.R')
-  source('cor_model2/Script6_cor2_BMI_MGS.R')
   
-  res <- rbind(res.ahi, res.t90, res.bmi)
+  mgs.m1 = mgs.fdr$mgs.fdr.ahi
+  
+  source('cor_model2/Script6_cor2_AHI_MGS.R')
+  
+  mgs.m1 = mgs.fdr$mgs.fdr.t90
+  
+  source('cor_model2/Script6_cor2_T90_MGS.R')
+  
+  res <- rbind(res.ahi, res.t90)
   
   res$model= "sa_atb6m"
   
   names(res) = c("MGS", "exposure", "rho", "p.value", 
                  "N", "method", "covariates","q.value","model")
-  
-  # Merging results with taxonomy information #### 
-  
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
-  setnames(taxonomy,"maintax_mgs","MGS")
-  
-  res <- merge(res, taxonomy, by="MGS", all.x=T)
   
   fwrite(res, file = paste0(output,"cor_sa_atb6m_step2_all.var_mgs.tsv"))
 
