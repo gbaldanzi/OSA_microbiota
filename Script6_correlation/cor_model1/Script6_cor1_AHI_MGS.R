@@ -21,7 +21,9 @@ outcomes=grep("___",names(dades),value=T)
 
 #Covariates 
 # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+if(exists("model1")==F){
+model1 <- c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+}
 
 # Running correlation 
   message("Correlation between MGS and AHI - Step1")

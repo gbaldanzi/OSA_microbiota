@@ -21,8 +21,10 @@ exposure="t90"
 outcomes=grep("___",names(dades),value=T)
 
 #Covariates 
-# model 1 : adjust for age + sex + alcohol + smoking + plate + received 
+# model 1 : adjust for age + sex + alcohol + smoking + plate + received
+if(exists("model1")==F){
 model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+}
 
 # Running correlation 
   message("Correlation between MGS and T90 - Step1")
