@@ -1034,23 +1034,24 @@ mgs.fdr.m2_n <- length(unique(do.call('c',mgs.fdr.m2)))
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 
 t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa_mgs.fdr.rds')
-setDT(t)
-n = nrow(t)
+setDT(t$ahi)
+setDT(t$t90)
 
-t.ahi <- t[MGS %in% mgs.fdr.m2$mgs.fdr.ahi,.(MGS,cor_m2ahi,p.value_m2ahi, cor_saahi,p.value_saahi,q.value_saahi)]
 
-t.t90 <- t[MGS %in% mgs.fdr.m2$mgs.fdr.t90,.(MGS,cor_m2t90,p.value_m2t90, cor_sat90,p.value_sat90,q.value_sat90)]
+t.ahi <- t$ahi[MGS %in% mgs.fdr.m2$mgs.fdr.ahi,.(MGS,rho_model2,p.value_model2,N_model2, rho_SA,p.value_SA,q.value_SA,N_SA)]
+
+t.t90 <- t$t90[MGS %in% mgs.fdr.m2$mgs.fdr.t90,.(MGS,rho_model2,p.value_model2,N_model2, rho_SA,p.value_SA,q.value_SA,N_SA)]
 
 sketch2 = htmltools::withTags(table(
   class = 'display',
   thead(
     tr(
       th(rowspan = 2, 'MGS'),
-      th(colspan = 2, 'Model2'),
-      th(colspan = 3, 'SA'),
+      th(colspan = 3, 'Model2'),
+      th(colspan = 4, 'SA'),
     ),
     tr(
-      lapply(rep(c(' rho ', ' p-value ', ' rho ', ' p-value ','q-value'), 1), th)
+      lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
     )
   )
 ))
@@ -1069,7 +1070,7 @@ datatable(t.ahi,container=sketch2,rownames = FALSE, class = 'cell-border stripe'
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>% formatStyle(c(1,3,6,8), `border-right` = "solid 2px")
+    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")
 
 ```
 
@@ -1089,7 +1090,7 @@ datatable(t.t90,container=sketch2,rownames = FALSE, class = 'cell-border stripe'
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>% formatStyle(c(1,3,6,8), `border-right` = "solid 2px")
+    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")
 
 ```
 
@@ -1516,7 +1517,7 @@ datatable(onlyahi,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(1,3), `border-right` = "solid 2px")
+    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
 ```
 
 ***
@@ -1533,7 +1534,7 @@ datatable(t.t90,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(1,3), `border-right` = "solid 2px")
+    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
 ```
 
 ***
@@ -1550,7 +1551,7 @@ datatable(onlyt90,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(1,3), `border-right` = "solid 2px")
+    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
 ```
 
 ***
@@ -1567,7 +1568,7 @@ datatable(t.ahi.t90,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
+    "}"))) %>%    formatStyle(c(1,3,5), `border-right` = "solid 2px")
 ```
 
 ***
@@ -1606,7 +1607,7 @@ datatable(t.ahi.neg,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(1,3), `border-right` = "solid 2px")
+    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
 ```  
      
    **T90**   
@@ -1620,7 +1621,7 @@ datatable(t.t90.neg,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(1,3), `border-right` = "solid 2px")
+    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
 ```  
          
    **BMI**
@@ -1634,7 +1635,7 @@ datatable(t.bmi,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(1,3), `border-right` = "solid 2px")
+    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
 ```  
 
 &nbsp;
@@ -1668,11 +1669,67 @@ gmm.names <- gmm.names[Module %in% c(t.ahi[,pathway],t.t90[,pathway])]
 datatable(gmm.names,rownames = FALSE)
 ```
 
+<br>
+
+## {-}
+
+<br>
+
+### Sensitivity analysis
+
+Enrichment for GMM modules, after excluding individuals using metformin (N=141)
+
+<br>
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_pos_sa_metformin.rds')
+
+setDT(t)
+t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+t[pval>=0.001,pval:=round(pval,digits = 3)]
+
+t.ahi = t[exposure=="ahi" & pathway %in% c("MF0039","MF0068")] 
+t.t90 = t[exposure=="t90" & pathway %in% c("MF0007","MF0068","MF0074","MF0079",
+                                            "MF0094")] 
+
+```
+
+#### AHI {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t.ahi[,exposure:=NULL]
+datatable(t.ahi,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>%    formatStyle(c(2), `border-right` = "solid 2px")
+```
+
+<br>
+
+#### T90 {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t.t90[,exposure:=NULL]
+datatable(t.t90,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>%    formatStyle(c(2), `border-right` = "solid 2px")
+```
+
+<br>
 
 
+***
 
-
-
+<br>
 
 
 ## Metabolic subpathways {.tabset}
