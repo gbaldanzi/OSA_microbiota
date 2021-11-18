@@ -44,7 +44,7 @@
                     stroke_size = .2, 
                     show_percentage = F, 
                     fill_alpha = .6) +
-    ggtitle("GM modules enriched among MGSs positively \ncorrelated to AHI, T90, or BMI") +
+    ggtitle("Pathways enriched among species \npositively correlated") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
   ggsave("Venn_GMM_pos.png",plot = venn2,device = "png", path=output.plot)
   

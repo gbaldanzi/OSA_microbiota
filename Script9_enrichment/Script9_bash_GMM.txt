@@ -1,0 +1,25 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 14:00
+#SBATCH -J Script9_enrichment_analysis_GMM
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+ml R_packages
+
+cd $wrf
+
+
+echo "GMM EA positive and negative correlations"
+
+Rscript Script9_enrichment/GMM/Script9_GMM_ea.R
+
+Rscript Script9_enrichment/GMM/Script9_GMM_venn.R
+
+Rscript Script9_enrichment/GMM/Script9_GMM_table.res.R
+
+Rscript Script9_enrichment/GMM/Script9_GMM_sa_metformin.R
+

@@ -129,4 +129,5 @@
   #Saving 
   saveRDS(res.pos,file=paste0(output,"ea_GMM_table_pos_sa_metformin.rds"))
 
+  # res.pos <- readRDS("/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_pos_sa_metformin.rds")
   
