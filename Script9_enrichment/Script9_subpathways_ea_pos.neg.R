@@ -4,7 +4,8 @@
 
 # Last update: 2021-09-16
 
-# Enrichment analysis of subpathways among the metabolites correlated to the identified MGSs
+# Enrichment analysis of sub-pathways among associations between 
+# signature species and the metabolites
 
 # MGS-metabolites associations stratified by the direction of cor. coef. 
 
