@@ -22,7 +22,7 @@ echo " "
 echo Data_management
 echo " "
 
-Rscript Script1_datamanagement/Script1_datamanagement.R
+Rscript Script1_datamanagement/Script1_datamanagement_liberalTEIfilter_temp.R
 
 
 # Calculate Shannon Index for all the individuals # Worked 
@@ -31,12 +31,12 @@ Rscript Script1_datamanagement/Script1_calc_alpha.div.R
 
 # Script3 Calculate Bray-Curtis Dissimilarity 
 
-# jid1=$(sbatch Script3_bash.txt|cut -c21-) 
+jid1=$(sbatch Script3_bash.txt|cut -c21-) 
 
 # Run PERMANOVA on BC Dissimilarity (dependency on previous sbatch job)
 echo PERMANOVA_script
 
-# sbatch --dependency=afterok:$jid1 Script5osa_bash.txt
+sbatch --dependency=afterok:$jid1 Script5_permanova/Script5osa_bash.txt
 
 
 # Descriptive Statistics 
@@ -67,8 +67,10 @@ Rscript Script8_barplot_res_mgs.R
 
 echo "Enrichment analysis"
 
-jid2=$(sbatch Script9_enrichment/Script9_bash_1.txt|cut -c21-)
-sbatch --dependency=afterok:$jid2 Script9_enrichment/Script9_bash_2.txt
+jid2=$(sbatch Script9_enrichment/Script9_bash_subpathways.txt|cut -c21-)
+sbatch --dependency=afterok:$jid2 Script9_enrichment/Script9_bash_GMM.txt
+
+# Add analysis for GMM modules 
 
 echo "END!"  
 
