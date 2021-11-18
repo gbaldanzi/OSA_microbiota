@@ -6,8 +6,8 @@
 pacman::p_load(data.table, vegan, ggplot2,parallel)
  
 
-  source('perma_osa_bc/perma_osa_bc_main.R')
+  source('Script5_permanova/perma_osa_bc/perma_osa_bc_main.R')
 
-  source('perma_ahi_bc/perma_ahi_bc_main.R')
+  #source('perma_ahi_bc/perma_ahi_bc_main.R')
 
-  source('perma_t90_bc/perma_t90_bc_main.R')
+  #source('perma_t90_bc/perma_t90_bc_main.R')

@@ -67,13 +67,13 @@ expo = "OSAcat"
 # Runing PERMANOVA in parallel ####
   source('perma_osa_bc/perma_model1.R')
 
-  source('perma_osa_bc/perma_model2.R')
+  #source('perma_osa_bc/perma_model2.R')
 
   source('perma_osa_bc/perma_model3.R')
   
-  source('perma_osa_bc/perma_SA2.R')
+  #source('perma_osa_bc/perma_SA2.R')
 
-  source('perma_osa_bc/perma_SA.R')
+  #source('perma_osa_bc/perma_SA.R')
   
   
 

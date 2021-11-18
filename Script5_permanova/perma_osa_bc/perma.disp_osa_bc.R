@@ -42,8 +42,11 @@ BCdist=vegdist(MGSmatrix,method="bray")
 multivariate.dispersions <- betadisper(BCdist,group=pheno[valid.ahi=='yes',OSAcat]) 
 
 saveRDS(multivariate.dispersions,file=paste0(output,"multivariate.dispersions.res.rds"))
+# multivariate.dispersions <- readRDS(paste0(output,"multivariate.dispersions.res.rds"))
 
 # Calculate difference in dispersion 
+  res2 <- permutest(multivariate.dispersions, pairwise=F, permutations=9999)
+
   res <- anova(multivariate.dispersions)
 
   dispersion.df <- data.frame(distance = multivariate.dispersions$distance, 
