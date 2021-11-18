@@ -7,24 +7,27 @@
 
 rm(list=ls())
 
+# input = folder containing the data sets 
+input="/home/baldanzi/Datasets/"
+
 # Loading packages
 pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.table)
 
   # Uploading phenotype data ####
-  pheno=fread("/home/baldanzi/Datasets/sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv", header = T, na.strings=c("", "NA"))
+  pheno=fread(paste0(input,"sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv"), header = T, na.strings=c("", "NA"))
   # Restricting dataset to Uppsala participants only 
   pheno = pheno[Site=="Site5", ]
 
 
   # Uploading MGS data ####
-  data.MGS = fread("/home/baldanzi/Datasets/MGS/clean/MGS_relative_abundance_4839_upp_4980_malmo.tsv")
+  data.MGS = fread(paste0(input,"MGS/clean/MGS_relative_abundance_4839_upp_4980_malmo.tsv"))
 
   # Restricting to Uppsala participants 
   data.MGS = data.MGS[SCAPISid %in% grep("5-",data.MGS$SCAPISid, value = T ),] 
   # 4839 Uppsala participants have gut microbiome data
   
   # Fixing MGS names to latest annotation 
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  taxonomy = fread(paste0(input,"MGS/taxonomy"))
   
   mgs.names.index <- grep("____",names(data.MGS))
   names(data.MGS)[mgs.names.index] <- taxonomy$maintax_mgs
@@ -100,7 +103,7 @@ pheno$diabd = factor(pheno$diabd, levels = c(0,1,2),
   # Removing over- and under- reported based on the 3SD of the natural log of Energy intake
 
   # remove extremes outlieers 
-  pheno[Energi_kcal<500 | Energi_kcal >6000, Energi_kcal:=NA] # Removing invalid values
+  pheno[Energi_kcal==0, Energi_kcal:=NA]
   pheno[,log.energi:= log(pheno$Energi_kcal)] # Calculating the log energy intake
 
   # Estimate sd and mean of energy intake
@@ -125,7 +128,7 @@ pheno$diabd = factor(pheno$diabd, levels = c(0,1,2),
   # Removing under- or over- reporter
   pheno[,energi.original:=Energi_kcal]
   pheno[energi.reporter!="ok",Energi_kcal:=NA]
-  # Consider revising this variable  after excluding those with unreliable FFQ reporting. 
+   
   pheno[,fiber.kcal:=(Fibrer/Energi_kcal)*1000]
 
 
