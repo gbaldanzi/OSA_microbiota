@@ -8,7 +8,7 @@
   library(ape)
   library(RColorBrewer)
   library(grid)
-  library(pheatmap)
+  #library(pheatmap)
 
   input <- '/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Script3_calc_beta/'
 

@@ -7,7 +7,7 @@
 
 
 
-# Last update: 2021-11-02
+# Last update: 2021-11-18
 
 rm(list=ls())
 
@@ -53,7 +53,6 @@ mgs.decreased <- c(mgs.ahi.decreased, mgs.t90.decreased)
 # Positive 
 
 
-
 # Filter to only the pathways that are FDR associated with one MGS
 table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(padj<.05))
 hm.pathways <- table.pathways$pathway[table.pathways$nr_p.05>0]
@@ -74,6 +73,7 @@ hm.matrix_pos[is.na(hm.matrix_pos)] <- 0
 
 rownames(hm.matrix_pos) <- gsub("__","_",rownames(hm.matrix_pos))
 rownames(hm.matrix_pos) <- gsub("_"," ",rownames(hm.matrix_pos))
+rownames(hm.matrix_pos) <- gsub("Metabolism","Metab.",rownames(hm.matrix_pos))
 
 
 qvalues_pos <- res.table %>% select(MGS, pathway, padj)%>% 
@@ -110,6 +110,9 @@ hm.matrix_neg[is.na(hm.matrix_neg)] <- 0
 
 rownames(hm.matrix_neg) <- gsub("__","_",rownames(hm.matrix_neg))
 rownames(hm.matrix_neg) <- gsub("_"," ",rownames(hm.matrix_neg))
+rownames(hm.matrix_neg) <- gsub("Metabolism","Metab.",rownames(hm.matrix_neg))
+rownames(hm.matrix_neg) <- gsub("Leucine","Leucine,",rownames(hm.matrix_neg))
+rownames(hm.matrix_neg) <- gsub("Glycolysis","Glycolysis,",rownames(hm.matrix_neg))
 
 rownames(hm.matrix_neg) <- gsub("PE","",rownames(hm.matrix_neg))
 rownames(hm.matrix_neg) <- gsub("PC","",rownames(hm.matrix_neg))
@@ -181,11 +184,11 @@ rownames(annotation) <- noms
 ha = HeatmapAnnotation(Correlation=annotation$correlated,which = "col",
                                  name="Phenotype",
                                  col =  list(Correlation = c(map.col)),
-                                 annotation_legend_param = list(labels_gp = gpar(fontsize=4),
-                                                                title_gp = gpar(fontsize=5),
+                                 annotation_legend_param = list(labels_gp = gpar(fontsize=6),
+                                                                title_gp = gpar(fontsize=7),
                                                                 grid_width = unit(2, "mm")),
                                  annotation_label = "Phenotype",
-                                 annotation_name_gp=gpar(fontsize = 5),
+                                 annotation_name_gp=gpar(fontsize = 7),
                                  annotation_name_side = "left")
 
 
@@ -201,7 +204,7 @@ h1 = Heatmap(hm.matrix_pos,
              show_column_dend = F,
              
              column_split = factor(c(rep("Increased abundance\nwith sleep apnea",n.increased),rep("Decreased abundance\nwith sleep apnea",n.decreased))),
-             column_title_gp = gpar(fontsize=7),
+             column_title_gp = gpar(fontsize=9),
              column_gap = unit(2,"mm"),
              
              cluster_rows = TRUE,
@@ -211,11 +214,11 @@ h1 = Heatmap(hm.matrix_pos,
              col = colorRamp2(c(0,1.5,3),c("white","indianred2", "red3")),
              name="NES (pos)",
              column_labels = colnames(hm.matrix_pos),
-             column_names_gp = gpar(fontsize = 6),
-             row_names_gp = gpar(fontsize = 6),
+             column_names_gp = gpar(fontsize = 8),
+             row_names_gp = gpar(fontsize = 8),
              #column_title_gp = gpar(fontsize = 7,fontface='bold'),
              heatmap_legend_param = list(labels_gp = gpar(fontsize=4),
-                                         title_gp = gpar(fontsize=5),
+                                         title_gp = gpar(fontsize=6),
                                          grid_width = unit(1.5, "mm")),
              top_annotation = ha) %v%
   
@@ -224,7 +227,7 @@ h1 = Heatmap(hm.matrix_pos,
             if(qvalues_neg[i, j] < 0.05) {
               grid.text('*', x, y)
             } },
-          column_names_rot =  90,
+          column_names_rot =  45,
           column_names_side = "bottom",
           cluster_columns = F,
           show_column_dend = F,
@@ -240,20 +243,21 @@ h1 = Heatmap(hm.matrix_pos,
           col = colorRamp2(c(0,1.5,3),c("white","dodgerblue1","blue4" )),
           name="NES (neg)",
           column_labels = colnames(hm.matrix_neg),
-          column_names_gp = gpar(fontsize = 6),
-          row_names_gp = gpar(fontsize = 6),
+          column_names_gp = gpar(fontsize = 8),
+          row_names_gp = gpar(fontsize = 8),
           #column_title_gp = gpar(fontsize = 7,fontface='bold'),
           heatmap_legend_param = list(labels_gp = gpar(fontsize=4),
-                                      title_gp = gpar(fontsize=5),
+                                      title_gp = gpar(fontsize=6),
                                       grid_width = unit(1.5, "mm"))) 
 
 
 
 
 
-pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.pdf", width = 8, height = 8)
+pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.pdf", 
+    width = 9, height = 8)
 set.seed(1)
-draw(h1, column_title = "Metabolic subpathways enrichment analysis",
+draw(h1, column_title = "Metabolic sub-pathways enrichment analysis",
      column_title_gp = gpar(fontsize = 12, fontface="bold"),
      heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
 
@@ -262,7 +266,7 @@ dev.off()
 png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png", 
 width = 8, height = 8, units = 'in', res = 1500 )
 set.seed(1)
-draw(h1, column_title = "Metabolic subpathways enrichment analysis",
+draw(h1, column_title = "Metabolic sub-pathways enrichment analysis",
      column_title_gp = gpar(fontsize = 12, fontface="bold"),
      heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
 
