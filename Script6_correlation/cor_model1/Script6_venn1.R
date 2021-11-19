@@ -35,9 +35,9 @@
                     stroke_size = .2, 
                     show_percentage = F, 
                     fill_alpha = .6) +
-    ggtitle("MGS correlated with AHI, T90%, and BMI - model 1") +
-    theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
+    ggtitle("Microbiota species associated with AHI, T90, and/or BMI\nbasic model") +
+    theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
   ggsave("Venn_bmiahi_m1.png",plot = venn.m1,device = "png", path=output.plot)
-
+  ggsave("Venn_bmiahi_m1.pdf",plot = venn.m1,device = "pdf", path='/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
 
 
