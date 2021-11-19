@@ -16,6 +16,8 @@
   
   # pheno data 
   valid.ahi <- pheno[valid.ahi=='yes',]
+  valid.ahi[OSAcat=="no OSA", OSAcat:="No Sleep Apnea"]
+  valid.ahi[,OSAcat:=factor(OSAcat,levels = c("No Sleep Apnea","Mild","Moderate","Severe"))]
 
   # Plotting the first 2 principal components 
     # First: extracting the principal component value for every sample 
@@ -36,16 +38,21 @@
           geom_errorbarh(data=centroids,aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
           #stat_ellipse(type = "t", size=1.3) +
          scale_color_manual(values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
-          ggtitle("Bray-curtis dissimilarity by sleep apnea severity") +
+          ggtitle("Bray-Curtis dissimilarity by sleep apnea severity") +
           xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
           xlim(-0.12, 0.04) + ylim(-0.08, .08) +
           theme_light()+
           theme(axis.text.x = element_text(angle = 0),
               plot.title = element_text(hjust = 0.5, face="bold", size=14),
-              legend.text = element_text(size=10))
+              legend.text = element_text(size=10)) 
+      
+      p4$labels$colour <- "Sleep apnea severity"
 
   ggsave("BC.OSAcat.png", plot = p4, device = "png", 
-         path = "/home/baldanzi/Sleep_apnea/Descriptive/")
+         path = "/home/baldanzi/Sleep_apnea/Results/")
+  
+  ggsave("BC.OSAcat.pdf", plot = p4, device = "pdf", 
+         path = "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/")
   
   
