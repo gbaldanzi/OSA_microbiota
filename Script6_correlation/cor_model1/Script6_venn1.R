@@ -2,8 +2,6 @@
 # Gabriel Baldanzi 
 # Script created in 2021-06-18
 
-# Inferential Statistics 
-
 # This code will produce a Venn Diagram from the correlations of AHI, BMI, 
 # and T90 with MGSs in model 1
 

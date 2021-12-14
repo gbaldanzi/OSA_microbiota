@@ -1,9 +1,11 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
+# Last update: 2021-12-09
+
 # Descriptive Statistics continued:
 
-# This script will calculate beta diversity and on individuals with valid T90 measuremeny
+# This script will calculate beta diversity and on individuals with valid T90 measurement
 
   # Import data
   valid.t90 <- pheno[valid.t90=='yes',]

@@ -11,7 +11,7 @@
   # input and output folders 
   input = "/home/baldanzi/Sleep_apnea/Results/"
   output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-  #output.plot= "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512"
+  # output.plot= "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512"
   
   
   # Importing results
@@ -44,9 +44,9 @@
                     stroke_size = .2, 
                     show_percentage = F, 
                     fill_alpha = .6) +
-    ggtitle("Pathways enriched among species \npositively correlated") +
+    ggtitle("Pathways enriched among species\npositively correlated") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
-  ggsave("Venn_GMM_pos.png",plot = venn2,device = "png", path=output.plot)
+  ggsave("Venn_GMM_pos.pdf",plot = venn2,device = "pdf", path=output.plot)
   
   # NEGATIVE CORRELATIONS
   
@@ -57,7 +57,7 @@
                     stroke_size = .2, 
                     show_percentage = F, 
                     fill_alpha = .6) +
-    ggtitle("GMM modules enriched among the MGSs negatively \ncorrelated to AHI, T90, or BMI") +
+    ggtitle("Pathways enriched among species\n negatively correlated") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
   ggsave("Venn_GMM_neg.png",plot = venn3,device = "png", path=output.plot)
   

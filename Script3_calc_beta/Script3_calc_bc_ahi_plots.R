@@ -31,28 +31,35 @@
       centroids <- merge(centroids,se, by="OSAcat") 
       
       
-      p4=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
+      p1=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
          # geom_point(size=1.1) +
-          geom_point(data=centroids, size=5)+
+          geom_point(data=centroids, size=4)+
           geom_errorbar(data=centroids,aes(ymin=Axis.2-se.Axis.2,ymax=Axis.2+se.Axis.2),width=0.001)+
           geom_errorbarh(data=centroids,aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
           #stat_ellipse(type = "t", size=1.3) +
          scale_color_manual(values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
-          ggtitle("Bray-Curtis dissimilarity by sleep apnea severity") +
+          ggtitle("AHI severity groups") +
           xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
           xlim(-0.12, 0.04) + ylim(-0.08, .08) +
           theme_light()+
           theme(axis.text.x = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5, face="bold", size=14),
-              legend.text = element_text(size=10)) 
+                axis.title = element_text(size=7) ,
+                axis.text = element_text(size=6) , 
+              plot.title = element_text(hjust = 0.5, face="bold", size=10),
+              legend.text = element_text(size=8),
+              legend.position = "bottom") 
       
-      p4$labels$colour <- "Sleep apnea severity"
+      p1$labels$colour <- "Sleep apnea severity"
 
-  ggsave("BC.OSAcat.png", plot = p4, device = "png", 
+      p1 <- p1 + theme(legend.title = element_blank())  
+      
+      p1 <- p1 + guides(color=guide_legend(nrow = 2))
+        
+  ggsave("BC.OSAcat.png", plot = p1, device = "png", 
          path = "/home/baldanzi/Sleep_apnea/Results/")
   
-  ggsave("BC.OSAcat.pdf", plot = p4, device = "pdf", 
+  ggsave("BC.OSAcat.pdf", plot = p1, device = "pdf", 
          path = "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/")
   
   

@@ -5,7 +5,7 @@
 set.seed(123)
 nod=16   # Number of workers to be used 
 cl = makeCluster(nod)
-clusterExport(cl, varlist = c("outc","expo","dades","model1","model2","model3"))
+clusterExport(cl, varlist = c("outc","expo","dades","model1","model2","model3","BC"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
 print("PERMANOVA T90 and BC - Model3")

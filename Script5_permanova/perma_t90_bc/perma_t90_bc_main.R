@@ -4,20 +4,17 @@
 # Inferential Statistics 
 
 # Version 1: April 2021
-# Update: - Jul 8, 2021: merged models 3 and 4, including medication with other covariates. 
+# Update: 2021-12-09 
 
 # This code will investigate the beta-diversity (Bray Curtis Dissimilarity)
-# in relation to AHI and T90% in 3 different models. 
+# in relation to T90% severity categories 
 # Analysis are run using a PERMANOVA approach
 
 #parallel nodes (1 for each model). Therefore, this code requires at least 3 nodes. 
 
 # Results saved at the folder: "/home/baldanzi/Sleep_apnea/Results/"
-# File model 1 - permanova_model1_t90_bc.tsv
-# File model 2 - permanova_model2_t90_bc.tsv
 # File model 3 - permanova_model3_t90_bc.tsv
-# File SA - permanova_SA_t90_bc.tsv
-# File SA2 - permanova_SA2_t90_bc.tsv
+
 
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
@@ -27,6 +24,7 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
   # Importing data
+
   pheno <- readRDS(file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   valid.t90 <- pheno[ valid.t90 == 'yes', ]
 
@@ -50,7 +48,7 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
   outc = "BC"
 
   # Main Exposure - character name (length=1)
-  expo = "t90"
+  expo = "t90cat"
 
   #Covariates 
   # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
@@ -68,20 +66,20 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Runing PERMANOVA ####
   
-  message('perma_t90_bc/perma_model1.R')
-  source('perma_t90_bc/perma_model1.R')
+  #message('perma_t90_bc/perma_model1.R')
+  #source('perma_t90_bc/perma_model1.R')
 
-  message('perma_t90_bc/perma_model2.R')
-  source('perma_t90_bc/perma_model2.R')
+  #message('perma_t90_bc/perma_model2.R')
+  #source('perma_t90_bc/perma_model2.R')
 
   message('perma_t90_bc/perma_model3.R')
   source('perma_t90_bc/perma_model3.R')
   
-  message('perma_t90_bc/perma_SA2.R')
-  source('perma_t90_bc/perma_SA2.R')
+  #message('perma_t90_bc/perma_SA2.R')
+  #source('perma_t90_bc/perma_SA2.R')
 
-  message('perma_t90_bc/perma_SA.R')
-  source('perma_t90_bc/perma_SA.R')
+  #message('perma_t90_bc/perma_SA.R')
+  #source('perma_t90_bc/perma_SA.R')
   
 
 

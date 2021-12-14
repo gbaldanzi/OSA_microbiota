@@ -17,17 +17,21 @@
 
 #1
   message("start - Script3_calc_bc_ahi.R")  
-  source(paste0(input,"Script3_calc_bc_ahi.R")) # worked
+  #source(paste0(input,"Script3_calc_bc_ahi.R")) # worked
   
 #2
   message("start - Script3_calc_bc_ahi_plots.R") 
-  source(paste0(input,"Script3_calc_bc_ahi_plots.R")) #worked
+  #source(paste0(input,"Script3_calc_bc_ahi_plots.R")) #worked
 
 #3
-  #message("start - Script3_calc_bc_t90.R")
-  #source(paste0(input,"Script3_calc_bc_t90.R")) #worked 
+  message("start - Script3_calc_bc_t90.R")
+  source(paste0(input,"Script3_calc_bc_t90.R")) #worked 
   
 #4 
-  #message("start - Script3_calc_bc_t90_plots.R")
-  #source(paste0(input,"Script3_calc_bc_t90_plots.R"))
+  message("start - Script3_calc_bc_t90_plots.R")
+  source(paste0(input,"Script3_calc_bc_t90_plots.R"))
+  
+#5 
+  message("start - Script3_merge.plots.R")
+  #source(paste0(input, "Script3_merge.plots.R"))
   

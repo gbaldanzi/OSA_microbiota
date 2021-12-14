@@ -39,6 +39,9 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
   
   message("Correlation AHI and Shannon index")
   source('Script4_cor_alpha/Script4_cor_ahi_alpha.R')
+  
+  message("Correlation ODI and Shannon index")
+  source('Script4_cor_alpha/Script4_cor_t90_alpha.R')
 
   message("Correlation T90 and Shannon index")
   source('Script4_cor_alpha/Script4_cor_t90_alpha.R')

@@ -74,7 +74,7 @@ which(sleep$Date>as.Date("2018-12-01")) #index of values that were typos
 
 # Subsetting the data for valid flow and sat monitoring ####
 # Analysis using AHI should only include individuals with valid flow and sat monitoring 
-# Analysis using ODI should only include individuals with valid sat monitoring 
+# Analysis using T90 should only include individuals with valid sat monitoring 
 
 #subsetting the dataset to only those with valid flow and sat monitoring 
 sleep[,valid.ahi:=ifelse(sleep$BothFlO2utv4h==1, "yes", "no")]

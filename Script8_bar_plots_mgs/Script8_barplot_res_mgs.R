@@ -18,6 +18,14 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
 
   # Import full data 
   pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  
+  
+  # Rename levels for the factor variables OSAcat and t90cat (categories of sleep apnea)
+  pheno[OSAcat=="no OSA", OSAcat:= "No Sleep Ap."]
+  pheno[,OSAcat:=factor(OSAcat, levels = c("No Sleep Ap.", "Mild", "Moderate", "Severe"))]
+  
+  lev.t90cat <- levels(pheno[,t90cat])
+  pheno[,t90cat:=factor(t90cat, levels=lev.t90cat, labels = c("0","T1","T2","T3"))]
 
   # Import results 
   res.m2 <- fread(paste0(input1,"cor2_all.var_mgs.tsv"))
@@ -29,7 +37,19 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   mgs.ahi <- res.ahi$MGS
   res.t90 <- res.m2[exposure =="t90" & q.value<.05,] %>% filter(!MGS %in% mgs.bmi)
   mgs.t90 <- res.t90$MGS
-
+  
+  
+  
+  clean.y.axis <- function(y){
+  y <- gsub("Absicoccus_", "A. ", y)
+  y <- gsub("Bifidobacterium_longum_subsp._longum", "B. longum subsp.\nlongum", y)
+  y <- gsub("Blautia_","B. ",y)
+  y <- gsub("Pediococcus_", "P. ", y)
+  y <- gsub("AM42_11","", y)
+  y <- gsub("Staphylococcus_","S. ", y)
+  y <- gsub("_sp"," sp", y)
+  }
+  
   # Result list 
   res.list <- list(ahi = res.ahi, t90 = res.t90)
 
@@ -54,15 +74,15 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     dades <- dades[!is.na(dades[,group]),]
     
     n.gr <- table(dades[,group])
-  
-    dades <- dades %>% group_by(get(group)) %>% summarise_at(pa,function(x){sum(x)/length(x)})
+    
+    dades <- dades %>% group_by(get(group)) %>% summarise_at(pa,function(x){round((sum(x)/length(x))*100,1)})
     names(dades)[1] <- group
     names(dades) <- gsub("pa_","",names(dades))
   
     r <- res.list[[exposure]][MGS==y.axis,rho]
     
     ggplot(dades) + geom_bar(aes_string(x=group, y=y.axis), stat = 'identity') + 
-      ggtitle(gsub("____","\n",y.axis), subtitle = paste0("\u03C1=",r)) + 
+      ggtitle(gsub("____","\n",clean.y.axis(y.axis)), subtitle = paste0("\u03C1=",r)) + 
       scale_x_discrete(labels=names(n.gr)) +
       scale_y_continuous(expand=c(0,0)) +
       theme_classic() +
@@ -91,10 +111,10 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   names(plots.ahi) <- mgs.ahi
   saveRDS(plots.ahi, file = paste0(output.plot,'/bar_ahi/barplot_ahi.rds'))
 
-  for(i in 1:length(plots.ahi)){
-      ggsave(file = paste0("bar_ahi_",names(plots.ahi[i]),".png"), plot=plots.ahi[[i]],
-         path = './bar_ahi/')
-      }
+ # for(i in 1:length(plots.ahi)){
+  #    ggsave(file = paste0("bar_ahi_",names(plots.ahi[i]),".png"), plot=plots.ahi[[i]],
+    #     path = './bar_ahi/')
+   #   }
 
   if(dir.exists("bar_t90")==F){dir.create("bar_t90")}
   
@@ -107,11 +127,11 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   names(plots.t90) <- mgs.t90
   saveRDS(plots.t90, file = paste0(output.plot,'/bar_t90/barplot_t90.rds'))
 
-  for(i in 1:length(plots.t90)){
+  #for(i in 1:length(plots.t90)){
   
-    ggsave(file = paste0("bar_t90_",names(plots.t90[i]),".png"), plot=plots.t90[[i]],
-         path = './bar_t90/')
-  }
+   # ggsave(file = paste0("bar_t90_",names(plots.t90[i]),".png"), plot=plots.t90[[i]],
+     #    path = './bar_t90/')
+#  }
 
 
  # source('Script8_minibarplots.R')
