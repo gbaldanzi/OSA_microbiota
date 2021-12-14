@@ -253,9 +253,13 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   # Exclude CPAP users 
   pheno[cqhe061=='CPAP', c("valid.ahi","valid.t90"):="no"]
   pheno[cpap=='yes', c("valid.ahi","valid.t90"):="no"]
-  pheno[valid.ahi=='no',ahi:=NA]
+  
+  pheno[valid.ahi=='no', ahi:=NA]
   pheno[valid.ahi=='no', OSAcat:=NA]
-  pheno[valid.t90=='no',t90:=NA]
+  pheno[valid.t90=='no', t90:=NA]
+  pheno[valid.t90=='no', odi:=NA]
+  
+  pheno[is.na(odi), valid.t90:='no']
   
   # T90 categories 
   pheno[t90!=0, t90cat :=  cut(t90,breaks = quantile(t90,
@@ -268,20 +272,20 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
   saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
   #valid.ahi + pheno
-  nrow(sleep[valid.ahi=='yes',]) # 3301 individuals with valid flow and sat monitoring 
-  sum(sleep[valid.ahi=='yes',]$SCAPISid %in% pheno$SCAPISid) # 3208 with valid monitoring and pheno and MGS data 
-  valid.ahi = merge(sleep[valid.ahi=='yes',], pheno, by = "SCAPISid", all=F )
+  #nrow(sleep[valid.ahi=='yes',]) # 3301 individuals with valid flow and sat monitoring 
+  #sum(sleep[valid.ahi=='yes',]$SCAPISid %in% pheno$SCAPISid) # 3208 with valid monitoring and pheno and MGS data 
+  #valid.ahi = merge(sleep[valid.ahi=='yes',], pheno, by = "SCAPISid", all=F )
 
   #Saving the data #### 
-  write.table(valid.ahi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.MGS.Upp.tsv",row.names = FALSE,
-              sep = '\t',quote=FALSE)
+  #write.table(valid.ahi, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validsleep.MGS.Upp.tsv",row.names = FALSE,
+    #          sep = '\t',quote=FALSE)
 
   # valid.t90 + pheno
-  valid.t90 = merge(sleep[valid.t90=='yes',], pheno, by = "SCAPISid", all=F )
+  #valid.t90 = merge(sleep[valid.t90=='yes',], pheno, by = "SCAPISid", all=F )
 
   # Save valid.t90 data
-  write.table(valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", row.names = FALSE,
-              sep = "\t",quote = FALSE)
+  #write.table(valid.t90, file = "/home/baldanzi/Datasets/sleep_SCAPIS/validodi.MGS.Upp.tsv", row.names = FALSE,
+    #          sep = "\t",quote = FALSE)
 
   # 3622 individuals have a valid T90 measurement 
 
