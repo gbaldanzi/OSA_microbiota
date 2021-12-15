@@ -30,10 +30,12 @@ source("Spearman.correlation.function.R")
   source("cor_model2/Script6_cor2_AHI_MGS.R")
 
   source("cor_model2/Script6_cor2_T90_MGS.R")
+
+  source("cor_model2/Script6_cor2_ODI_MGS.R")
   
   source("cor_model2/Script6_cor2_BMI_MGS.R")
 
-  res <- rbind(res.ahi, res.t90, res.bmi)
+  res <- rbind(res.ahi, res.t90, res.odi, res.bmi)
   
   # Merge taxonomic annotation 
   taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
@@ -50,10 +52,12 @@ source("Spearman.correlation.function.R")
   mgs.fdr.bmi = res[exposure=='BMI' & q.value<.05,MGS]
   mgs.fdr.ahi = res[exposure=="ahi" & q.value<.05 &!MGS %in% mgs.fdr.bmi,MGS]
   mgs.fdr.t90 = res[exposure=='t90' & q.value<.05 & !MGS %in% mgs.fdr.bmi,MGS]
+  mgs.fdr.odi = res[exposure=='odi' & q.value<.05 & !MGS %in% mgs.fdr.bmi,MGS]
                      
   
   mgs.m2 <- list(mgs.fdr.ahi = mgs.fdr.ahi,
-                 mgs.fdr.t90 = mgs.fdr.t90) 
+                 mgs.fdr.t90 = mgs.fdr.t90,
+                 mgs.fdr.odi = mgs.fdr.odi) 
   
   
   saveRDS(mgs.m2, paste0(output,'mgs.m2.rds'))

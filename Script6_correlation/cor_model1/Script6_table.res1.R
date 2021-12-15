@@ -9,7 +9,7 @@
 # This code will produce a table from the correlations of AHI, BMI, 
 # and T90 with MGSs in model 1
 
-pacman::p_load(data.table,ggplot2,tidyr,dplyr)
+pacman::p_load(data.table,tidyr,dplyr)
 source("Script6.Functions.R")
 
 # input and output folders 
@@ -25,22 +25,21 @@ input = "/home/baldanzi/Sleep_apnea/Results/"
   
   res.list <- list(AHI = res[exposure=="ahi",],
                    T90 = res[exposure=="t90",],
+                   ODI = res[exposure=="odi",],
                    BMI = res[exposure=="BMI",])
   
   res.list = lapply(res.list,Clean.Correlation.Results)
   
+  
+  res.df = do.call(rbind,res.list)
+  
   # Restricting results to mgs.m1
-  res.list = lapply(res.list,function(x){
-    x[x$MGS %in% mgs.m1,]
-  })
+  res.df[res.df$MGS %in% mgs.m1,]
+
   
   # From long to wide
-  res.df = rbind(res.list[[1]],res.list[[2]],res.list[[3]])
-  #a = c("cor.","p.value","q.value","N")
-  #res.df = dcast(setDT(res.df), MGS~exposure,value.var=a)
-  
   res.df <- res.df %>% pivot_wider(id_cols = MGS, names_from=exposure, 
-                                   values_from= c("cor.","p.value","q.value","N"))
+                                   values_from= c("rho","p.value","q.value","N"))
   
   # Save table 
   saveRDS(res.df,file="/home/baldanzi/Sleep_apnea/Results/table.res1.rds")

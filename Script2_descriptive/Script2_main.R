@@ -30,5 +30,5 @@ library(RColorBrewer)
   message("Run Descriptive - Phenotypes")
   source('Script2_descriptive/Script2_descriptivestatistics.R')
   
-  message("Run Descriptive - Taxonomy")
-  source('Script2_descriptive/Script2_taxonomy.R')
+  #message("Run Descriptive - Taxonomy")
+  #source('Script2_descriptive/Script2_taxonomy.R')

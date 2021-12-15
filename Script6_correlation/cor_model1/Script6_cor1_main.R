@@ -2,6 +2,8 @@
 # Gabriel Baldanzi 
 # Script created in 2021-08-24
 
+# Last update: 2021-12-14
+
 model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
 model2 <- c(model1,"metformin","hypermed","dyslipmed","ppi","Fibrer",
             "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
@@ -36,21 +38,22 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   
     source('cor_model1/Script6_cor1_AHI_MGS.R')
     source('cor_model1/Script6_cor1_T90_MGS.R')
+    source('cor_model1/Script6_cor1_ODI_MGS.R')
     source('cor_model1/Script6_cor1_BMI_MGS.R')
   
-  res <- rbind(res.ahi, res.t90, res.bmi)
+  res <- rbind(res.ahi, res.t90,res.odi, res.bmi)
   
-  res$model= "model1"
+  res$model= "basic model"
   
   names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                  "N", "method", "covariates","q.value","model")
   
   # Merging results with taxonomy information #### 
   
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
-  setnames(taxonomy,"maintax_mgs","MGS")
+  #taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  #setnames(taxonomy,"maintax_mgs","MGS")
   
-  res <- merge(res, taxonomy, by="MGS", all.x=T)
+  #res <- merge(res, taxonomy, by="MGS", all.x=T)
   
   fwrite(res, file = paste0(output,"cor_all.var_mgs.tsv"))
   
