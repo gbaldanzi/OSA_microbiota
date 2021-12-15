@@ -2,9 +2,9 @@
 # Gabriel Baldanzi 
 # Script created in 2021-10-21
 
-# Lastest update: 2021-10-21
+# Lastest update: 2021-12-15
 
-# This code will produce a table from the correlations of AHI, BMI, 
+# This code will produce a table from the correlations of AHI, BMI, ODI,
 # and T90 with MGSs in the Sensitivity Analysis with Antibiotic 
 
 pacman::p_load(data.table,tidyr,dplyr)
