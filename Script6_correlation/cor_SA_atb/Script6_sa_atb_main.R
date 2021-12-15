@@ -35,10 +35,6 @@
   
   # Import results 
   
-  #res <- fread(paste0(input,"cor_sa_atb3m_all.var_mgs.tsv"))
-  
-  #res[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-  
   mgs.fdr  = readRDS(paste0(input,'mgs.m2.rds'))  # Signature MGSs 
   
   
@@ -54,13 +50,17 @@
   
   mgs.m1 = mgs.fdr$mgs.fdr.ahi
   
-  source('cor_model2/Script6_cor2_AHI_MGS.R')
+  source('cor_model2/Script6_cor2_AHI_MGS.R') # re-using scripts used on the full-model analysis
   
   mgs.m1 = mgs.fdr$mgs.fdr.t90
   
-  source('cor_model2/Script6_cor2_T90_MGS.R')
+  source('cor_model2/Script6_cor2_T90_MGS.R') # re-using scripts used on the full-model analysis
   
-  res <- rbind(res.ahi, res.t90)
+  mgs.m1 = mgs.fdr$mgs.fdr.odi
+  
+  source('cor_model2/Script6_cor2_ODI_MGS.R') # re-using scripts used on the full-model analysis
+  
+  res <- rbind(res.ahi, res.t90, res.odi)
   
   res$model= "sa_atb6m"
   
@@ -72,5 +72,5 @@
   # Final table and venn diagram 
   message("Table of Results")
   source('cor_SA_atb/Script6_sa_atb_table.res2.R')
-  message("Producing the Venn diagram")
-  source('cor_SA_atb/Script6_sa_atb_venn2.R')
+  #message("Producing the Venn diagram")
+  #source('cor_SA_atb/Script6_sa_atb_venn2.R')

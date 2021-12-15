@@ -4,8 +4,8 @@
 
 # Lastest update: 2021-12-15
 
-# This code will produce a table from the correlations of AHI, BMI, ODI,
-# and T90 with MGSs in the Sensitivity Analysis with Antibiotic 
+# This code will produce a table comparing results from the Main analysis (full model) with
+# the results from the sensitivity analysis excluding antibiotic users
 
 pacman::p_load(data.table,tidyr,dplyr)
 
@@ -36,8 +36,11 @@ pacman::p_load(data.table,tidyr,dplyr)
   a <- c("MGS","rho", "p.value","q.value","model","N")
   res.saahi <- res.sa[MGS %in% mgs.fdr$mgs.fdr.ahi & exposure=="ahi", a, with = F]
   res.sat90 <- res.sa[MGS %in% mgs.fdr$mgs.fdr.t90 & exposure=="t90", a, with = F]
+  res.saodi <- res.sa[MGS %in% mgs.fdr$mgs.fdr.odi & exposure=="odi", a, with = F]
+  
   res.m2ahi <- res.m2[MGS %in% mgs.fdr$mgs.fdr.ahi & exposure == "ahi", a, with = F]
   res.m2t90 <- res.m2[MGS %in% mgs.fdr$mgs.fdr.t90 & exposure == "t90", a, with = F]
+  res.m2odi <- res.m2[MGS %in% mgs.fdr$mgs.fdr.odi & exposure == "odi", a, with = F]
   
   res.ahi <- rbind(res.m2ahi, res.saahi) %>% 
     pivot_wider(id_cols = MGS, names_from=model, values_from = c(rho, p.value ,q.value, N))                                                     
@@ -46,11 +49,15 @@ pacman::p_load(data.table,tidyr,dplyr)
   res.t90 <- rbind(res.m2t90, res.sat90) %>% 
     pivot_wider(id_cols = MGS, names_from=model, values_from = c(rho, p.value,q.value, N))  
   
+  res.odi <- rbind(res.m2odi, res.saodi) %>% 
+    pivot_wider(id_cols = MGS, names_from=model, values_from = c(rho, p.value,q.value, N))
+  
   
   setDT(res.ahi)
   setDT(res.t90)
+  setDT(res.odi)
   
-  list.res <- list(ahi = res.ahi, t90 = res.t90)
+  list.res <- list(ahi = res.ahi, t90 = res.t90, odi = res.odi)
   
   
   # Save list of table  table 
