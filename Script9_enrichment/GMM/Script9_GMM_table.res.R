@@ -5,7 +5,7 @@
 # Inferential Statistics 
 
 # This code will produce a table with overrepresentation analysis of GMM modules
-# correlated to AHI, T90 and BMI
+# correlated to AHI, T90, ODI and BMI
 
 
   pacman::p_load(data.table)
