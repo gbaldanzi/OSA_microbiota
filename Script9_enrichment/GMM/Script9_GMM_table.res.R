@@ -22,9 +22,6 @@
   gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
   
   
-  res.pos <- merge(res.pos, gmm.names, by.x="pathway", by.y="Module")
-  res.neg <- merge(res.neg, gmm.names, by.x="pathway", by.y="Module")
-  
   #Cleaning
   res.pos[q.value>=0.001, q.value:=round(q.value, digits = 3)]
   res.neg[q.value>=0.001, q.value:=round(q.value, digits = 3)]
@@ -32,9 +29,25 @@
   res.pos[,NES:=round(NES,3)]
   res.neg[,NES:=round(NES,3)]
   
-  res.pos <-  res.pos[order(q.value) & q.value<0.05,.(exposure,pathway,Name,HL1, HL2,NES,pval,q.value)]
-  res.neg <-  res.neg[order(q.value) & q.value<0.05,.(exposure,pathway,Name,HL1, HL2,NES,pval,q.value)]
-
+  res.pos[,sig:=ifelse(q.value<.05,"yes","no")]
+  res.neg[,sig:=ifelse(q.value<.05,"yes","no")]
+  
+  a = c("pathway", "pval", "q.value", "NES","exposure","sig")
+  res.pos <- dcast(res.pos[,a,with=F], pathway ~ exposure, 
+                   value.var= c("sig","NES", "pval", "q.value"))
+  
+  res.neg <- dcast(res.neg[,a,with=F], pathway ~ exposure, 
+                   value.var= c("sig","NES", "pval", "q.value"))
+  
+  
+  res.pos <- merge(res.pos, gmm.names, by.x="pathway", by.y="Module")
+  res.neg <- merge(res.neg, gmm.names, by.x="pathway", by.y="Module")
+  
+  
+  setcolorder(res.pos, c("pathway","Name","HL1", "HL2"))
+  setcolorder(res.neg, c("pathway","Name","HL1", "HL2"))
+  
+ 
   #Saving 
   saveRDS(res.pos,file=paste0(output,"ea_GMM_table_pos.rds"))
   saveRDS(res.neg,file=paste0(output,"ea_GMM_table_neg.rds"))

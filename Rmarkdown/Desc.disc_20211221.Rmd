@@ -366,7 +366,7 @@ permafiles <- c("permanova_model3_t90_bc.tsv")
 perma.res = lapply(paste0(results.dr,permafiles), fread)
 names(perma.res) <- c("full_model")
 
-ps <- lapply(perma.res.osa, function(x) x[variables =="OSAcat", 'Pr(>F)'])
+ps <- lapply(perma.res, function(x) x[variables =="t90cat", 'Pr(>F)'])
 ps <- lapply(length(ps), function(x) ps[[x]][,model:=names(ps)[x]])
 ps <- do.call(rbind,ps)
 ps <- ps[,2:1]
@@ -601,11 +601,12 @@ n = nrow(t)
 ## Table for the Signature MGS {.tabset}
 
 ```{r,}
-mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
-mgs.fdr.m2_n <- length(unique(do.call('c',mgs.fdr.m2)))
+mgs.fdr <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
+mgs.fdr_n <- length(unique(do.call('c',mgs.fdr)))
+names(mgs.fdr) <- c("ahi", "t90", "odi")
 ```
 
-**`r mgs.fdr.m2_n`** MGS were correlated with AHI, ODI or T90, but not with BMI
+**`r mgs.fdr_n`** MGS were correlated with AHI, ODI or T90, but not with BMI
 
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
@@ -613,11 +614,14 @@ mgs.fdr.m2_n <- length(unique(do.call('c',mgs.fdr.m2)))
 t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa_mgs.fdr.rds')
 setDT(t$ahi)
 setDT(t$t90)
+setDT(t$odi)
 
 
-t.ahi <- t$ahi[MGS %in% mgs.fdr.m2$mgs.fdr.ahi,.(MGS,rho_model2,p.value_model2,N_model2, rho_SA,p.value_SA,q.value_SA,N_SA)]
+t.ahi <- t$ahi[MGS %in% mgs.fdr$ahi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
 
-t.t90 <- t$t90[MGS %in% mgs.fdr.m2$mgs.fdr.t90,.(MGS,rho_model2,p.value_model2,N_model2, rho_SA,p.value_SA,q.value_SA,N_SA)]
+t.t90 <- t$t90[MGS %in% mgs.fdr$t90,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
+
+t.odi <- t$odi[MGS %in% mgs.fdr$odi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
 
 sketch2 = htmltools::withTags(table(
   class = 'display',
@@ -675,6 +679,26 @@ datatable(t.t90,container=sketch2,rownames = FALSE, class = 'cell-border stripe'
 
 <br>
 
+### ODI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+datatable(t.odi,container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")
+
+```
+
+***
+
+<br>
+
 # Sensitivity Analysis 2 
 
 &nbsp;
@@ -689,9 +713,9 @@ t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa2.rds')
 setDT(t)
 n = nrow(t)
 
-t.ahi <- t[MGS %in% mgs.fdr.m2$mgs.fdr.ahi,.(MGS,cor_m2ahi,p.value_m2ahi, cor_sa2ahi,p.value_sa2ahi)]
+t.ahi <- t[MGS %in% mgs.fdr$ahi,.(MGS,cor_m2ahi,p.value_m2ahi, cor_sa2ahi,p.value_sa2ahi)]
 
-t.t90 <- t[MGS %in% mgs.fdr.m2$mgs.fdr.t90,.(MGS,cor_m2t90,p.value_m2t90, cor_sa2t90,p.value_sa2t90)]
+t.t90 <- t[MGS %in% mgs.fdr$t90,.(MGS,cor_m2t90,p.value_m2t90, cor_sa2t90,p.value_sa2t90)]
 
 sketch2 = htmltools::withTags(table(
   class = 'display',
@@ -818,6 +842,15 @@ Re-run the full model analysis for the signature species after excluding partici
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 
 list.res <- readRDS("/home/baldanzi/Sleep_apnea/Results/table.res_sa_atb_step2.rds") 
+table.fun <- function(x) {datatable(x, rownames = FALSE, class = 'cell-border stripe', options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% formatStyle(c(1,3,5,7), `border-right` = "solid 2px")}
 
 ```
 
@@ -825,24 +858,32 @@ list.res <- readRDS("/home/baldanzi/Sleep_apnea/Results/table.res_sa_atb_step2.r
 
 ## AHI {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-datatable(list.res$ahi) %>% formatStyle(c(1,3,5,7), `border-right` = "solid 2px")
+table.fun(list.res$ahi)
 ```
+
+<br>
+
 ***
 
 <br>
 
 ## T90 {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-datatable(list.res$t90) %>% formatStyle(c(1,3,5,7), `border-right` = "solid 2px")
+table.fun(list.res$t90) 
 ```
+<br>
+
 ***
 
 <br>
 
 ## ODI {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-datatable(list.res$odi) %>% formatStyle(c(1,3,5,7), `border-right` = "solid 2px")
+table.fun(list.res$odi) 
 ```
+
+<br>
+
 ***
 
 <br>
@@ -851,7 +892,7 @@ datatable(list.res$odi) %>% formatStyle(c(1,3,5,7), `border-right` = "solid 2px"
 
 ## GMM modules {.tabset}
 
-Enrichment analysis of GMM modules among the MGS correlated to AHI, T90, or BMI
+Enrichment analysis of GMM modules among the species associated to AHI, T90, ODI, or BMI
 
 ### Positive correlation {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
@@ -859,40 +900,10 @@ knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_GMM_pos.p
 
 t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_pos.rds')
 setDT(t)
-t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
-t[pval>=0.001,pval:=round(pval,digits = 3)]
+#t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+#t[pval>=0.001,pval:=round(pval,digits = 3)]
 
-t.bmi = t[exposure=="BMI"]
-a2 = t[exposure!="BMI",pathway]
-onlybmi = t[exposure=="BMI" & !pathway %in% a2,]
-
-a = t[exposure!="ahi",pathway]
-onlyahi = t[exposure=="ahi" & !pathway %in% a,]
-
-
-a = t[exposure!="t90",pathway]
-onlyt90 = t[exposure=="t90" & !pathway %in% a,]
-
-pathwayonlyt90 <- onlyt90[,pathway]
-pathwayonlyahi <- onlyahi[,pathway]
-pathwayonlybmi <- t.bmi[,pathway]
-
-t.t90 = t[exposure=="t90" & !pathway %in% c(pathwayonlybmi, pathwayonlyahi),]
-t.ahi = t[exposure=="ahi" & !pathway %in% c(pathwayonlybmi, pathwayonlyt90),]
-a = t.ahi[pathway %in% t.t90[,pathway],pathway]
-t.ahi.t90 <- t[exposure %in% c("ahi", "t90") & pathway %in% a,]
-
-```
-
-#### Sleep apnea {.unnumbered .tabset}
-     
-GMM modules not associated with BMI
-   
-##### AHI {-}
-   
-```{r,}
-t.ahi[,exposure:=NULL]
-datatable(t.ahi,rownames = FALSE, options = list(
+table.fun <- function(x) {datatable(x,filter="top", rownames = FALSE, class = 'cell-border stripe', options = list(
   rowCallback = JS(
     "function(row, data) {",
     "for (i = 1; i < data.length; i++) {",
@@ -900,143 +911,30 @@ datatable(t.ahi,rownames = FALSE, options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%    formatStyle(c(1,3), `border-right` = "solid 2px")
+    "}"))) %>% formatStyle(c(1,4,8,12,16), `border-right` = "solid 2px")}
+
+table.fun(t)
+
+
 ```
 
-***
-
-##### Only AHI {-}
-   
-```{r,}
-onlyahi[,exposure:=NULL]
-datatable(onlyahi,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
-```
-
-***
-     
-##### T90 {-}
-    
-```{r,}
-t.t90[,exposure:=NULL]
-datatable(t.t90,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
-```
-
-***
-   
-##### Only T90 {-}
-   
-```{r,}
-onlyt90[,exposure:=NULL]
-datatable(onlyt90,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
-```
-
-***
-   
-##### AHI & T90 {- }
-   
-```{r,}
-
-datatable(t.ahi.t90,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(1,3,5), `border-right` = "solid 2px")
-```
+<br>
 
 ***
 
-***
+<br>
 
 ### Negative correlation {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_GMM_neg.png")
 t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_neg.rds')
 setDT(t)
-t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
-t[pval>=0.001,q.value:=round(pval,digits = 3)]
+#t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+#t[pval>=0.001,q.value:=round(pval,digits = 3)]
 
-t.ahi.neg = t[exposure=="ahi",]
-a = t[exposure!="ahi",pathway]
-onlyahi = t[exposure=="ahi" & !pathway %in% a,]
+table.fun(t)
 
-t.t90.neg = t[exposure=="t90"]
-a = t[exposure!="ahi",pathway]
-onlyt90 = t[exposure=="t90" & !pathway %in% a,]
-
-t.bmi = t[exposure=="BMI"]
-a = t[exposure!="BMI",pathway]
-onlyahi = t[exposure=="BMI" & !pathway %in% a,]
-```
-      
-   **AHI**
-```{r,}
-t.ahi.neg[,exposure:=NULL]
-datatable(t.ahi.neg,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
-```  
-     
-   **T90**   
-```{r,}
-t.t90.neg[,exposure:=NULL]
-datatable(t.t90.neg,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
-```  
-         
-   **BMI**
-```{r,}
-t.bmi[,exposure:=NULL]
-datatable(t.bmi,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(2,4), `border-right` = "solid 2px")
-```  
+``` 
 
 &nbsp;
 
@@ -1064,8 +962,6 @@ load("/home/baldanzi/Datasets/MGS/original/MGS_HG3A.GMMs2MGS.RData") # object = 
   size.modules <- data.frame(Module = names(size.modules), size = size.modules)
   gmm.names <- merge(gmm.names,size.modules, by="Module")
   
-gmm.names <- gmm.names[Module %in% c(t.ahi[,pathway],t.t90[,pathway])]
-
 datatable(gmm.names,rownames = FALSE)
 ```
 
@@ -1138,7 +1034,7 @@ datatable(t.t90,rownames = FALSE, options = list(
 
 <div class = "blue">
 
-- *`r mgs.fdr.m2_n` MGS were correlated with either* **AHI** *or* **T90** *but not to BMI in the fully-adjusted model*   
+- *`r mgs.fdr_n` MGS were correlated with either* **AHI** , **T90** *or* **ODI** *but not to BMI in the fully-adjusted model*   
 - *Data on MGS-metabolite correlations was available for 23 species*
 
 </div>
@@ -1147,7 +1043,7 @@ datatable(t.t90,rownames = FALSE, options = list(
 
 
 
-```{r, out.width='70%', out.height='70%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
+```{r, out.width='90%', out.height='70%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
 knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png")
 ```
 
@@ -1165,7 +1061,7 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
   
 <div class = "blue">
 
-*- `r mgs.fdr.m2_n` MGS were correlated with either AHI or T90 but not to BMI in fully-adjusted model*
+*- `r mgs.fdr_n` MGS were correlated with either AHI or T90 but not to BMI in fully-adjusted model*
 
 </div>
 
@@ -1173,42 +1069,11 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
 
 <div class = "blue">
 
- **Bar plots** - number of carriers 
+ **Line plots** - number of carriers 
  
  </div>
 
 ```{r, echo=FALSE}
-#  mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
-  
-#  mgs.ahi <- mgs.fdr.m2$mgs.fdr.ahi
-#  mgs.t90 <- mgs.fdr.m2$mgs.fdr.t90
+knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/lineplots/final.plot.pdf")
   
 ```
-
-## AHI {.unnumbered .tabset}
-
-```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-#for(m in mgs.ahi){
-#  cat(sprintf("\n### %s {-} \n\n", m))
-#  cat(paste0("![](bar_ahi/minibar_ahi_",m,".png)"))
-#  cat(' \n')
-#}
-```
-
-<br>
-
-## T90 {.unnumbered .tabset}
-
-```{r, results='asis', echo=FALSE, fig.show='hold', out.width='50%'}
-#for(m in mgs.t90){
-#  cat(sprintf("\n### %s{-} \n\n", m))
-#  nn <- paste0("![](bar_t90/minibar_t90_",m,".png)")
-#  cat(nn,'\n')
-#}
-```
-
-<br>
-
-***
-
-<br>

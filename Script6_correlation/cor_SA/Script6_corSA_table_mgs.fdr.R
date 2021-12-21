@@ -23,7 +23,7 @@
   }
   
   res.m2 <- round.fun(res.m2)
-  res.m2[,model:="full model"]
+  res.m2[,model:="full_model"]
   res.sa <- round.fun(res.sa)
   
   # Keep only the significant MGS

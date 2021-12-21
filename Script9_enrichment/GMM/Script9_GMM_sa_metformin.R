@@ -4,7 +4,7 @@
 
 # 2021-11-09
 
-# Last update: 2021-11-09
+# Last update: 2021-12-21
 
 # The aim of this script it to conduct a sensitivity analysis for the GMM modules. 
 # For the sensitivity analysis, we will also adjust for metformin given the connection between
@@ -48,11 +48,12 @@
   
   source('cor_model1/Script6_cor1_AHI_MGS.R')
   source('cor_model1/Script6_cor1_T90_MGS.R')
+  source('cor_model1/Script6_cor1_ODI_MGS.R')
   
   
-  res <- rbind(res.ahi, res.t90)
+  res <- rbind(res.ahi, res.t90, res.odi)
   
-  res$model= "model1"
+  res$model= "basic model"
   
   names(res) = c("MGS", "exposure", "cor.coefficient", "p.value", 
                  "N", "method", "covariates","q.value","model")
@@ -80,7 +81,8 @@
   res[,mgs:=cutlast(MGS,9)]
   
   res.list <- list(AHI = res[exposure=="ahi",],
-                   T90 = res[exposure=="t90",])
+                   T90 = res[exposure=="t90",],
+                   ODI = res[exposure=='odi'])
   
   # List of modules ####
   load(paste0(input2,'MGS_HG3A.GMMs2MGS.RData')) # object = MGS_HG3A.GMMs2MGS
@@ -89,9 +91,9 @@
   # Enrichment analysis   
   # Positive correlations 
   message("Positive correlations")
-  res.pos = list()[1:2]
+  res.pos = list()[1:3]
   
-  for(i in 1:2){
+  for(i in 1:3){
     print(i)
     
     res.pos[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  

@@ -53,7 +53,7 @@
   
   # Create VennDiagram    
   venn3 <- ggvenn(list.res.neg ,
-                    fill_color = c("orange","cornflowerblue","green4"), 
+                    fill_color = c("orange","cornflowerblue","gray83","green4"), 
                     stroke_color = "white",
                     stroke_size = .2, 
                     show_percentage = F, 
