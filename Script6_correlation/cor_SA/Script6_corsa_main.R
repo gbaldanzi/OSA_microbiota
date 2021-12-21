@@ -52,12 +52,6 @@
   
   
   res <- rbind(res.ahi, res.t90, res.odi, res.bmi)
-  
-  # Merge taxonomic annotation 
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
-  setnames(taxonomy,"maintax_mgs","MGS")
-  
-  res <- merge(res, taxonomy, by="MGS", all.x=T)
-  
+
   fwrite(res, file = paste0(output,"corsa_all.var_mgs.tsv"))
   

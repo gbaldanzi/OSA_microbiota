@@ -20,17 +20,16 @@ input = "/home/baldanzi/Sleep_apnea/Results/"
 
   res.list <- list(AHI = res[exposure=="ahi",],
                  T90 = res[exposure=="t90",],
+                 ODI = res[exposure=="odi",],
                  BMI = res[exposure=="BMI",])
 
   res.list = lapply(res.list,Clean.Correlation.Results)
   
   # From long to wide
   res.df2 = rbind(res.list[[1]],res.list[[2]],res.list[[3]])
-  #a = c("cor.","p.value","q.value","N")
-  #res.df2 = dcast(setDT(res.df2), MGS~exposure,value.var=a)
-  
+
   res.df2 <- res.df2 %>% pivot_wider(id_cols = MGS, names_from=exposure, 
-                          values_from= c("cor.","p.value","q.value","N"))
+                          values_from= c("rho","p.value","q.value","N"))
   
   # Save table 
   saveRDS(res.df2,file="/home/baldanzi/Sleep_apnea/Results/table.res_sa.rds")
