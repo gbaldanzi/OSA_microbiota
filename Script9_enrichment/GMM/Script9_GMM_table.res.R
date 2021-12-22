@@ -26,11 +26,14 @@
   res.pos[q.value>=0.001, q.value:=round(q.value, digits = 3)]
   res.neg[q.value>=0.001, q.value:=round(q.value, digits = 3)]
   
+  res.pos[pval>=0.001, pval:=round(q.value, digits = 3)]
+  res.neg[pval>=0.001, pval:=round(q.value, digits = 3)]
+  
   res.pos[,NES:=round(NES,3)]
   res.neg[,NES:=round(NES,3)]
   
-  res.pos[,sig:=ifelse(q.value<.05,"yes","no")]
-  res.neg[,sig:=ifelse(q.value<.05,"yes","no")]
+  res.pos[,sig:=ifelse(q.value<.05,T,F)]
+  res.neg[,sig:=ifelse(q.value<.05,T,F)]
   
   a = c("pathway", "pval", "q.value", "NES","exposure","sig")
   res.pos <- dcast(res.pos[,a,with=F], pathway ~ exposure, 

@@ -234,13 +234,16 @@ kable(cov,format = "html", table.attr = "style='width:80%;'",
 &nbsp;
 
 
-# Beta diversity 
-
-
-## AHI categories {.tabset}
-
-### Plot {-}
+# Beta diversity {.tabset}
    
+## Plot    
+   
+```{r ,out.width='60%', out.height='60%', fig.align='center'}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/PCoA_sleepapnea.png")
+```
+   
+## AHI {.tabset}
+
 ```{r, }
 results.dr = '/home/baldanzi/Sleep_apnea/Results/'
 #permafiles = list.files(path=results.dr, pattern="*_osa_bc.tsv", full.names=T)
@@ -257,18 +260,6 @@ ps <- ps[,2:1]
 names(ps) <- c("model", "p.val")
 ```
 
-
-```{r ,out.width='50%', out.height='50%', fig.align='center'}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.OSAcat.png")
-```
-
-BC.T90.png
-
-```{r,fig.align='right'}
-kable(ps, caption = 'PERMANOVA test - p.value') %>%
-  #kable_classic(full_width = T) %>% 
-  kable_styling(position = "right", full_width=FALSE)
-```
 
 <br>
 
@@ -344,19 +335,6 @@ datatable(table.res, rownames = FALSE,  options = list(
 
 ## T90 categories {.tabset}
 
-<br>
-
-### PCoA
-
-```{r ,out.width='50%', out.height='50%', fig.align='center'}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/BC.T90.png")
-```
-
-<br>
-
-***
-
-<br>
 
 ```{r, }
 results.dr = '/home/baldanzi/Sleep_apnea/Results/'
@@ -376,8 +354,13 @@ names(ps) <- c("model", "p.val")
 ### Full model 
 
 ```{r, }
+perma.res = lapply(perma.res,function(dd){
+  apply(dd,2,function(x){ifelse(!is.na(x),x,"")})
+  })
+
 knitr::kable(perma.res[["full_model"]], 
-               caption = "T90 and BC - full model")
+               caption = "T90 and BC - full model") %>% 
+    kable_styling())
 ```
 
 <br>
@@ -1043,7 +1026,7 @@ datatable(t.t90,rownames = FALSE, options = list(
 
 
 
-```{r, out.width='90%', out.height='70%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
+```{r, out.width='100%', out.height='100%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
 knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png")
 ```
 
@@ -1073,7 +1056,7 @@ knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens
  
  </div>
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, out.width='110%', out.height='110%', fig.align='center',}
 knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/lineplots/final.plot.pdf")
   
 ```

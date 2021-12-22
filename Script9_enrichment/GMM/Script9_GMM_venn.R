@@ -48,6 +48,7 @@
     ggtitle("Pathways enriched among species\npositively correlated") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
   ggsave("Venn_GMM_pos.pdf",plot = venn2,device = "pdf", path=output.plot)
+  ggsave("Venn_GMM_pos.png",plot = venn2,device = "png", path=output.plot)
   
   # NEGATIVE CORRELATIONS
   

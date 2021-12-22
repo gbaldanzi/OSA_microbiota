@@ -7,14 +7,12 @@
 
 # This script will calculate beta diversity and on individuals with valid T90 measurement
 
-  # Import data
-  valid.t90 <- pheno[valid.t90=='yes',]
 
 # Bray-curtis dissimilarity #### 
   
 # Create dataset containing exclusively the MGS as columns/variables 
-  a=grep("____",names(valid.t90),value=T)
-  MGS=valid.t90[,a, with=F]
+  a <- grep("____",names(pheno),value=T)
+  MGS <- pheno[valid.t90=="yes" , a, with=F]
   
 # Estimating the BC index - creates a matrix with the BC index between individual samples 
   # MGS as relative abundances
