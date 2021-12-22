@@ -18,7 +18,7 @@
   # MGS as relative abundances
   message("calculating BC dissimilarity index - this will take a while")
   BC=as.matrix(vegdist(MGS,method="bray"))
-  rownames(BC)=colnames(BC)=valid.t90$SCAPISid
+  rownames(BC)=colnames(BC)=pheno[valid.t90=="yes",SCAPISid]
   fwrite(BC,'/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv',sep=",")
 
 # PCoA of BC

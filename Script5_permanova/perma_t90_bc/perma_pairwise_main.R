@@ -21,6 +21,7 @@
 
   # Importing data
   pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  pheno <- pheno[valid.t90=="yes",]
 
   # Transforming two-level factor variables into numeric variables 
   a= c("Sex","ppi","metformin","hypermed","dyslipmed")
@@ -31,11 +32,10 @@
   BC = as.matrix(BC)
   row.names(BC) = colnames(BC)
 
-  source('perma.pairwise.fun.R')
+  source('Script0_functions/perma.pairwise.fun.R')
 
 
 # Making sure that BC and dataset have the same order of observations 
-  pheno[,valid.t90="yes"]
   pheno <-  pheno[match(rownames(BC),pheno$SCAPISid),]
   
 
@@ -50,32 +50,14 @@
 
 # Runing PERMANOVA in parallel ####
   
-  pheno[OSAcat=="no OSA", OSAcat:="no_OSA"]
+  pheno[, t90cat:=factor(t90cat, levels(t90cat), 
+                         labels = c("t0", "t1", "t2", "t3"))]
   
-  list.res = vector(mode = "list",length = 0)
   
-  g1 = "no_OSA" ; g2 = c("Mild","Moderate","Severe")
+  list.res <- pairwise.perma.fun(outcome="BC", group_var="t90cat", covari=model3, data=pheno, nodes=16)
   
-  for(i in 1:3){
-  message(paste(g1,g2[i],sep = "_"))
-  list.res[[paste(g1,g2[i],sep = "_")]] <-  pairwise.perma.fun(outcome = "BC", group1 = g1, group2 = g2[i], covari = model3, data = pheno, nodes = 16)
-  }
   
-  g1 = "Mild" ; g2 = c("Moderate","Severe")
-  
-  for(i in 1:2){
-    message(paste(g1,g2[i],sep = "_"))
-  list.res[[paste(g1,g2[i],sep = "_")]] <-  pairwise.perma.fun(outcome = "BC", group1 = g1, group2 = g2[i], covari = model3, data = pheno, nodes = 16)
-  }
-  
-  g1 = "Moderate" ; g2 = c("Severe")
-  
-  for(i in 1:1){
-    message(paste(g1,g2[i],sep = "_"))
-  list.res[[paste(g1,g2[i],sep = "_")]] <-  pairwise.perma.fun(outcome = "BC", group1 = g1, group2 = g2[i], covari = model3, data = pheno, nodes = 16)
-  }
-  
-  saveRDS(list.res,file=paste0(output,"pairwise.perma.results.rds"))
+  saveRDS(list.res,file=paste0(output,"pairwise.perma.results_t90.rds"))
 #---------------------------------------------------------------------------#
 
   # Produce a final summary results table with FDR-p-values 
