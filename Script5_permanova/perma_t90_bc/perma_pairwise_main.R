@@ -62,8 +62,8 @@
 
   # Produce a final summary results table with FDR-p-values 
   
-  list.res = readRDS("/home/baldanzi/Sleep_apnea/Results/pairwise.perma.results.rds")
+  list.res = readRDS("/home/baldanzi/Sleep_apnea/Results/pairwise.perma.results_t90.rds")
   
   list.res$table <- clean.res(list.res[1:6]) 
   
-  saveRDS(list.res,file=paste0(output,"pairwise.perma.results.rds"))
+  saveRDS(list.res,file=paste0(output,"pairwise.perma.results_t90.rds"))

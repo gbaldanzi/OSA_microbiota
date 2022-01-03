@@ -360,7 +360,7 @@ perma.res = lapply(perma.res,function(dd){
 
 knitr::kable(perma.res[["full_model"]], 
                caption = "T90 and BC - full model") %>% 
-    kable_styling())
+    kable_styling()
 ```
 
 <br>
@@ -368,6 +368,25 @@ knitr::kable(perma.res[["full_model"]],
 ***
 
 <br>
+
+### Pairwise 
+```{r, echo=FALSE}
+list.res = readRDS("/home/baldanzi/Sleep_apnea/Results/pairwise.perma.results_t90.rds")
+
+knitr::kable(list.res$table, 
+               caption = "Pairwise comparisons between T90 groups") %>% 
+    kable_styling()
+
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+pheno[, t90cat:=factor(t90cat, levels(t90cat), 
+                         labels = c("t0", "t1", "t2", "t3"))]
+t = pheno %>% filter(valid.t90=="yes") %>% group_by(t90cat) %>% count() 
+
+knitr::kable(t, 
+               caption = "Size of T90 groups") %>% 
+    kable_styling()
+  
+```
 
 # Method figure
 
@@ -431,7 +450,8 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
     "}",
     "}",
     "}"))) %>% 
-  formatStyle(c(1,5,9), `border-right` = "solid 2px")
+  formatStyle(c(1,5,9), `border-right` = "solid 2px") 
+
 ```
 
 &nbsp;
@@ -473,7 +493,7 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 
 
 
-## Taxonomy of results
+## Taxonomy of results {.tabset}
 
 ### AHI 
      
@@ -482,7 +502,7 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
   mgs.m2 <-  readRDS("/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds")
   t <- fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
   setnames(t,"cor.coefficient","rho")
-  t[,rho:=round(rho,2)]
+  t[,rho:=round(rho,3)]
   t[q.value>=0.001,q.value:=round(q.value,3)]
   t[p.value>=0.001,p.value:=round(p.value,3)]
 
@@ -556,6 +576,34 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 ***
 
 <br>
+
+### Prevalence 
+
+```{r, warning=FALSE, message=FALSE}
+sig.mgs <- unique(do.call(c,mgs.m2)) 
+
+  t2 <-  data.table(MGS = sig.mgs, 
+                    prevalence = apply(decostand(pheno[,sig.mgs,with=F], "pa"), 2, sum)/nrow(pheno))
+  
+
+  t2[,prevalence:= round(prevalence*100,1)]
+
+ t3 <- t[exposure!="BMI" & MGS %in% sig.mgs, .(MGS,exposure,rho,q.value)]
+ setnames(t3,"q.value","q")
+ t3 <- dcast(t3, MGS ~ exposure, value.var=c("rho","q"))
+ 
+ t2 <- merge(t2,t3,by="MGS")
+  
+  datatable(t2,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>%  formatStyle(c(2,7), `border-right` = "solid 2px")
+```
 
 # Sensitivity analysis 
    
