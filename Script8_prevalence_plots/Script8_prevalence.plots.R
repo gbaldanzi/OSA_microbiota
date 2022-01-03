@@ -1,9 +1,10 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi, 2021-09-06
 
-# Last update: 2021-10-20
+# Last update: 2022-01-03
 
-# To investigate non-linear associations between MGS and AHI
+# This script will create plots to investigate non-linear 
+# associations between MGS and AHI, T90, and ODI
 
 
 rm(list = ls())
@@ -45,13 +46,20 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   res.odi <- res.m2[exposure =="odi" & MGS %in% mgs.fdr.m2$mgs.fdr.odi,]
 
   clean.y.axis <- function(y){
-  y <- gsub("Absicoccus_", "A. ", y)
+  #y <- gsub("Absicoccus_", "A. ", y)
+  yy <- unlist(strsplit(y, split = "____"))
+  y <- paste0(yy[2],"\n",yy[1])
   y <- gsub("Bifidobacterium_longum_subsp._longum", "B. longum subsp.\nlongum", y)
   y <- gsub("Blautia_","B. ",y)
   y <- gsub("Pediococcus_", "P. ", y)
-  y <- gsub("AM42_11","", y)
+  y <- gsub("_AM42_11","", y)
   y <- gsub("Staphylococcus_","S. ", y)
   y <- gsub("_sp"," sp", y)
+  y <- gsub("_v"," v",y)
+  y <- gsub("_AF"," AF",y)
+  y <- gsub("_8L"," 8L",y)
+  y <- gsub("_ur"," ur",y)
+  return(y)
   }
   
   cutlast <- function(char,n=9){
@@ -106,7 +114,8 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   #hm <- plot_grid(hm+theme(legend.position = "none"), legend, ncol = 2, 
  #                 rel_heights = c(1, 1.2), rel_widths = c(1,.06), axis="t")
   
-  ggsave(file="testhm2.pdf", plot=hm)
+  # PDF file to check if the Heatmap was constructed properly 
+  ggsave(file="check_hm.pdf", plot=hm)
     
     
     # Prevalence by groups 
@@ -194,14 +203,14 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     
     saveRDS(lineplots_3x, file = paste0(output.plot,'/lineplots/lineplots_3x.rds'))
     
-    plot.merged <- plot_grid(plotlist=lineplots_3x, ncol=6, labels = NULL)
+    lineplots.merged <- plot_grid(plotlist=lineplots_3x, ncol=6, labels = NULL)
     
-    final.plot <- plot_grid(plot.merged, hm, labels=NULL, ncol=1, rel_heights = c(8,1.3))
+    final.plot <- plot_grid(lineplots.merged, hm, labels=NULL, ncol=1, rel_heights = c(8,1.3))
     
     
     
-    ggsave("final.plot.pdf", plot = final.plot, path="lineplots/")
-    ggsave("plots.merged.pdf", plot = plot.merged, path="lineplots/")
+    ggsave("lineplot_hm_merged.pdf", plot = final.plot, path="lineplots/")
+    ggsave("lineplots_merged.pdf", plot = lineplots.merged, path="lineplots/")
     
     
     
