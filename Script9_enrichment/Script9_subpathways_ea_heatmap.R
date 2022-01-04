@@ -7,7 +7,11 @@
 
 
 
-# Last update: 2021-12-15
+# Last update: 2022-01-03
+
+# In this last update, instead of running the enrichment analysis myself, I have
+# downloaded the results from the Gutsy Atlas and present them in the heatmap. 
+# Only the signature species are presented. 
 
 rm(list=ls())
 
@@ -18,44 +22,47 @@ library(circlize)
 library(data.table)
 library(tidyverse)
 
-# Import results from enrichment analysis (positive correlations)
-# Import data
-res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_pos.tsv", data.table = F, sep = "\t")
+# Import the signature species 
+input <-  "/home/baldanzi/Sleep_apnea/Results/"
+input2 <-  
 
-# Important the relevant MGS for the heatmap 
-input = "/home/baldanzi/Sleep_apnea/Results/"
+  # Results from the MGS-AHI/T90/BMI correlation - Full model 
 
-# results from the MGS-AHI/T90/BMI correlation - Full model 
+    res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+    res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
 
-res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
-res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
+    
+  # Slee apnea signature mgs 
 
-# Slee apnea signature mgs 
-
-mgs.m2 = readRDS(paste0(input, "mgs.m2.rds"))
-mgs.rel <- unique(do.call('c',mgs.m2))
-mgs.rel <- mgs.rel[mgs.rel %in% res.table$MGS]
-
-#mgs.ahi <- mgs.m2$mgs.fdr.ahi
-#mgs.t90 <- mgs.m2$mgs.fdr.t90
-#mgs.odi <- mgs.m2$mgs.fdr.odi
-
-#mgs.ahi.increased <- res.m2[cor.coefficient>0 & MGS %in% mgs.ahi & exposure=="ahi", MGS]
-#mgs.ahi.decreased <- res.m2[cor.coefficient<0 & MGS %in% mgs.ahi & exposure=="ahi", MGS]
-
-#exclusive.mgs.t90 <- mgs.t90[!mgs.t90 %in% mgs.ahi]
-
-#mgs.t90.increased <- res.m2[cor.coefficient>0 & MGS %in% exclusive.mgs.t90 & exposure=="t90", MGS]
-#mgs.t90.decreased <- res.m2[cor.coefficient<0 & MGS %in% exclusive.mgs.t90 & exposure=="t90", MGS]
-
-#mgs.increased <- c(mgs.ahi.increased,mgs.t90.increased)
-#mgs.decreased <- c(mgs.ahi.decreased, mgs.t90.decreased)
+  mgs.m2 = readRDS(paste0(input, "mgs.m2.rds"))
+  mgs.rel <- unique(do.call('c',mgs.m2))
+  mgs.rel <- mgs.rel[mgs.rel %in% res.table$MGS]
 
   a <- c("ahi", "t90", "odi")
 
   mgs.increased <- unique(res.m2[cor.coefficient>0 & MGS %in% mgs.rel & exposure %in% a , MGS])
   mgs.decreased <- unique(res.m2[cor.coefficient<0 & MGS %in% mgs.rel & exposure %in% a , MGS])
 
+  
+# Import GUTSY Atlas results from enrichment analysis 
+  ea_gutsy <- fread(paste0(input2),"Supplementary_Table_6.tsv")
+  
+  names(ea_table) <- gsub("-","_",names(ea_table))
+  names(ea_table) <- gsub(" ","_",names(ea_table))
+  
+  cutlast <- function(char,n){
+    l <- nchar(char)
+    a <- l-n+1
+    return(substr(char,a,l))
+  }
+  
+  ea_gutsy[,mgs:=paste0("HG3A.",cutlast(Metagenomics_species,4))]
+  
+  # Import data
+  res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_pos.tsv", data.table = F, sep = "\t")
+  
+  
+  
 # Positive 
 
 
