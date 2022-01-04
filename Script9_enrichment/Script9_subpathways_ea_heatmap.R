@@ -7,7 +7,7 @@
 
 
 
-# Last update: 2022-01-03
+# Last update: 2022-01-04
 
 # In this last update, instead of running the enrichment analysis myself, I have
 # downloaded the results from the Gutsy Atlas and present them in the heatmap. 
@@ -22,21 +22,45 @@ library(circlize)
 library(data.table)
 library(tidyverse)
 
+
 # Import the signature species 
 input <-  "/home/baldanzi/Sleep_apnea/Results/"
-input2 <-  
+
+# Function to select the last characters of a string 
+cutlast <- function(char,n){
+  l <- nchar(char)
+  a <- l-n+1
+  return(substr(char,a,l))
+}
 
   # Results from the MGS-AHI/T90/BMI correlation - Full model 
 
     res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
     res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-
     
+    Mgs.mgs <- unique(res.m2[,.(MGS,mgs)])
+
   # Slee apnea signature mgs 
 
   mgs.m2 = readRDS(paste0(input, "mgs.m2.rds"))
   mgs.rel <- unique(do.call('c',mgs.m2))
-  mgs.rel <- mgs.rel[mgs.rel %in% res.table$MGS]
+  mgs.rel.HG3A <- Mgs.mgs[MGS %in% mgs.rel, mgs]
+  
+  
+  # Import GUTSY Atlas results from enrichment analysis 
+  ea_gutsy <- fread("/home/baldanzi/Datasets/gutsy_atlas/Supplementary_Table_6.tsv")
+  
+  names(ea_gutsy) <- gsub("-","_",names(ea_gutsy))
+  names(ea_gutsy) <- gsub(" ","_",names(ea_gutsy))
+  
+  ea_gutsy[,mgs:=paste0("HG3A.",cutlast(Metagenomic_species,4))]
+  
+  ea_gutsy <- ea_gutsy[mgs %in% mgs.rel.HG3A,]
+  
+  
+  # Increased and decreased species in OSA
+  
+  mgs.rel <- Mgs.mgs[MGS %in% mgs.rel & mgs %in% ea_gutsy$mgs,MGS]
 
   a <- c("ahi", "t90", "odi")
 
@@ -44,39 +68,22 @@ input2 <-
   mgs.decreased <- unique(res.m2[cor.coefficient<0 & MGS %in% mgs.rel & exposure %in% a , MGS])
 
   
-# Import GUTSY Atlas results from enrichment analysis 
-  ea_gutsy <- fread(paste0(input2),"Supplementary_Table_6.tsv")
-  
-  names(ea_table) <- gsub("-","_",names(ea_table))
-  names(ea_table) <- gsub(" ","_",names(ea_table))
-  
-  cutlast <- function(char,n){
-    l <- nchar(char)
-    a <- l-n+1
-    return(substr(char,a,l))
-  }
-  
-  ea_gutsy[,mgs:=paste0("HG3A.",cutlast(Metagenomics_species,4))]
-  
-  # Import data
-  res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_pos.tsv", data.table = F, sep = "\t")
-  
-  
-  
 # Positive 
 
 
 # Filter to only the pathways that are FDR associated with one MGS
-table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(padj<.05))
-hm.pathways <- table.pathways$pathway[table.pathways$nr_p.05>0]
+  res.table <- ea_gutsy[Direction=="Positive"]
+  
+  table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% summarise(nr_p.05 = sum(q_value<.05))
+  hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>0]
 
   hm.pathways <- hm.pathways[-which(hm.pathways=="Partially_Characterized_Molecules")]
   hm.pathways <- hm.pathways[-which(hm.pathways=="Food_Component_Plant")]
 
 
-hm.matrix <- res.table %>% select(MGS, pathway, NES)%>% 
-  filter(pathway %in% hm.pathways) %>% 
-  spread(key=pathway, value = NES)
+hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
+  filter(Metabolite_subclass %in% hm.pathways) %>% 
+  spread(key=pathway, value = Estimate)
 
 rownames(hm.matrix) <- hm.matrix$MGS
 hm.matrix$MGS <- NULL
@@ -90,9 +97,9 @@ rownames(hm.matrix_pos) <- gsub("_"," ",rownames(hm.matrix_pos))
 rownames(hm.matrix_pos) <- gsub("Metabolism","Metab.",rownames(hm.matrix_pos))
 
 
-  qvalues_pos <- res.table %>% select(MGS, pathway, padj)%>% 
-      filter(pathway %in% hm.pathways) %>% 
-      spread(key=pathway, value = padj)
+  qvalues_pos <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
+      filter(Metabolite_subclass %in% hm.pathways) %>% 
+      spread(key=Metabolite_subclass, value = q_value)
 
   rownames(qvalues_pos) <- qvalues_pos$MGS
   qvalues_pos$MGS <- NULL
@@ -104,19 +111,19 @@ rownames(hm.matrix_pos) <- gsub("Metabolism","Metab.",rownames(hm.matrix_pos))
 # Negative 
 
 # Import data
-res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_neg.tsv", data.table = F, sep = "\t")
+  res.table <- ea_gutsy[Direction=="Negative"]
 
 # Filter to only the pathways that are FDR associated with one MGS
-  table.pathways <- res.table %>% group_by(pathway) %>% summarise(nr_p.05 = sum(padj<.05))
-  hm.pathways <- table.pathways$pathway[table.pathways$nr_p.05>0]
+  table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% summarise(nr_p.05 = sum(q_value<.05))
+  hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>0]
   
   
   hm.pathways <- hm.pathways[-which(hm.pathways=="Partially_Characterized_Molecules")]
 
   
-  hm.matrix <- res.table %>% select(MGS, pathway, NES)%>% 
-    filter(pathway %in% hm.pathways) %>% 
-    spread(key=pathway, value = NES)
+  hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
+    filter(Metabolite_subclass %in% hm.pathways) %>% 
+    spread(key=Metabolite_subclass, value = Estimate)
 
   rownames(hm.matrix) <- hm.matrix$MGS
   hm.matrix$MGS <- NULL
@@ -135,9 +142,9 @@ res.table <- fread("/home/baldanzi/Sleep_apnea/Results/ea_subpathways_neg.tsv", 
   rownames(hm.matrix_neg) <- gsub("PC","",rownames(hm.matrix_neg))
 
 
-qvalues_neg <- res.table %>% select(MGS, pathway, padj)%>% 
-  filter(pathway %in% hm.pathways) %>% 
-  spread(key=pathway, value = padj)
+qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
+  filter(Metabolite_subclass %in% hm.pathways) %>% 
+  spread(key=Metabolite_subclass, value = q_value)
 
 rownames(qvalues_neg) <- qvalues_neg$MGS
 qvalues_neg$MGS <- NULL
