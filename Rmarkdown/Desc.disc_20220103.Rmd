@@ -925,7 +925,7 @@ table.fun(list.res$odi)
 
 Enrichment analysis of GMM modules among the species associated to AHI, T90, ODI, or BMI
 
-### Positive correlation {-}
+### Positive correlations {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_GMM_pos.png")
 
@@ -946,6 +946,9 @@ table.fun <- function(x) {datatable(x,filter="top", rownames = FALSE, class = 'c
 
 table.fun(t)
 
+modules.ahi = t[sig_ahi==T & sig_BMI==F, pathway]
+modules.t90 = t[sig_t90==T & sig_BMI==F, pathway]
+modules.odi = t[sig_odi==T & sig_BMI==F, pathway]
 
 ```
 
@@ -955,7 +958,7 @@ table.fun(t)
 
 <br>
 
-### Negative correlation {-}
+### Negative correlations {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_GMM_neg.png")
 t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_neg.rds')
@@ -964,6 +967,10 @@ setDT(t)
 #t[pval>=0.001,q.value:=round(pval,digits = 3)]
 
 table.fun(t)
+
+modules.ahi = c(modules.ahi, t[sig_ahi==T & sig_BMI==F, pathway])
+modules.t90 = c(modules.t90,t[sig_t90==T & sig_BMI==F, pathway])
+modules.odi = c(modules.odi, t[sig_odi==T & sig_BMI==F, pathway])
 
 ``` 
 
@@ -981,7 +988,7 @@ table.fun(t)
 
 <br>
 
-### GMM modules  {-}
+### Module names  {-}
 
 <br>
 
@@ -1015,16 +1022,18 @@ setDT(t)
 t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
 t[pval>=0.001,pval:=round(pval,digits = 3)]
 
-t.ahi = t[exposure=="ahi" & pathway %in% c("MF0039","MF0068")] 
-t.t90 = t[exposure=="t90" & pathway %in% c("MF0007","MF0068","MF0074","MF0079",
-                                            "MF0094")] 
+t.ahi = t[exposure=="ahi" & pathway %in% modules.ahi] 
+t.t90 = t[exposure=="t90" & pathway %in% modules.t90] 
+t.odi = t[exposure=="odi" & pathway %in% modules.odi] 
 
 ```
 
 #### AHI {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-t.ahi[,exposure:=NULL]
-datatable(t.ahi,rownames = FALSE, options = list(
+
+table.fun <- function(x) {
+x[,exposure:=NULL]
+datatable(x,rownames = FALSE, options = list(
   rowCallback = JS(
     "function(row, data) {",
     "for (i = 1; i < data.length; i++) {",
@@ -1033,22 +1042,28 @@ datatable(t.ahi,rownames = FALSE, options = list(
     "}",
     "}",
     "}"))) %>%    formatStyle(c(2), `border-right` = "solid 2px")
+}
+
+table.fun(t.ahi)
 ```
 
 <br>
 
 #### T90 {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-t.t90[,exposure:=NULL]
-datatable(t.t90,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%    formatStyle(c(2), `border-right` = "solid 2px")
+
+table.fun(t.t90)
+
+```
+
+<br>
+
+
+#### ODI {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+table.fun(t.odi)
+
 ```
 
 <br>
@@ -1066,7 +1081,7 @@ datatable(t.t90,rownames = FALSE, options = list(
 <div class = "blue">
 
 - *`r mgs.fdr_n` MGS were correlated with either* **AHI** , **T90** *or* **ODI** *but not to BMI in the fully-adjusted model*   
-- *Data on MGS-metabolite correlations was available for 23 species*
+- *Data on MGS-metabolite correlations was available for 37 species*
 
 </div>
 
@@ -1075,7 +1090,7 @@ datatable(t.t90,rownames = FALSE, options = list(
 
 
 ```{r, out.width='100%', out.height='100%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
-knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png")
+knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.pdf")
 ```
 
 &nbsp;

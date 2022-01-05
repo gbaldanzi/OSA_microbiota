@@ -1059,8 +1059,6 @@ table.fun(t.t90)
 <br>
 
 
-<br>
-
 #### ODI {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 
