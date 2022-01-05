@@ -1090,7 +1090,7 @@ table.fun(t.odi)
 
 
 ```{r, out.width='100%', out.height='100%', fig.align='center', fig.cap="Subpathways enriched among correlation between MGS and metabolites"}
-knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.pdf")
+knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.png")
 ```
 
 &nbsp;
