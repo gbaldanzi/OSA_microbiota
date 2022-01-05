@@ -18,7 +18,7 @@
 # Describe the taxonomic composition by different OSA severity groups. 
 
 # Importing data with taxonomic information for every MGS 
-taxonomy = fread("/home/baldanzi/Datasets/MGS/clean/",data.table = F)
+taxonomy = fread("/home/baldanzi/Datasets/MGS/clean/taxonomy",data.table = F)
 valid.ahi <- pheno[valid.ahi=='yes',]
 
 # Transforming taxonomic levels into factor variables

@@ -24,6 +24,7 @@ res <- fread(paste0(input,"cor_all.var_mgs.tsv"))
 
 res.list <- list(AHI = res[exposure=="ahi",],
                  T90 = res[exposure=="t90",],
+                 ODI = res[exposure=="odi",],
                  BMI = res[exposure=="BMI",])
 
 
@@ -34,11 +35,13 @@ mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
 
 # Create VennDiagram    
 venn.m1 <- ggvenn(mgs.fdr,
-                  fill_color = c("orange","cornflowerblue","green4"),
+                  fill_color = c("orange","cornflowerblue","grey83","green4"),
                   stroke_color = "white",
                   stroke_size = .2, 
                   show_percentage = F, 
-                  fill_alpha = .6) +
+                  fill_alpha = .6, 
+                  set_name_size = 4,
+                  text_size = 3) +
   ggtitle("Basic model") +
   theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
 
@@ -50,6 +53,7 @@ res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
 
 res.list <- list(AHI = res[exposure=="ahi",],
                  T90 = res[exposure=="t90",],
+                 ODI = res[exposure=="odi",],
                  BMI = res[exposure=="BMI",])
 
 # filter MGS significant at the FDR p-value<0.05
@@ -59,11 +63,13 @@ mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
 
 # Create VennDiagram    
 venn.m2 <- ggvenn(mgs.fdr,
-                  fill_color = c("orange","cornflowerblue","green4"),
+                  fill_color = c("orange","cornflowerblue","grey83","green4"),
                   stroke_color = "white",
                   stroke_size = .2, 
                   show_percentage = F, 
-                  fill_alpha = .6) +
+                  fill_alpha = .6, 
+                  set_name_size = 4,
+                  text_size = 3) +
   ggtitle("Fully adjusted model") +
   theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
 

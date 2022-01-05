@@ -3,6 +3,8 @@
 # Gabriel Baldanzi 
 # 2021-09-02
 
+# Last update: 2021-12-15
+
  message("Sensitivity Analysis 1")
 
   pacman::p_load(data.table, ppcor, fastDummies,vegan)
@@ -44,16 +46,12 @@
   
   source("cor_SA/Script6_corsa_T90_MGS.R")
   
+  source("cor_SA/Script6_corsa_ODI_MGS.R")
+  
   source("cor_SA/Script6_corsa_BMI_MGS.R")
   
   
-  res <- rbind(res.ahi, res.t90, res.bmi)
-  
-  # Merge taxonomic annotation 
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
-  setnames(taxonomy,"maintax_mgs","MGS")
-  
-  res <- merge(res, taxonomy, by="MGS", all.x=T)
-  
+  res <- rbind(res.ahi, res.t90, res.odi, res.bmi)
+
   fwrite(res, file = paste0(output,"corsa_all.var_mgs.tsv"))
   

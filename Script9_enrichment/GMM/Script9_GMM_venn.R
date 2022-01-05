@@ -24,9 +24,10 @@
     module.list = list(
                   data[exposure=="ahi" & q.value<0.05,pathway],
                   data[exposure=="t90" & q.value<0.05,pathway],
+                  data[exposure=="odi" & q.value<0.05,pathway],
                   data[exposure=="BMI" & q.value<0.05,pathway]
           )
-    names(module.list) <- c("AHI","T90","BMI")
+    names(module.list) <- c("AHI","T90","ODI","BMI")
     return(module.list)
   }
   
@@ -39,7 +40,7 @@
 
   # Create VennDiagram    
   venn2 <- ggvenn(list.res.pos ,
-                    fill_color = c("orange","cornflowerblue","green4"), 
+                    fill_color = c("orange","cornflowerblue","gray83","green4"), 
                     stroke_color = "white",
                     stroke_size = .2, 
                     show_percentage = F, 
@@ -47,12 +48,13 @@
     ggtitle("Pathways enriched among species\npositively correlated") +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5))
   ggsave("Venn_GMM_pos.pdf",plot = venn2,device = "pdf", path=output.plot)
+  ggsave("Venn_GMM_pos.png",plot = venn2,device = "png", path=output.plot)
   
   # NEGATIVE CORRELATIONS
   
   # Create VennDiagram    
   venn3 <- ggvenn(list.res.neg ,
-                    fill_color = c("orange","cornflowerblue","green4"), 
+                    fill_color = c("orange","cornflowerblue","gray83","green4"), 
                     stroke_color = "white",
                     stroke_size = .2, 
                     show_percentage = F, 

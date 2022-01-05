@@ -26,7 +26,7 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
   # Importing data
 
   pheno <- readRDS(file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-  valid.t90 <- pheno[ valid.t90 == 'yes', ]
+
 
   # Importing BC matrix 
   BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv', header=T, sep = ',')
@@ -36,7 +36,7 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
   source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/permanova.fun.R')
 
   # Transforming two-level factor variables into numeric variables 
-  dades = copy(valid.t90)
+  dades = copy(pheno[ valid.t90 == 'yes', ])
   a= c("Sex","ppi","metformin","hypermed","dyslipmed")
   dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 

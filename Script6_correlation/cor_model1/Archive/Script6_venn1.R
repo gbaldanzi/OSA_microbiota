@@ -5,7 +5,6 @@
 # This code will produce a Venn Diagram from the correlations of AHI, BMI, 
 # and T90 with MGSs in model 1
 
-  rm(list = ls())
   # Loading packages 
   pacman::p_load(data.table,ggplot2,ggvenn, tidyr)
   
@@ -18,6 +17,7 @@
   
   res.list <- list(AHI = res[exposure=="ahi",],
                    T90 = res[exposure=="t90",],
+                   ODI = res[exposure=="odi",],
                    BMI = res[exposure=="BMI",])
 
   
@@ -28,7 +28,7 @@
   
   # Create VennDiagram    
   venn.m1 <- ggvenn(mgs.fdr,
-                    fill_color = c("orange","cornflowerblue","green4"),
+                    fill_color = c("orange","cornflowerblue","grey83","green4"),
                     stroke_color = "white",
                     stroke_size = .2, 
                     show_percentage = F, 

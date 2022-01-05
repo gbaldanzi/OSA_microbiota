@@ -12,9 +12,5 @@ ml R_packages
 
 Rscript cor_model1/Script6_cor1_main.R
 
-
-echo "Venn"
-Rscript cor_model1/Script6_venn1.R
-
 echo "Table"
 Rscript cor_model1/Script6_table.res1.R

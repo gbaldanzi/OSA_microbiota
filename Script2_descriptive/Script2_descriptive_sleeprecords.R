@@ -32,8 +32,14 @@ p3 = ggplot(data = sleep[valid.ahi=='yes',], aes(x=ahi)) + geom_histogram()  +
   geom_vline(xintercept = 30, color = "black", linetype = "twodash")
 
 # Histogram ODI
-p4 = ggplot(data = sleep[valid.t90=='yes',], aes(x=odi)) + geom_histogram()  +
-  ggtitle("Hist Oxygen desaturation index") +  xlab("")
+p4 = ggplot(data = sleep[valid.t90=='yes',], aes(x=odi)) + 
+  geom_histogram(color="black", fill="lightskyblue2")  +
+  ggtitle("Hist. Oxygen desaturation index") +  xlab("") +
+  theme_light() +
+  theme(plot.title= element_text(hjust = 0.5, size = 16,face = "bold"))
+
+ggsave("hist.odi.png",plot = p4, device = "png", 
+       path = output.plot)
 
 # Histogram Sat90% 
 p5 = ggplot(data = sleep[valid.t90=='yes',], aes(x=sat90)) + 
@@ -52,8 +58,7 @@ ggsave("hist.saturation", plot = p2, device = "png",
 ggsave("hist.ahi.png",plot = p3, device = "png", 
        path = output.plot)
 
-ggsave("hist.odi.png",plot = p4, device = "png", 
-       path = output.plot)
+
 
 ggsave("hist.sat90.png",plot = p5, device = "png", 
        path = output.plot)

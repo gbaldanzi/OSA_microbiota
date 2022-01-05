@@ -7,20 +7,18 @@
 
 # This script will calculate beta diversity and on individuals with valid T90 measurement
 
-  # Import data
-  valid.t90 <- pheno[valid.t90=='yes',]
 
 # Bray-curtis dissimilarity #### 
   
 # Create dataset containing exclusively the MGS as columns/variables 
-  a=grep("____",names(valid.t90),value=T)
-  MGS=valid.t90[,a, with=F]
+  a <- grep("____",names(pheno),value=T)
+  MGS <- pheno[valid.t90=="yes" , a, with=F]
   
 # Estimating the BC index - creates a matrix with the BC index between individual samples 
   # MGS as relative abundances
   message("calculating BC dissimilarity index - this will take a while")
   BC=as.matrix(vegdist(MGS,method="bray"))
-  rownames(BC)=colnames(BC)=valid.t90$SCAPISid
+  rownames(BC)=colnames(BC)=pheno[valid.t90=="yes",SCAPISid]
   fwrite(BC,'/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv',sep=",")
 
 # PCoA of BC

@@ -18,8 +18,20 @@ source("MGS.Enrich.function.R")
   # Import results 
   res <- fread(paste0(input1,"cor_all.var_mgs.tsv"))
   
+  
+  cutlast <- function(char,n){
+    l <- nchar(char)
+    a <- l-n+1
+    return(substr(char,a,l))
+  }
+  
+  res[,mgs:=cutlast(MGS,9)]
+  
+  
+  
   res.list <- list(AHI = res[exposure=="ahi",],
                    T90 = res[exposure=="t90",],
+                   ODI = res[exposure=="odi",],
                    BMI = res[exposure=="BMI",])
 
 # List of modules ####
@@ -29,9 +41,9 @@ source("MGS.Enrich.function.R")
   # Enrichment analysis   
     # Positive correlations 
     message("Positive correlations")
-    res.pos = list()[1:3]
+    res.pos = list()[1:4]
     
-    for(i in 1:3){
+    for(i in 1:4){
     print(i)
       
       res.pos[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  
@@ -55,9 +67,9 @@ source("MGS.Enrich.function.R")
         message("Negative correlations")
         # Removing the single MGS that is negative correlated and not present in list of modules
        # res.list <- lapply(res.list,function(x){x[mgs!="HG3A.1213",]})
-        res.neg = list()[1:3]
+        res.neg = list()[1:4]
         
-        for(i in 1:3){
+        for(i in 1:4){
           print(i)
         res.neg[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  
                            p.value.name="p.value",

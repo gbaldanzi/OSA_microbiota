@@ -12,7 +12,7 @@
 
 # Importing data
   pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-
+  
 
 #Spearman correlation function ####
 source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.correlation.function.R')
@@ -33,7 +33,8 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
   SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
   
   
-  listmodels=list(model1,model2,model3,SA2)
+  #listmodels=list(model1,model2,model3,SA2)
+  listmodels = list(model1, model3)
   
 # Run correlation analysis 
   
@@ -44,11 +45,11 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
   source('Script4_cor_alpha/Script4_cor_t90_alpha.R')
 
   message("Correlation T90 and Shannon index")
-  source('Script4_cor_alpha/Script4_cor_t90_alpha.R')
+  source('Script4_cor_alpha/Script4_cor_odi_alpha.R')
   
-  message("Correlation AHI and Shannon index - Plots")
-  source('Script4_cor_alpha/Script4_alpha_ahi_plots.R')
+  #message("Correlation AHI and Shannon index - Plots")
+  #source('Script4_cor_alpha/Script4_alpha_ahi_plots.R')
   
-  message("Correlation T90 and Shannon index - Plots")
-  source('Script4_cor_alpha/Script4_alpha_t90_plots.R')
+  #message("Correlation T90 and Shannon index - Plots")
+  #source('Script4_cor_alpha/Script4_alpha_t90_plots.R')
   

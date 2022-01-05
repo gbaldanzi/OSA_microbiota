@@ -13,7 +13,7 @@
   
 dat1 = pheno[valid.ahi=='yes',] %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, educat,
                                            leisurePA, placebirth, diabd, hypertension, dyslipidemia, metformin, 
-                                           hypermed, dyslipmed, ppi, Fibrer, Energi_kcal, ahi, t90, shannon)
+                                           hypermed, dyslipmed, ppi, Fibrer, Energi_kcal, ahi, odi,t90, shannon)
 
 
 #dat1 = pheno %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, educat,
@@ -46,7 +46,7 @@ mylabel <- c("SCAPISid","OSA severity", "Age (yrs)", "Sex", "Smoking status", "A
              "Birth place", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Metformin",
              "Anti-hypertensive med.", "Cholesterol-lowering med.", "PPI","Fiber (g/day)","Energy intake (kcal/day)",
-             "AHI (events/h)", "T90 (%)", "Shannon Index")
+             "AHI (events/h)","ODI (events/h)", "T90 (%)", "Shannon Index")
 
 j=1
 for(i in names(datatable1)){
@@ -57,7 +57,7 @@ for(i in names(datatable1)){
 # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
 t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                     leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ t90+ shannon, 
+                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+odi+ t90+ shannon, 
                   data= datatable1, 
                   include.miss = FALSE, chisq.test.perm = TRUE)
 t1 = createTable(t, hide.no = "no")
