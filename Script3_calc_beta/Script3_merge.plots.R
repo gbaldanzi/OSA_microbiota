@@ -1,13 +1,13 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Descriptive Statistics 
-
-# Last update: 2021-12-09
+# Last update: 2022-01-05
 
 # Script to merge PCoA plots for AHI and T90 severity groups. 
 
   library(cowplot)
+  library(data.table)
+  library(ggplot2)
 
   source("Script3_calc_beta/Script3_calc_bc_ahi_plots.R")
   source("Script3_calc_beta/Script3_calc_bc_t90_plots.R")

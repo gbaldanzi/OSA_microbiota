@@ -10,6 +10,10 @@
 
   # Import data
   valid.t90 <- pheno[valid.t90=='yes',]
+  
+  valid.t90[,t90cat:= factor(t90cat, 
+                            levels = levels(t90cat) , 
+                            labels = c("t1", "t2", "t3", "t4"))]
 
   # Import BC
   BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv',sep=",")
@@ -35,6 +39,7 @@
   se        <- aggregate(cbind(se.Axis.1=Axis.1,se.Axis.2=Axis.2)~t90cat,dat.plot,f)
   centroids <- merge(centroids,se, by="t90cat") 
   
+  Ns <- with(valid.t90, table(t90cat))
   
   p2=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=t90cat))+
     # geom_point(size=1.1) +
@@ -42,7 +47,8 @@
     geom_errorbar(data=centroids,aes(ymin=Axis.2-se.Axis.2,ymax=Axis.2+se.Axis.2),width=0.001)+
     geom_errorbarh(data=centroids,aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
     #stat_ellipse(type = "t", size=1.3) +
-    scale_color_manual(values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
+    scale_color_manual(labels = paste0(names(Ns), " (n = ",Ns,")"),
+                       values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
     ggtitle("T90 severity groups") +
     xlab(paste0("PCo1 \n (",round(100*pcoa.bray.t90$values$Relative_eig[1],1),"% )")) +
     ylab(paste0("PCo2 \n (",round(100*pcoa.bray.t90$values$Relative_eig[2],1),"% )")) +

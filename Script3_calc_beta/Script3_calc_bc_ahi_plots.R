@@ -16,8 +16,8 @@
   
   # pheno data 
   valid.ahi <- pheno[valid.ahi=='yes',]
-  valid.ahi[OSAcat=="no OSA", OSAcat:="No Sleep Apnea"]
-  valid.ahi[,OSAcat:=factor(OSAcat,levels = c("No Sleep Apnea","Mild","Moderate","Severe"))]
+  valid.ahi[OSAcat=="no OSA", OSAcat:="No OSA"]
+  valid.ahi[,OSAcat:=factor(OSAcat,levels = c("No OSA","Mild","Moderate","Severe"))]
 
   # Plotting the first 2 principal components 
     # First: extracting the principal component value for every sample 
@@ -30,6 +30,7 @@
       se        <- aggregate(cbind(se.Axis.1=Axis.1,se.Axis.2=Axis.2)~OSAcat,dat.plot,f)
       centroids <- merge(centroids,se, by="OSAcat") 
       
+      Ns <- with(valid.ahi, table(OSAcat))
       
       p1=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=OSAcat))+
          # geom_point(size=1.1) +
@@ -37,7 +38,8 @@
           geom_errorbar(data=centroids,aes(ymin=Axis.2-se.Axis.2,ymax=Axis.2+se.Axis.2),width=0.001)+
           geom_errorbarh(data=centroids,aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
           #stat_ellipse(type = "t", size=1.3) +
-         scale_color_manual(values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
+         scale_color_manual(labels =paste0(names(Ns), " (n = ",Ns,")") , 
+           values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
           ggtitle("AHI severity groups") +
           xlab(paste0("PCo1 \n (",round(100*pcoa.bray$values$Relative_eig[1],1),"% )")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa.bray$values$Relative_eig[2],1),"% )")) +
