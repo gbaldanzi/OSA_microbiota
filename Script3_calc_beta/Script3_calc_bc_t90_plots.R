@@ -25,7 +25,7 @@
   
   dat.plot$t90cat <- factor(dat.plot$t90cat, 
                             levels = levels(dat.plot$t90cat) , 
-                            labels = c("T90 = 0%", "T1", "T2", "T3"))
+                            labels = c("t1", "t2", "t3", "t4"))
   
   
   # Second: creating the scatter plot ####
