@@ -23,14 +23,21 @@ library(data.table)
 library(tidyverse)
 
 
-# Import the signature species 
-input <-  "/home/baldanzi/Sleep_apnea/Results/"
+  # Import the signature species 
+  input <-  "/home/baldanzi/Sleep_apnea/Results/"
 
 # Function to select the last characters of a string 
 cutlast <- function(char,n){
   l <- nchar(char)
   a <- l-n+1
   return(substr(char,a,l))
+}
+
+
+fix.mgs.name.fun <- function(char){
+  char <- gsub("AF22_8LB","AF22-8LB",char)
+  char <- gsub("AM42_11","AM42-11",char)
+  char <- gsub("_"," ",char)
 }
 
   # Results from the MGS-AHI/T90/BMI correlation - Full model 
@@ -56,6 +63,7 @@ cutlast <- function(char,n){
   ea_gutsy[,mgs:=paste0("HG3A.",cutlast(Metagenomic_species,4))]
   
   ea_gutsy <- ea_gutsy[mgs %in% mgs.rel.HG3A,]
+  ea_gutsy <- merge(ea_gutsy, Mgs.mgs, by ="mgs", all.x=T, all.y=F)
   
   
   # Increased and decreased species in OSA
@@ -70,36 +78,38 @@ cutlast <- function(char,n){
   
 # Positive 
 
-
-# Filter to only the pathways that are FDR associated with one MGS
   res.table <- ea_gutsy[Direction=="Positive"]
+  
+  # Filter to only the pathways that are FDR associated with one MGS
   
   table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% summarise(nr_p.05 = sum(q_value<.05))
   hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>0]
 
-  hm.pathways <- hm.pathways[-which(hm.pathways=="Partially_Characterized_Molecules")]
-  hm.pathways <- hm.pathways[-which(hm.pathways=="Food_Component_Plant")]
+  hm.pathways <- hm.pathways[-which(hm.pathways=="Food Component/Plant")]
 
 
-hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
-  filter(Metabolite_subclass %in% hm.pathways) %>% 
-  spread(key=pathway, value = Estimate)
+  hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
+    filter(Metabolite_subclass %in% hm.pathways) %>% 
+    spread(key=Metabolite_subclass, value = Estimate)
+  
+  setDF(hm.matrix)
+  
+  rownames(hm.matrix) <- hm.matrix$MGS
+  hm.matrix$MGS <- NULL
+  
+  hm.matrix_pos <- t(as.matrix(hm.matrix))
+  hm.matrix_pos[is.na(hm.matrix_pos)] <- 0
 
-rownames(hm.matrix) <- hm.matrix$MGS
-hm.matrix$MGS <- NULL
-
-hm.matrix <- as.matrix(hm.matrix)
-hm.matrix_pos <- t(hm.matrix)
-hm.matrix_pos[is.na(hm.matrix_pos)] <- 0
-
-rownames(hm.matrix_pos) <- gsub("__","_",rownames(hm.matrix_pos))
-rownames(hm.matrix_pos) <- gsub("_"," ",rownames(hm.matrix_pos))
-rownames(hm.matrix_pos) <- gsub("Metabolism","Metab.",rownames(hm.matrix_pos))
+  rownames(hm.matrix_pos) <- gsub("__","_",rownames(hm.matrix_pos))
+  rownames(hm.matrix_pos) <- gsub("_"," ",rownames(hm.matrix_pos))
+  rownames(hm.matrix_pos) <- gsub("Metabolism","Metab.",rownames(hm.matrix_pos))
 
 
   qvalues_pos <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
       filter(Metabolite_subclass %in% hm.pathways) %>% 
       spread(key=Metabolite_subclass, value = q_value)
+  
+  setDF(qvalues_pos)
 
   rownames(qvalues_pos) <- qvalues_pos$MGS
   qvalues_pos$MGS <- NULL
@@ -118,36 +128,32 @@ rownames(hm.matrix_pos) <- gsub("Metabolism","Metab.",rownames(hm.matrix_pos))
   hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>0]
   
   
-  hm.pathways <- hm.pathways[-which(hm.pathways=="Partially_Characterized_Molecules")]
-
-  
   hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = Estimate)
 
+  setDF(hm.matrix)
+  
   rownames(hm.matrix) <- hm.matrix$MGS
   hm.matrix$MGS <- NULL
-
-  hm.matrix <- as.matrix(hm.matrix)
-  hm.matrix_neg <- t(hm.matrix)
+  
+  hm.matrix_neg <- t(as.matrix(hm.matrix))
   hm.matrix_neg[is.na(hm.matrix_neg)] <- 0
 
   rownames(hm.matrix_neg) <- gsub("__","_",rownames(hm.matrix_neg))
   rownames(hm.matrix_neg) <- gsub("_"," ",rownames(hm.matrix_neg))
   rownames(hm.matrix_neg) <- gsub("Metabolism","Metab.",rownames(hm.matrix_neg))
-  rownames(hm.matrix_neg) <- gsub("Leucine","Leucine,",rownames(hm.matrix_neg))
-  rownames(hm.matrix_neg) <- gsub("Glycolysis","Glycolysis,",rownames(hm.matrix_neg))
-
-  rownames(hm.matrix_neg) <- gsub("PE","",rownames(hm.matrix_neg))
-  rownames(hm.matrix_neg) <- gsub("PC","",rownames(hm.matrix_neg))
+  rownames(hm.matrix_neg) <- gsub(" (PC)","",rownames(hm.matrix_neg))
 
 
-qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
-  filter(Metabolite_subclass %in% hm.pathways) %>% 
-  spread(key=Metabolite_subclass, value = q_value)
+  qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
+    filter(Metabolite_subclass %in% hm.pathways) %>% 
+    spread(key=Metabolite_subclass, value = q_value)
+  
+  setDF(qvalues_neg)
 
-rownames(qvalues_neg) <- qvalues_neg$MGS
-qvalues_neg$MGS <- NULL
+  rownames(qvalues_neg) <- qvalues_neg$MGS
+  qvalues_neg$MGS <- NULL
 
   qvalues_neg <- t(as.matrix(qvalues_neg))
     qvalues_neg[is.na(qvalues_neg)] <- 1
@@ -192,24 +198,27 @@ setDF(annotation)
   hm.matrix_pos <- hm.matrix_pos[,match(annotation$mgs.rel,colnames(hm.matrix_pos))]
 
 
-qvalues_pos <- qvalues_pos[,match(annotation$mgs.rel,colnames(qvalues_pos))]
-qvalues_neg <- qvalues_neg[,match(annotation$mgs.rel,colnames(qvalues_neg))]
+  qvalues_pos <- qvalues_pos[,match(annotation$mgs.rel,colnames(qvalues_pos))]
+  qvalues_neg <- qvalues_neg[,match(annotation$mgs.rel,colnames(qvalues_neg))]
 
   map.col = c("red", "blue")
   names(map.col) = c("increased", "decreased")
 
 
-noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_pos)) ) )
-noms <- paste0(noms$V1, " (", noms$V2, ")" )
-colnames(hm.matrix_pos) <- noms
+  noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_pos)) ) )
+  noms <- paste0(noms$V1, " (", noms$V2, ")" )
+  noms <- fix.mgs.name.fun(noms) 
+  colnames(hm.matrix_pos) <- noms
 
-noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_neg)) ) )
-noms <- paste0(noms$V1, " (", noms$V2, ")" )
-colnames(hm.matrix_neg) <- noms
+  noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_neg)) ) )
+  noms <- paste0(noms$V1, " (", noms$V2, ")" )
+  noms <- fix.mgs.name.fun(noms) 
+  colnames(hm.matrix_neg) <- noms
 
-noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , rownames(annotation)) ) )
-noms <- paste0(noms$V1, " (", noms$V2, ")" )
-rownames(annotation) <- noms
+  noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , rownames(annotation)) ) )
+  noms <- paste0(noms$V1, " (", noms$V2, ")" )
+  noms <- fix.mgs.name.fun(noms) 
+  rownames(annotation) <- noms
 
   ha = HeatmapAnnotation(Correlation=annotation$correlated,which = "col",
                                  name="Phenotype",
@@ -235,7 +244,8 @@ h1 = Heatmap(hm.matrix_pos,
              cluster_columns = T,
              show_column_dend = F,
              
-             column_split = factor(c(rep("Increased abundance\nwith sleep apnea",n.increased),rep("Decreased abundance\nwith sleep apnea",n.decreased))),
+             column_split = factor(c(rep("Increased abundance\nwith sleep apnea",n.increased),
+                                     rep("Decreased abundance\nwith sleep apnea",n.decreased))),
              column_title_gp = gpar(fontsize=9),
              column_gap = unit(2,"mm"),
              
@@ -259,7 +269,7 @@ h1 = Heatmap(hm.matrix_pos,
             if(qvalues_neg[i, j] < 0.05) {
               grid.text('*', x, y)
             } },
-          column_names_rot =  45,
+          column_names_rot =  40,
           column_names_side = "bottom",
           cluster_columns = T,
           show_column_dend = F,
@@ -286,8 +296,8 @@ h1 = Heatmap(hm.matrix_pos,
 
 
 
-pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.pdf", 
-    width = 9, height = 8)
+pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.pdf", 
+    width = 10, height = 8)
 set.seed(1)
 draw(h1, column_title = "Enrichment analysis for group of metabolites",
      column_title_gp = gpar(fontsize = 12, fontface="bold"),
@@ -295,7 +305,7 @@ draw(h1, column_title = "Enrichment analysis for group of metabolites",
 
 dev.off()
 
-png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap.png", 
+png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.png", 
 width = 9, height = 8, units = 'in', res = 1500 )
 set.seed(1)
 draw(h1, column_title = "Enrichment analysis for group of metabolites",

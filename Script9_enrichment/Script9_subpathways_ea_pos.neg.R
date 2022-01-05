@@ -18,7 +18,7 @@ input = "/home/baldanzi/Sleep_apnea/Results/"
 output = "/home/baldanzi/Sleep_apnea/Results/"
 
   # Import results 
-  mgs_met <- fread("/home/baldanzi/Datasets/Mgs_metab_correlations/table1_shortmgs.tsv") #Correlation metabolites and MGS
+  mgs_met <- fread("/home/baldanzi/Datasets/gutsy_atlas/table1_shortmgs.tsv") #Correlation metabolites and MGS
 
   res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
   mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
