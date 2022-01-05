@@ -146,7 +146,7 @@ fix.mgs.name.fun <- function(char){
   rownames(hm.matrix_neg) <- gsub(" (PC)","",rownames(hm.matrix_neg))
 
 
-  qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
+  qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value) %>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = q_value)
   
