@@ -493,7 +493,7 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 
 
 
-## Taxonomy of results {.tabset}
+## Signature species {.tabset}
 
 ### AHI 
      
@@ -594,7 +594,7 @@ sig.mgs <- unique(do.call(c,mgs.m2))
  
  t2 <- merge(t2,t3,by="MGS")
   
-  datatable(t2,rownames = FALSE, options = list(
+  datatable(t2,rownames = FALSE, filter="top" , options = list(
   rowCallback = JS(
     "function(row, data) {",
     "for (i = 1; i < data.length; i++) {",
@@ -602,7 +602,7 @@ sig.mgs <- unique(do.call(c,mgs.m2))
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>%  formatStyle(c(2,7), `border-right` = "solid 2px")
+    "}"))) %>%  formatStyle(c(1,2,5), `border-right` = "solid 2px")
 ```
 
 # Sensitivity analysis 
