@@ -59,6 +59,7 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   y <- gsub("_AF"," AF",y)
   y <- gsub("_8L"," 8L",y)
   y <- gsub("_ur"," ur",y)
+  y <- gsub("Gordonibacter","G. ",y)
   return(y)
   }
   
@@ -162,21 +163,21 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     
     p1 <-  ggplot(data=dd, aes_string(x="Group", y=y.axis, group="exposure")) + 
       geom_line(aes(colour=exposure), linetype="dashed", size=0.1) +
-      geom_point(aes(colour=exposure),size=0.7,stroke=0, shape=15)+
+      geom_point(aes(colour=exposure),size=1.1,stroke=0, shape=15)+
       ggtitle(ggtitle(gsub("____","\n",clean.y.axis(y.axis)))) +
       #scale_x_discrete(labels=names(n.gr)) +
       scale_y_continuous(expand=c(0,0)) +
       theme_classic() +
-      theme(plot.title = element_text(hjust = .5, face = 'bold',size=5.3),
+      theme(plot.title = element_text(hjust = .5, face = 'bold',size=5.5),
             #plot.subtitle = element_text(hjust = .5, face = 'bold', size=8),
             axis.text = element_text(size=5.3), 
             #axis.title.x = element_blank(),
             axis.title.x = element_blank(),
             axis.title.y = element_blank(),
-            axis.text.x = element_text(size=4.2, angle=45),
+            axis.text.x = element_text(size=4.5, angle=45),
             panel.border = element_blank(),
             legend.position = "none",
-            plot.margin = margin(r=5.5, l=3.5,t=2.5, b=4.5,unit="pt")) + 
+            plot.margin = margin(r=5.5, l=3.5,t=2.5, b=3.5,unit="pt")) + 
             #panel.border = element_rect(linetype = "solid", colour = "black", size=0.5)) +
       scale_color_manual(values=c("orange","grey75","cornflowerblue"))
     
@@ -205,12 +206,17 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     
     lineplots.merged <- plot_grid(plotlist=lineplots_3x, ncol=6, labels = NULL)
     
-    final.plot <- plot_grid(lineplots.merged, hm, labels=NULL, ncol=1, rel_heights = c(8,1.3))
+    final.plot <- plot_grid(lineplots.merged, hm, labels=NULL, ncol=1, rel_heights = c(8,1))
     
     
     
     ggsave("lineplot_hm_merged.pdf", plot = final.plot, path="lineplots/")
     ggsave("lineplots_merged.pdf", plot = lineplots.merged, path="lineplots/")
+    
+    pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/lineplots_pdf.pdf", 
+        width = 7, height = 10)
+    final.plot
+    dev.off()
     
     
     
