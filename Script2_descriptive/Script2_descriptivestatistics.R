@@ -45,7 +45,7 @@ mylabel <- c("SCAPISid","OSA severity", "Age (yrs)", "Sex", "Smoking status", "A
              "BMI (kg/m2)", "Education", "Leisure physical activity", 
              "Birth place", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Metformin",
-             "Anti-hypertensive med.", "Cholesterol-lowering med.", "PPI","Fiber (g/day)","Energy intake (kcal/day)",
+             "Anti-hypertensive med.", "Hyperlipidemia med.", "PPI","Fiber (g/day)","Energy intake (kcal/day)",
              "AHI (events/h)","ODI (events/h)", "T90 (%)", "Shannon Index")
 
 j=1
