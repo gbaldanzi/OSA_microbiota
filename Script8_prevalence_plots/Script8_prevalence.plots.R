@@ -56,7 +56,7 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   y <- gsub("Staphylococcus_","S. ", y)
   y <- gsub("_sp"," sp", y)
   y <- gsub("_v"," v",y)
-  y <- gsub("_AF","-AF",y)
+  y <- gsub("_AF"," AF",y)
   y <- gsub("_8L","-8L",y)
   y <- gsub("_ur"," ur",y)
   y <- gsub("Gordonibacter","G. ",y)
@@ -129,12 +129,12 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   
   key.sig[,pattern:=paste(AHI,ODI,T90)]
   
-  key.sig[pattern=="NA + +", lab:="                 *  "]
-  key.sig[pattern=="NA + NA",lab:="          *         "]
-  key.sig[pattern=="NA NA +",lab:="                 *  "]
-  key.sig[pattern=="+ + +",  lab:="   *      *      *  "]
-  key.sig[pattern=="+ + NA", lab:="   *      *         "]
-  key.sig[pattern=="+ NA NA",lab:="   *                "]
+  key.sig[pattern=="NA + +", lab:="                *  "]
+  key.sig[pattern=="NA + NA",lab:="         *         "]
+  key.sig[pattern=="NA NA +",lab:="                *  "]
+  key.sig[pattern=="+ + +",  lab:="  *      *      *  "]
+  key.sig[pattern=="+ + NA", lab:="  *      *         "]
+  key.sig[pattern=="+ NA NA",lab:="  *                "]
   
 
     # Prevalence by groups ####
