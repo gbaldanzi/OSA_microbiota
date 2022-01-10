@@ -57,7 +57,7 @@ for(i in names(datatable1)){
 # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
 t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                     leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+odi+ t90+ shannon, 
+                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ odi+ t90+ shannon, 
                   data= datatable1, 
                   include.miss = FALSE, chisq.test.perm = TRUE)
 t1 = createTable(t, hide.no = "no")
