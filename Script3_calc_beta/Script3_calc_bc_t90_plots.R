@@ -13,7 +13,7 @@
   
   valid.t90[,t90cat:= factor(t90cat, 
                             levels = levels(t90cat) , 
-                            labels = c("t1", "t2", "t3", "t4"))]
+                            labels = c("T90=0", "t1", "t2", "t3")) ]
 
   # Import BC
   BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv',sep=",")
@@ -29,7 +29,7 @@
   
   dat.plot$t90cat <- factor(dat.plot$t90cat, 
                             levels = levels(dat.plot$t90cat) , 
-                            labels = c("t1", "t2", "t3", "t4"))
+                            labels = c("T90=0", "t1", "t2", "t3"))
   
   
   # Second: creating the scatter plot ####
