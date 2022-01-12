@@ -3,108 +3,148 @@
 # Supplementary tables 
 
 library(xlsx)
+library(tidyverse)
+library(vegan)
+library(data.table)
 
 # Table S1. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
   input <- "/home/baldanzi/Sleep_apnea/Results/"
-  list.res <- readRDS(paste0(input,"pairwise.perma.results.rds"))
   
-  Severe <- c(list.res$no_OSA_Severe[1,"Pr(>F)"],
-              list.res$Mild_Severe[1,"Pr(>F)"],
-              list.res$Moderate_Severe[1,"Pr(>F)"])
+  list.res.ahi <- readRDS(paste0(input,"pairwise.perma.results.rds"))
+  list.res.ahi <- list.res.ahi[1:6]
   
-  Moderate <- c(list.res$no_OSA_Moderate[1,"Pr(>F)"],
-                list.res$Mild_Moderate[1,"Pr(>F)"],"")
+  list.res.t90 <- readRDS(file=paste0(input,"pairwise.perma.results_t90.rds"))
   
-  Mild <- c(list.res$no_OSA_Mild[1,"Pr(>F)"],"","")
-              
+  pairwise.table.fun <- function(lis) {
+    
+    table <- lapply(lis, function(x){
+      x[["variables"]] <-  gsub("no_OSA","noOSA",x[["variables"]])
+      l <- x[1,c("variables","Pr(>F)")] %>% 
+        separate(variables, c("group.1", "group.2")) %>%
+        rename(p.value = "Pr(>F)")
+      return(l)
+    })
+    
+    table <- do.call(rbind,table)
+    
+    return(table)
+  }
   
-  table.res <- data.frame(categories=c("No Sleep Apnea", "Mild", "Moderate"),
-                          Severe = Severe,
-                          Moderate = Moderate,
-                          Mild = Mild )
+  table.res.ahi <- pairwise.table.fun(list.res.ahi)
+  table.res.ahi$group.1[table.res.ahi$group.1=="noOSA"] <- "No OSA"
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Pairwise comparisons BC", col.names=T,
+  table.res.t90 <- pairwise.table.fun(list.res.t90)
+  table.res.t90$group.1[table.res.t90$group.1=="t0"] <- "T90=0"
+  
+  
+  white.space <- data.frame(group.1="",group.2="",p.value="")
+  
+  table.s1 <- rbind(table.res.ahi, white.space, table.res.t90)
+  
+  write.xlsx2(table.s1, "Supp.tables.xlsx", sheetName="Table S1", col.names=T,
               row.names=F, append=F)
   
-# Suppl Table 2 - results from the basic model for all 3 phenotypes 
+
+# Suppl Table 2 - results from the basic model for all 4 phenotypes ####
 
   # Results from model1 
   res <- fread(paste0(input,"cor_all.var_mgs.tsv"))
   
-  res[,MGS:=gsub("____"," (",MGS)]
-  res[,MGS:=paste0(MGS,")")]
-  res[,MGS:=gsub("_"," ",MGS)]
+  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  
+  res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  
+  res[,MGS:=paste0(MainTax," (",mgs,")")]
   
   res[,exposure:=toupper(exposure)]
   
-  setnames(res,c("MGS","cor.coefficient","q.value"),c("Metagenomic species","rho","FDR_p"))
+  res[,c("cor.coefficient","p.value","q.value") := lapply(.SD,round,3) , 
+      .SDcols = c("cor.coefficient","p.value","q.value")]
+
   
-  var.table <- c("Metagenomic species", "exposure", "rho", "p.value", "N","subspecies","species",
+  setnames(res,c("MGS","cor.coefficient","q.value","p.value"),
+           c("Metagenomic species","Spearman's correlation","q-value","p-value"))
+  
+  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
+                 "q-value", "N","subspecies","species",
                  "genus", "family", "order","class","phylum","superkingdom")
   
   table.res <- res[,var.table,with=F]
   
-  setDT(table.res)
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Results Basic Model", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S2", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 3 - results from the fully adjusted model for all 3 phenotypes 
+  # Suppl Table 3 - results from the fully adjusted model for all 3 phenotypes  ####
   
   # Results from model2 
   res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
   
-  res[,MGS:=gsub("____"," (",MGS)]
-  res[,MGS:=paste0(MGS,")")]
-  res[,MGS:=gsub("_"," ",MGS)]
+  res[,MGS:=paste0(MainTax," (",mgs,")")]
   
   res[,exposure:=toupper(exposure)]
   
-  setnames(res,c("MGS","cor.coefficient","q.value"),c("Metagenomic species","rho","FDR_p"))
+  res[,c("cor.coefficient","p.value","q.value") := lapply(.SD,round,3) , 
+      .SDcols = c("cor.coefficient","p.value","q.value")]
   
-  var.table <- c("Metagenomic species", "exposure", "rho", "p.value", "N","subspecies","species",
+  
+  setnames(res,c("MGS","cor.coefficient","q.value","p.value"),
+           c("Metagenomic species","Spearman's correlation","q-value","p-value"))
+  
+  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
+                 "q-value", "N","subspecies","species",
                  "genus", "family", "order","class","phylum","superkingdom")
   
   table.res <- res[,var.table,with=F]
   
-  setDT(table.res)
-  
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Results Fully Adjusted Model", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S3", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 4. List of Signatures species / Metagenomics information
-  
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  # Suppl Table 4. List of Signatures species / Metagenomics information ####
   
   mgs.m2 <- readRDS(paste0(input,'mgs.m2.rds'))
   
-  mgs.m2 <- unique(c(mgs.m2[[1]],mgs.m2[[2]]))
+  mgs.m2 <- unique(do.call(c,mgs.m2))
+  
+  
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  prev <- pheno[,mgs.m2,with=F]
+  prev[,(mgs.m2) := lapply(.SD,decostand,method="pa"), .SDcols=mgs.m2]
+  prev <- data.frame(maintax_mgs=mgs.m2,
+                     prevalence=round(t(prev[, lapply(.SD,function(x) sum(x)/nrow(prev)), 
+                                             .SDcols=mgs.m2]),3)*100)
+  
+  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
   
   taxonomy <- taxonomy[maintax_mgs %in% mgs.m2,]
   
-  taxonomy[,maintax_mgs:=gsub("____"," (",maintax_mgs)]
-  taxonomy[,maintax_mgs:=paste0(maintax_mgs,")")]
-  taxonomy[,maintax_mgs:=gsub("_"," ",maintax_mgs)]
+  taxonomy <- merge(taxonomy,prev,by="maintax_mgs")
   
-  a = c("mgs","MainTax","Level")
+  taxonomy[,MainTax:= paste0(MainTax, " (", mgs,")")]
+  
+  a = c("mgs","maintax_mgs","Level")
   
   taxonomy <- taxonomy[,-a,with=F]
   
-  setnames(taxonomy,"maintax_mgs","Metagenomics species")
+  setnames(taxonomy,"MainTax","OSA signature species")
+  
+  setcolorder(taxonomy,c("OSA signature species","prevalence"))
   
   
-  write.xlsx2(taxonomy, "Supp.tables.xlsx", sheetName="Taxonomy Signature Species", col.names=T,
+  write.xlsx2(taxonomy, "Supp.tables.xlsx", sheetName="Table S4", col.names=T,
               row.names=F, append=T)
   
   # Suppl. Table 5 - medication use ####
   
   message("Medication use")
   
-  res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
-  setnames(res,"cor.coefficient","rho")
-  res_sa <- fread(paste0(input,"corsa_all.var_mgs.tsv"))
-  setnames(res_sa,"cor.coefficient","rho")
+  res_full <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+  setnames(res_full,"cor.coefficient","rho")
+  res_sa_med <- fread(paste0(input,"corsa_all.var_mgs.tsv"))
+  setnames(res_sa_med,"cor.coefficient","rho")
   mgs.m2 <- readRDS(paste0(input,'mgs.m2.rds'))
+  
+  names(mgs.m2) <- c("ahi","t90","odi")
   
   round.large <- function(x){
     x[x>=0.001] <- round(x[x>=0.001],3)
@@ -112,54 +152,48 @@ library(xlsx)
     return(x)
   }
   
-  res_sa1 <- res_sa[exposure=="ahi" & MGS %in% mgs.m2$mgs.fdr.ahi,.(MGS,exposure,rho,p.value,N)]
-  res1 <- res[exposure=="ahi" & MGS %in% mgs.m2$mgs.fdr.ahi,.(MGS,rho,p.value)]
-  setnames(res1,names(res1[,2:3]),paste0(names(res1[,2:3]),"_full_model"))
-  res_sa1 <- merge(res_sa1,res1,by="MGS",all.x=T)
-  res_sa1 <- res_sa1[,.(MGS,exposure,rho_full_model,p.value_full_model,rho,p.value,N)]
-  res_sa1[,exposure:=toupper(exposure)]
-    cols <- c("rho_full_model","rho")
-  res_sa1[,(cols):=lapply(.SD,round,digits=3),.SDcols=cols]
-    cols <- c("p.value_full_model","p.value")
-  res_sa1[,(cols):=lapply(.SD,round.large),.SDcols=cols]
+  prepare.sa.table.fun <- function(expo,res,res_sa) { 
   
-  res_sa2 <- res_sa[exposure=="t90" & MGS %in% mgs.m2$mgs.fdr.t90,.(MGS,exposure,rho,p.value,N)]
-  res2 <- res[exposure=="t90" & MGS %in% mgs.m2$mgs.fdr.t90,.(MGS,rho,p.value)]
-  setnames(res2,names(res2[,2:3]),paste0(names(res2[,2:3]),"_full_model"))
-  res_sa2 <- merge(res_sa2,res2,by="MGS",all.x=T)
-  res_sa2 <- res_sa2[,.(MGS,exposure,rho_full_model,p.value_full_model,rho,p.value,N)]
-  res_sa2[,exposure:=toupper(exposure)]
-  cols <- c("rho_full_model","rho")
-  res_sa2[,(cols):=lapply(.SD,round,digits=3),.SDcols=cols]
-  cols <- c("p.value_full_model","p.value")
-  res_sa2[,(cols):=lapply(.SD,round.large),.SDcols=cols]
+    stopifnot("'expo' needs to be of class 'character'"=class(expo) %in% "character")  
+    
+    res_sa1 <- res_sa[exposure==expo & MGS %in% mgs.m2[[expo]],.(MGS,exposure,rho,p.value,N)]
+    res1 <- res[exposure==expo & MGS %in% mgs.m2[[expo]],.(MGS,rho,p.value,N,MainTax,mgs)]
+    setnames(res1,c('rho','p.value','N'),paste0(c('rho','p.value','N'),"_full_model"))
+    res_sa1 <- merge(res_sa1,res1,by="MGS",all.x=T)
+    res_sa1[ , MGS:=paste0(MainTax, " (", mgs,")")]
+    res_sa1 <- res_sa1[,.(MGS,exposure,rho_full_model,p.value_full_model,N_full_model,rho,p.value,N)]
+    res_sa1[,exposure:=toupper(exposure)]
+      cols <- c("rho_full_model","rho")
+    res_sa1[,(cols):=lapply(.SD,round,digits=3),.SDcols=cols]
+      cols <- c("p.value_full_model","p.value")
+    res_sa1[,(cols):=lapply(.SD,round.large),.SDcols=cols]
+    
+    return(res_sa1)
   
-  break1 <- data.table(MGS="Signatures species associated to AHI",
-                       exposure="",
-                       rho_full_model = "Fully adjusted model",
-                       p.value_full_model = "Fully adjustd model",
-                       rho = "Removed medication users",
-                       p.value = "Removed medication users",
-                       N= "Removed medication users")
+  }
   
-  break2 <- data.table(MGS="Signatures species associated to T90",
-                       exposure="",
-                       rho_full_model = "Fully adjusted model",
-                       p.value_full_model = "Fully adjustd model",
-                       rho = "Removed medication users",
-                       p.value = "Removed medication users",
-                       N= "Removed medication users")
   
-  res <- rbind(break1, res_sa1, break2, res_sa2)
+  t <- lapply(c("ahi","t90","odi"), prepare.sa.table.fun
+                , res = res_full, res_sa=res_sa_med)
   
-  res[,MGS:=gsub("____"," (",MGS)]
-  res[,MGS:=paste0(MGS,")")]
-  res[,MGS:=gsub("_"," ",MGS)]
-  setnames(res,"MGS","Metagenomic species")
+  break.fun <- function(expo) {
   
-  setDT(res)
+        data.table(MGS=c("",paste0("Signatures species associated to ",expo)),
+                       exposure=c("","exposure"),
+                       rho_full_model = c("Fully adjusted model","Spearman's correlation"),
+                       p.value_full_model = c("Fully adjusted model","p-value"),
+                       N_full_model = c("Fullly adjusted model","N"),
+                       rho = c("Removed medication users","Spearman's correlation"),
+                       p.value = c("Removed medication users","p-value"),
+                       N= c("Removed medication users", "N"))
+  }
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Sens. Analysis - Medications", col.names=T,
+  brks <- lapply(c("AHI","T90","ODI"), break.fun)
+  
+  res <- rbind(brks[[1]], t[[1]], brks[[2]], t[[2]], brks[[3]], t[[3]])
+  
+  
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S5", col.names=F,
               row.names=F, append=T)
   
   
@@ -168,90 +202,37 @@ library(xlsx)
   
   message("Antibiotic use")
   
-  res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
-  setnames(res,"cor.coefficient","rho")
-  res_sa <- fread(paste0(input,"cor_sa_atb6m_step2_all.var_mgs.tsv"))
+  res_full <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+  setnames(res_full,"cor.coefficient","rho")
+  res_sa_atb <- fread(paste0(input,"cor_sa_atb6m_step2_all.var_mgs.tsv"))
   
-  mgs.m2 <- readRDS(paste0(input,'mgs.m2.rds'))
-  
-
-  res_sa1 <- res_sa[exposure=="ahi" & MGS %in% mgs.m2$mgs.fdr.ahi,.(MGS,exposure,rho,p.value,N)]
-  res1 <- res[exposure=="ahi" & MGS %in% mgs.m2$mgs.fdr.ahi,.(MGS,rho,p.value)]
-  setnames(res1,names(res1[,2:3]),paste0(names(res1[,2:3]),"_full_model"))
-  res_sa1 <- merge(res_sa1,res1,by="MGS",all.x=T)
-  res_sa1 <- res_sa1[,.(MGS,exposure,rho_full_model,p.value_full_model,rho,p.value,N)]
-  res_sa1[,exposure:=toupper(exposure)]
-  cols <- c("rho_full_model","rho")
-  res_sa1[,(cols):=lapply(.SD,round,digits=3),.SDcols=cols]
-  cols <- c("p.value_full_model","p.value")
-  res_sa1[,(cols):=lapply(.SD,round.large),.SDcols=cols]
-  
-  res_sa2 <- res_sa[exposure=="t90" & MGS %in% mgs.m2$mgs.fdr.t90,.(MGS,exposure,rho,p.value,N)]
-  res2 <- res[exposure=="t90" & MGS %in% mgs.m2$mgs.fdr.t90,.(MGS,rho,p.value)]
-  setnames(res2,names(res2[,2:3]),paste0(names(res2[,2:3]),"_full_model"))
-  res_sa2 <- merge(res_sa2,res2,by="MGS",all.x=T)
-  res_sa2 <- res_sa2[,.(MGS,exposure,rho_full_model,p.value_full_model,rho,p.value,N)]
-  res_sa2[,exposure:=toupper(exposure)]
-  cols <- c("rho_full_model","rho")
-  res_sa2[,(cols):=lapply(.SD,round,digits=3),.SDcols=cols]
-  cols <- c("p.value_full_model","p.value")
-  res_sa2[,(cols):=lapply(.SD,round.large),.SDcols=cols]
-  
-  break1 <- data.table(MGS="Signatures species associated to AHI",
-                       exposure="",
-                       rho_full_model = "Fully adjusted model",
-                       p.value_full_model = "Fully adjustd model",
-                       rho = "No antibiotic use last 6 months",
-                       p.value = "No antibiotic use last 6 months",
-                       N= "No antibiotic use last 6 months")
-  
-  break2 <- data.table(MGS="Signatures species associated to T90",
-                       exposure="",
-                       rho_full_model = "Fully adjusted model",
-                       p.value_full_model = "Fully adjustd model",
-                       rho = "No antibiotic use last 6 months",
-                       p.value = "No antibiotic use last 6 months",
-                       N= "No antibiotic use last 6 months")
-  
-  res <- rbind(break1, res_sa1, break2, res_sa2)
-  
-  setDT(res)
-  
-  res[,MGS:=gsub("____"," (",MGS)]
-  res[,MGS:=paste0(MGS,")")]
-  res[,MGS:=gsub("_"," ",MGS)]
-  setnames(res,"MGS","Metagenomic species")
-  
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Sens. Analysis - Antibiotic", col.names=T,
-              row.names=F, append=T)
-  
-  # Suppl. Table 7 - Sub-pathways enrichment analysis ####
-  
-  res.pos <- fread(paste0(input,"ea_subpathways_pos.tsv"))
-  res.pos[,correlation:="positive"]
-  res.neg <- fread(paste0(input,"ea_subpathways_neg.tsv"))
-  res.neg[,correlation:="negative"]
-  
-  res <- rbind(res.pos,res.neg)
+  t <- lapply(c("ahi","t90","odi"), prepare.sa.table.fun
+              , res = res_full, res_sa=res_sa_atb)
   
   
-  res <- res[,.(MGS,correlation,pathway,pval,padj,ES,NES,size)]
+  break.fun <- function(expo) {
+    
+    data.table(MGS=c("",paste0("Signatures species associated to ",expo)),
+               exposure=c("","exposure"),
+               rho_full_model = c("Fully adjusted model","Spearman's correlation"),
+               p.value_full_model = c("Fully adjusted model","p-value"),
+               N_full_model = c("Fullly adjusted model","N"),
+               rho = c("No antibiotic use last 6 months","Spearman's correlation"),
+               p.value = c("No antibiotic use last 6 months","p-value"),
+               N= c("No antibiotic use last 6 months", "N"))
+  }
   
-  res[,MGS:=gsub("____"," (",MGS)]
-  res[,MGS:=paste0(MGS,")")]
-  res[,MGS:=gsub("_"," ",MGS)]
-  res[,MGS:=gsub("42 11","42-11",MGS)]
+  brks <- lapply(c("AHI","T90","ODI"), break.fun)
   
-  setnames(res,c("MGS","pathway","pval","padj"),c("Metagenomic species","sub-pathways",
-                                                  "p.value","FDR_p"))
+  res <- rbind(brks[[1]], t[[1]], brks[[2]], t[[2]], brks[[3]], t[[3]])
   
-  setDF(res)
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Sub-pathway enrichment analysis", col.names=T,
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S6", col.names=F,
               row.names=F, append=T)
   
   
-  # Suppl Table 8 - GMM enrichment analysis ####
+  
+  # Suppl Table 7 - GMM enrichment analysis ####
   
   res.pos <- fread(paste0(input,"ea_GMM_pos.tsv"))
   res.neg <- fread(paste0(input,"ea_GMM_neg.tsv"))
@@ -266,22 +247,16 @@ library(xlsx)
   res[,exposure:=toupper(exposure)]
   
   
-  res <- res[,.(correlation,exposure,pathway,Name,HL1,HL2,pval,q.value,ES,NES,size)]
+  res <- res[,.(exposure,correlation,pathway,Name,HL1,HL2,pval,q.value,NES,size)]
   
-  setnames(res,c("pathway","pval","q.value"),c("Gut metabolic module","p.value","FDR_p"))
+  res[,c("pval","q.value","NES"):=lapply(.SD,round.large), .SDcols=c("pval","q.value","NES")]
   
-  setDF(res)
+  setnames(res,c("pathway","pval","q.value"),c("Gut metabolic module","p-value","q-value"))
   
-  # wb = loadWorkbook("Supp.tables.xlsx")
-  # removeSheet(wb, sheetName = "GMM enrichment analysis")
-  # yourSheet <- createSheet(wb, sheetName="GMM enrichment analysis")
-  # addDataFrame(res, yourSheet, col.names=T,row.names=F)
-  # saveWorkbook(wb, file = "Supp.tables.xlsx")
- 
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="GMM enrichment analysis", col.names=T,
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S7", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 9 - GMM enrichment analysis - sensitivity analysis ####
+  # Suppl Table 8 - GMM enrichment analysis - sensitivity analysis ####
   
   message("GMM enrichment - SA")
   
@@ -295,25 +270,7 @@ library(xlsx)
   res.pos_sa[,exposure:=toupper(exposure)]
   res.pos_sa[,(cols):=lapply(.SD,round.large),.SDcols=cols]
   
-  ahi.pw <- res.pos[exposure=="ahi" & q.value<.05 & !pathway %in% bmi.pw,
-                    .(pathway,pval,q.value,NES)]
-  
-  names(ahi.pw) <- paste0(names(ahi.pw), "_main")
-  
-  ahi.pw_sa <- res.pos_sa[exposure=="AHI" & pathway %in% ahi.pw$pathway,
-                    .(pathway,exposure,pval,q.value,NES)]
-  
-  ahi.pw_sa <- merge(ahi.pw_sa, ahi.pw, by.x="pathway",by.y="pathway_main", all.x=T)
-  
-  ahi.pw_sa <- merge(ahi.pw_sa, gmm.names, by.x="pathway",by.y="Module", all.x=T)
- 
-  names(ahi.pw_sa) <- gsub("q.value","FDR_p", names(ahi.pw_sa))
-  names(ahi.pw_sa) <- gsub("pval","p.value", names(ahi.pw_sa))
-  
-  setcolorder(ahi.pw_sa,c("exposure","pathway",'Name','HL1','HL2',"p.value_main","FDR_p_main","NES_main"))
-  
-  
-  
+
   t90.pw <- res.pos[exposure=="t90" & q.value<.05 & !pathway %in% bmi.pw,
                     .(pathway,pval,q.value,NES)]
   
@@ -326,36 +283,32 @@ library(xlsx)
   
   t90.pw_sa <- merge(t90.pw_sa, gmm.names, by.x="pathway",by.y="Module", all.x=T)
   
-  
-  names(t90.pw_sa) <- gsub("q.value","FDR_p", names(t90.pw_sa))
-  names(t90.pw_sa) <- gsub("pval","p.value", names(t90.pw_sa))
+  #setnames(t90.pw_sa, c("pathway","pval","q.value"), 
+           #c("Gut metabolic module","p-value","q-value"))
   
   setcolorder(t90.pw_sa,c("exposure","pathway","Name", "HL1", "HL2",
-                          "p.value_main","FDR_p_main","NES_main"))
+                          "pval_main","q.value_main","NES_main"))
   
   
-  break1 <- data.table(exposure="exposure",
-                       pathway="pathway",
-                       Name="",
-                       HL1="",
-                       HL2="",
-                       p.value_main = "Main analysis",
-                       FDR_p_main = "Main analysis",
-                       NES_main = "Main analysis",
-                       p.value = "Removed metformin users",
-                       FDR_p = "Removed metformin users",
-                       NES = "Removed metformin users")
+  top <- data.table(exposure=c("","exposure"),
+                       pathway=c("","Gut metabolic module"),
+                       Name=c("","Name"),
+                       HL1=c("","HL1"),
+                       HL2=c("","HL2"),
+                       pval_main = c("Main analysis","p-value"),
+                      q.value_main = c("Main analysis","q-value"),
+                       NES_main = c("Main analysis","NES"),
+                       pval = c("Removed metformin users","p-value"),
+                       q.value = c("Removed metformin users","q-value"),
+                       NES = c("Removed metformin users","NES"))
   
   
 
-  res <- rbind(break1,ahi.pw_sa,break1,t90.pw_sa)
+  res <- rbind(top,t90.pw_sa)
   
-   # wb = loadWorkbook("Supp.tables.xlsx")
-   # removeSheet(wb, sheetName = "GMM enrichment_sens. analysis")
-   # yourSheet <- createSheet(wb, sheetName = "GMM enrichment_sens. analysis")
-   # addDataFrame(res, yourSheet, col.names=T,row.names=F)
-   # saveWorkbook(wb, file = "Supp.tables.xlsx")
+  message("Saving final version")
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="GMM enrichment_sens. analysis", col.names=T,
+  
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S8", col.names=F,
               row.names=F, append=T)
   
