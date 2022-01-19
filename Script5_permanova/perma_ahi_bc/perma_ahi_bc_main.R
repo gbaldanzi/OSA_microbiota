@@ -22,19 +22,17 @@
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
 
-rm(list = ls())
 output = "/home/baldanzi/Sleep_apnea/Results/"
-output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
   # Importing data
   pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
 # Importing BC matrix 
-BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
-BC = as.matrix(BC)
-row.names(BC) = colnames(BC)
+  BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
+  BC = as.matrix(BC)
+  row.names(BC) = colnames(BC)
 
-source('permanova.fun.R')
+source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/permanova.fun.R')
 
 # Transforming two-level factor variables into numeric variables 
 dades = copy(pheno[valid.ahi=='yes',])

@@ -16,7 +16,6 @@
 pacman::p_load(data.table, vegan, ggplot2,parallel)
 
 output = "/home/baldanzi/Sleep_apnea/Results/"
-output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing data
 pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")

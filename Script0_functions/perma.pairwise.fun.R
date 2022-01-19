@@ -61,7 +61,7 @@ perma.fun <- function(outcome, group1, group2, covari, data, nodes = 1, group_va
 set.seed(123)
 data.char <- deparse(substitute(data))
 cl = makeCluster(nodes)
-clusterExport(cl, varlist = c("BC",data.char,"model1","model2","model3"))
+clusterExport(cl, varlist = c("BC",data.char,"basic.model","full.model"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
 message(paste("PERMANOVA OSA categories -",group1,group2))
