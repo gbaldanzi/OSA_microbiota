@@ -1,0 +1,17 @@
+# Sleep apnea and microbiota project 
+
+# Gabriel Baldanzi - 2021-07-08
+
+dades3 <- dades
+set.seed(123)
+nod=16   # Number of workers to be used 
+cl = makeCluster(nod)
+clusterExport(cl, varlist = c("outc","expo","dades3","model1","model2","model3"))
+clusterEvalQ(cl, library(vegan))
+clusterEvalQ(cl, library(data.table))
+print("PERMANOVA AHI and BC - Model3")
+print(" ")
+res = PermanovaFunction(outcome = outc, exposure = expo, covari = model3, data = dades3, nodes = nod)
+fwrite(res, file = paste0(output,"permanova_model3_ahi_bc.tsv"), sep="\t")
+stopCluster(cl)
+rm(dades3)

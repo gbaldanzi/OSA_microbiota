@@ -19,7 +19,6 @@
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
 
-rm(list = ls())
 output = "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
@@ -50,36 +49,18 @@ output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
   # Main Exposure - character name (length=1)
   expo = "t90cat"
 
-  #Covariates 
-  # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-  model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  # model 2 = model 1 + BMI 
-  model2 <-  c(model1,"BMI")
-  # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
-  # SA = remove medication users 
-  SA <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month")
-  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
-  
-  
+
 
 # Runing PERMANOVA ####
   
-  #message('perma_t90_bc/perma_model1.R')
-  #source('perma_t90_bc/perma_model1.R')
-
-  #message('perma_t90_bc/perma_model2.R')
-  #source('perma_t90_bc/perma_model2.R')
-
-  message('perma_t90_bc/perma_model3.R')
-  source('perma_t90_bc/perma_model3.R')
+  # Runing PERMANOVA in parallel ####
+  source('Script5_permanova/perma_basic.model.R')
   
-  #message('perma_t90_bc/perma_SA2.R')
-  #source('perma_t90_bc/perma_SA2.R')
-
-  #message('perma_t90_bc/perma_SA.R')
-  #source('perma_t90_bc/perma_SA.R')
+  fwrite(res, file = paste0(output,"permanova_basic.model_t90_bc.tsv"), sep="\t")
+  
+  source('Script5_permanova/perma_full.model.R')
+  
+  fwrite(res, file = paste0(output,"permanova_full.model_t90_bc.tsv"), sep="\t")
   
 
 

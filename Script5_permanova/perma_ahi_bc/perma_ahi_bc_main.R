@@ -5,16 +5,19 @@
 
 # Version 1: April 2021
 # Update: - Jul 8, 2021: merged models 3 and 4, including medication with other covariates. 
+# Last update: Sep 24, 2021
 
-# This code will investigate the beta-diversity (Bray Curtis Dissimilarity and 
-# Aitchison distance) in relation to AHI and T90% in 3 different models. 
+# This code will investigate the beta-diversity (Bray Curtis Dissimilarity) 
+# in relation to OSA severity groups in 3 different models. 
 # Analysis are run using a PERMANOVA approach
 
+
 # Results saved at the folder: "/home/baldanzi/Sleep_apnea/Results/"
-# File model 1 - permanova_model1.tsv
-# File model 2 - permanova_model2.tsv
-# File model 3 - permanova_model3.tsv
-# File SA - permanova_SA.tsv
+# File model 1 - permanova_model1_osa_bc.tsv
+# File model 2 - permanova_model2_osa_bc.tsv
+# File model 3 - permanova_model3_osa_bc.tsv
+# File SA - permanova_SA_osa_bc.tsv
+# File SA2 - permanova_SA2_osa_bc.tsv
 
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
@@ -23,8 +26,8 @@ rm(list = ls())
 output = "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
-# Importing data
-pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  # Importing data
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
 # Importing BC matrix 
 BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/OSA.BCmatrix.csv', header=T, sep = ',')
@@ -38,39 +41,26 @@ dades = copy(pheno[valid.ahi=='yes',])
 a= c("Sex","ppi","metformin","hypermed","dyslipmed")
 dades[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades[,a, with=F]))))]
 
-
 # Making sure that BC and dades have the same order of observations 
-dades = dades[match(rownames(BC),dades$SCAPISid),]
+  dades <-  dades[match(rownames(BC),dades$SCAPISid),]
 
 # Outcome - character name (length=1) with matrix distance 
-outc = "BC"
+  outc = "BC"
 
 # Main Exposure - character name (length=1)
-expo = "ahi"
+  expo = "OSAcat"
 
-#Covariates 
-  # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-  model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  # model 2 = model 1 + BMI 
-  model2 <-  c(model1,"BMI")
-  # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
-  # SA = remove medication users 
-  SA <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month")
-  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
-  
-  
-  
+
 # Runing PERMANOVA in parallel ####
-  source('perma_ahi_bc/perma_model1.R')
-  
-  source('perma_ahi_bc/perma_model2.R')
+source('Script5_permanova/perma_basic.model.R')
 
-  source('perma_ahi_bc/perma_model3.R')
-  
-  source('perma_ahi_bc/perma_SA2.R')
+fwrite(res, file = paste0(output,"permanova_basic.model_ahi_bc.tsv"), sep="\t")
 
-  source('perma_ahi_bc/perma_SA.R')
+source('Script5_permanova/perma_full.model.R')
+
+fwrite(res, file = paste0(output,"permanova_full.model_ahi_bc.tsv"), sep="\t")
   
   
+
+
+#---------------------------------------------------------------------------#

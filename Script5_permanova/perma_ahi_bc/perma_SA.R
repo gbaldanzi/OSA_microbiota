@@ -5,8 +5,8 @@
 # Sensitivity analysis excluding medication users 
 
 # Sensitivity analysis - remove individuals who use medication 
-dades.sa<-  copy(pheno[valid.ahi=='yes',])
-dades.sa<-  dades.sa[ppi == "no",] #60
+dades.sa <-  copy(valid.ahi)
+dades.sa <-  dades.sa[ppi == "no",] #60
 dades.sa <-  dades.sa[metformin == "no",] #57 
 dades.sa <-  dades.sa[hypermed == "no",] #593
 dades.sa <-  dades.sa[dyslipmed == "no",] # 239
@@ -16,34 +16,32 @@ nrow(dades.sa) #2318
 a= c("Sex")
 dades.sa[,(a):=as.data.frame(data.matrix(data.frame(unclass(dades.sa[,a, with=F]))))]
 
+
 # Making sure that BC and dades.sa have the same observations 
-BCsa <- BC
-BCsa = as.data.frame(BCsa) # Transform BCsa from matrix to data.frame
+BC = as.data.frame(BC) # Transform BC from matrix to data.frame
 cols = dades.sa[,SCAPISid] # Pass the dades.sa observations ids to a vector
-BCsa = BCsa[,cols] # Only keep the BCsa columns that correspond to dades.sa observations
-BCsa$SCAPISid = rownames(BCsa) # Creates a BCsa variable with the rownames(BCsa) 
-BCsa = BCsa[BCsa$SCAPISid %in% dades.sa[,SCAPISid], ] # Exclude BCsa rows that are not present in dades.sa 
-BCsa$SCAPISid = NULL # Exclude the SCAPISid column 
+BC = BC[,cols] # Only keep the BC columns that correspond to dades.sa observations
+BC$SCAPISid = rownames(BC) # Creates a BC variable with the rownames(BC) 
+BC = BC[BC$SCAPISid %in% dades.sa[,SCAPISid], ] # Exclude BC rows that are not present in dades.sa 
+BC$SCAPISid = NULL # Exclude the SCAPISid column 
 
-BCsa = as.matrix(BCsa) # Transform BCsa back to a matrix
+BC = as.matrix(BC) # Transform BC back to a matrix
 
-outsa = "BCsa"
-
-dades.sa = dades.sa[match(rownames(BCsa),dades.sa$SCAPISid),]  # Makes that BCsa and dades.sa are in the same order
+dades.sa = dades.sa[match(rownames(BC),dades.sa$SCAPISid),]  # Makes that BC and dades.sa are in the same order
 
 # Runing PERMANOVA in parallel ####
-print("PERMANOVA AHI and BC - Sensitivity Analysis")
+print("PERMANOVA OSA categoies and BC - Sensitivity Analysis")
 print(" ")
 set.seed(123)
 nod=16   # Number of workers to be used 
 cl = makeCluster(nod)
-clusterExport(cl, varlist = c("outsa","expo","dades.sa","SA","BCsa"))
+clusterExport(cl, varlist = c("outc","expo","dades.sa","SA"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
-res = PermanovaFunction(outcome = outsa, exposure = expo, covari = SA, data = dades.sa, nodes = nod)
+res = PermanovaFunction(outcome = outc, exposure = expo, covari = SA, data = dades.sa, nodes = nod)
 
 stopCluster(cl)
 
 # Saving results 
-fwrite(res, file = paste0(output,"permanova_SA_ahi_bc.tsv"), sep="\t")
+fwrite(res, file = paste0(output,"permanova_SA_osa_bc.tsv"), sep="\t")
 rm(dades.sa)
