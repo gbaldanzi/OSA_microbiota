@@ -21,20 +21,16 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 # Models ####
 
   #Covariates 
-  # model 1 : adjust for age + sex + alcohol + smoking + plate + received 
-  model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  # model 2 = model 1 + BMI 
-  model2 <-  c(model1,"BMI")
-  # model 3 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  model3 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
-  # SA = remove medication users 
-  SA <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month")
-  # SA2 = model 2 + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  SA2 <-  c(model2, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "sleeptime", "metformin","hypermed","dyslipmed","ppi")
-  
+  # basic.model : adjust for age + sex + alcohol + smoking + plate + received 
+  basic.model <-   c("age", "Sex", "Alkohol","smokestatus","plate")
+  # full model = basic model + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
+  full.model <-  c(basic.model, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
+  # full.model_bmi = full model + BMI 
+  full.model_bmi = c(full.model, "BMI")
   
   #listmodels=list(model1,model2,model3,SA2)
-  listmodels = list(model1, model3)
+  listmodels = list(basic.model, full.model, full.model_bmi)
+  names(listmodels) <- c("basic model", "full model", "full model + BMI")
   
 # Run correlation analysis 
   
@@ -46,6 +42,10 @@ source('/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/Spearman.
 
   message("Correlation T90 and Shannon index")
   source('Script4_cor_alpha/Script4_cor_odi_alpha.R')
+  
+  res.alpha <- rbind(res.alpha.ahi, res.alpha.t90, res.alpha.odi)
+  
+  fwrite(res.alpha, file= paste0(output, "cor_all.var_alpha.tsv"))
   
   #message("Correlation AHI and Shannon index - Plots")
   #source('Script4_cor_alpha/Script4_alpha_ahi_plots.R')
