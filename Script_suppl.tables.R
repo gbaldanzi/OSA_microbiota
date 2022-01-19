@@ -7,8 +7,28 @@ library(tidyverse)
 library(vegan)
 library(data.table)
 
-# Table S1. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
+# Function for rounding small values into scientific format 
+round.large <- function(x){
+  x[x>=0.001] <- round(x[x>=0.001],3)
+  x[x<0.001] <- formatC(x[x<0.001],digits = 2, format = "e")
+  return(x)
+}
+
+# Table S1. Association between OSA and alpha-diveristy (Shannon index) ####
   input <- "/home/baldanzi/Sleep_apnea/Results/"
+  
+  table.s1 <- fread(paste0(input,"cor_all.var_alpha.tsv"))
+  table.s1[,"p-value":=round.large(p.value)]
+  table.s1[,"Spearman's correlation":=round(cor.coefficient,3)]
+  table.s1[,exposure := toupper(exposure)]
+  
+  table.s1 <- table.s1[,c("exposure","Spearman's correlation","p-value","N","model")]
+  
+  write.xlsx2(table.s1, "Supp.tables.xlsx", sheetName="Table S1", col.names=T,
+              row.names=F, append=F)
+
+# Table S2. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
+
   
   list.res.ahi <- readRDS(paste0(input,"pairwise.perma.results.rds"))
   list.res.ahi <- list.res.ahi[1:6]
@@ -39,13 +59,13 @@ library(data.table)
   
   white.space <- data.frame(group.1="",group.2="",p.value="")
   
-  table.s1 <- rbind(table.res.ahi, white.space, table.res.t90)
+  table.s2 <- rbind(table.res.ahi, white.space, table.res.t90)
   
-  write.xlsx2(table.s1, "Supp.tables.xlsx", sheetName="Table S1", col.names=T,
-              row.names=F, append=F)
+  write.xlsx2(table.s2, "Supp.tables.xlsx", sheetName="Table S2", col.names=T,
+              row.names=F, append=T)
   
 
-# Suppl Table 2 - results from the basic model for all 4 phenotypes ####
+# Suppl Table 3 - results from the basic model for all 4 phenotypes ####
 
   # Results from model1 
   res <- fread(paste0(input,"cor_all.var_mgs.tsv"))
@@ -72,10 +92,10 @@ library(data.table)
   table.res <- res[,var.table,with=F]
   
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S2", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S3", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 3 - results from the fully adjusted model for all 3 phenotypes  ####
+  # Suppl Table 4 - results from the fully adjusted model for all 3 phenotypes  ####
   
   # Results from model2 
   res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
@@ -97,10 +117,10 @@ library(data.table)
   
   table.res <- res[,var.table,with=F]
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S3", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S4", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 4. List of Signatures species / Metagenomics information ####
+  # Suppl Table 5. List of Signatures species / Metagenomics information ####
   
   mgs.m2 <- readRDS(paste0(input,'mgs.m2.rds'))
   
@@ -131,10 +151,10 @@ library(data.table)
   setcolorder(taxonomy,c("OSA signature species","prevalence"))
   
   
-  write.xlsx2(taxonomy, "Supp.tables.xlsx", sheetName="Table S4", col.names=T,
+  write.xlsx2(taxonomy, "Supp.tables.xlsx", sheetName="Table S5", col.names=T,
               row.names=F, append=T)
   
-  # Suppl. Table 5 - medication use ####
+  # Suppl. Table 6 - medication use ####
   
   message("Medication use")
   
@@ -146,12 +166,7 @@ library(data.table)
   
   names(mgs.m2) <- c("ahi","t90","odi")
   
-  round.large <- function(x){
-    x[x>=0.001] <- round(x[x>=0.001],3)
-    x[x<0.001] <- formatC(x[x<0.001],digits = 2, format = "e")
-    return(x)
-  }
-  
+
   prepare.sa.table.fun <- function(expo,res,res_sa) { 
   
     stopifnot("'expo' needs to be of class 'character'"=class(expo) %in% "character")  
@@ -193,12 +208,12 @@ library(data.table)
   res <- rbind(brks[[1]], t[[1]], brks[[2]], t[[2]], brks[[3]], t[[3]])
   
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S5", col.names=F,
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S6", col.names=F,
               row.names=F, append=T)
   
   
   
-  # Suppl. Table 6 - antibiotic use ####
+  # Suppl. Table 7 - antibiotic use ####
   
   message("Antibiotic use")
   
@@ -227,12 +242,12 @@ library(data.table)
   res <- rbind(brks[[1]], t[[1]], brks[[2]], t[[2]], brks[[3]], t[[3]])
   
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S6", col.names=F,
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S7", col.names=F,
               row.names=F, append=T)
   
   
   
-  # Suppl Table 7 - GMM enrichment analysis ####
+  # Suppl Table 8 - GMM enrichment analysis ####
   
   res.pos <- fread(paste0(input,"ea_GMM_pos.tsv"))
   res.neg <- fread(paste0(input,"ea_GMM_neg.tsv"))
@@ -253,10 +268,10 @@ library(data.table)
   
   setnames(res,c("pathway","pval","q.value"),c("Gut metabolic module","p-value","q-value"))
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S7", col.names=T,
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S8", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 8 - GMM enrichment analysis - sensitivity analysis ####
+  # Suppl Table 9 - GMM enrichment analysis - sensitivity analysis ####
   
   message("GMM enrichment - SA")
   
@@ -309,6 +324,6 @@ library(data.table)
   message("Saving final version")
   
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S8", col.names=F,
+  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S9", col.names=F,
               row.names=F, append=T)
   
