@@ -2,9 +2,9 @@
 
 #SBATCH -A sens2019512
 #SBATCH -p core
-#SBATCH -n 1
-#SBATCH -t 1:00:00
-#SBATCH -J Script8_barplots
+#SBATCH -n 16
+#SBATCH -t 72:00:00
+#SBATCH -J perma_pairwise
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
@@ -12,6 +12,5 @@ ml R_packages
 
 cd $wrf
 
-Rscript Script8_barplot_res_mgs.R
-
+Rscript Script5_permanova/Script5.pairwise.R
 

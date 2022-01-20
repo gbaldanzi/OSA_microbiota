@@ -5,6 +5,12 @@
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
 
+# Import data
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
+# Transforming two-level factor variables into numeric variables 
+  a= c("Sex","ppi","metformin","hypermed","dyslipmed")
+  pheno[,(a):=as.data.frame(data.matrix(data.frame(unclass(pheno[,a, with=F]))))]
 
 #Covariates 
   # basic.model : adjust for age + sex + alcohol + smoking + plate + received 
@@ -15,19 +21,11 @@ pacman::p_load(data.table, vegan, ggplot2,parallel)
   
 
   
-  source('Script5_permanova/perma_ahi_bc/perma_ahi_bc_main.R')
+  source('Script5_permanova/perma_ahi_bc/perma_pairwise_main.R')
 
-  source('Script5_permanova/perma_odi_bc/perma_odi_bc_main.R')
+  source('Script5_permanova/perma_odi_bc/perma_pairwise_main.R')
 
-  source('Script5_permanova/perma_t90_bc/perma_t90_bc_main.R')
+  source('Script5_permanova/perma_t90_bc/perma_pairwise_main.R')
   
   
-  
-  
-  pheno[,ahicat := as.factor( cut(pheno$ahi,breaks = quantile(odi, probs = seq(0,1,by=.25), na.rm=T), 
-                                  include.lowest = T) )]
-  
-  
-  
-  
-  
+ 

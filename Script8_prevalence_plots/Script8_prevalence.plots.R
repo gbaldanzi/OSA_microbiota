@@ -1,9 +1,10 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi, 2021-09-06
 
-# Last update: 2021-10-20
+# Last update: 2022-01-03
 
-# To investigate non-linear associations between MGS and AHI
+# This script will create plots to investigate non-linear 
+# associations between MGS and AHI, T90, and ODI
 
 
 rm(list = ls())
@@ -45,13 +46,22 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   res.odi <- res.m2[exposure =="odi" & MGS %in% mgs.fdr.m2$mgs.fdr.odi,]
 
   clean.y.axis <- function(y){
-  y <- gsub("Absicoccus_", "A. ", y)
+  #y <- gsub("Absicoccus_", "A. ", y)
+  yy <- unlist(strsplit(y, split = "____"))
+  y <- paste0(yy[2],"\n",yy[1])
   y <- gsub("Bifidobacterium_longum_subsp._longum", "B. longum subsp.\nlongum", y)
   y <- gsub("Blautia_","B. ",y)
   y <- gsub("Pediococcus_", "P. ", y)
-  y <- gsub("AM42_11","", y)
+  y <- gsub("_AM42_11","", y)
   y <- gsub("Staphylococcus_","S. ", y)
   y <- gsub("_sp"," sp", y)
+  y <- gsub("_v"," v",y)
+  y <- gsub("_AF"," AF",y)
+  y <- gsub("_8L","-8L",y)
+  y <- gsub("_ur"," ur",y)
+  y <- gsub("Gordonibacter","G. ",y)
+  y <- gsub("_por", " por", y)
+  return(y)
   }
   
   cutlast <- function(char,n=9){
@@ -106,10 +116,28 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   #hm <- plot_grid(hm+theme(legend.position = "none"), legend, ncol = 2, 
  #                 rel_heights = c(1, 1.2), rel_widths = c(1,.06), axis="t")
   
-  ggsave(file="testhm2.pdf", plot=hm)
-    
-    
-    # Prevalence by groups 
+  # PDF file to check if the Heatmap was constructed properly 
+  ggsave(file="check_hm.pdf", plot=hm)
+  
+    # Key for significance ####
+  
+  key.sig <- res.matrix %>% select(MGS,exposure,sig) %>% pivot_wider(id_cols=MGS, 
+                                                                     names_from=exposure, 
+                                                                     values_from=sig)
+  setDT(key.sig)
+  setcolorder(key.sig,c("MGS","AHI","ODI","T90"))
+  
+  key.sig[,pattern:=paste(AHI,ODI,T90)]
+  
+  key.sig[pattern=="NA + +", lab:="                *  "]
+  key.sig[pattern=="NA + NA",lab:="         *         "]
+  key.sig[pattern=="NA NA +",lab:="                *  "]
+  key.sig[pattern=="+ + +",  lab:="  *      *      *  "]
+  key.sig[pattern=="+ + NA", lab:="  *      *         "]
+  key.sig[pattern=="+ NA NA",lab:="  *                "]
+  
+
+    # Prevalence by groups ####
 
     dades <- copy(pheno)
     dades <- dades[valid.ahi =="yes",]
@@ -143,34 +171,44 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     
     dades$exposure = factor(dades$exposure, levels = c("AHI","ODI", "T90"))
     
-    line.plot.fun <- function(y.axis,dd=dades) {
+    dades$Group <- c(1:4,5.5:8.5,10:13)
+    
+    line.plot.fun <- function(y.axis,dd=dades,key.sig=key.sig) {
       require(data.table)
       require(ggplot2)
       require(dplyr)
       require(Hmisc)
     
-    r <- round(res.m2[exposure=="ahi" & MGS==y.axis,rho],3)
+    #r <- round(res.m2[exposure=="ahi" & MGS==y.axis,rho],3)
     
     p1 <-  ggplot(data=dd, aes_string(x="Group", y=y.axis, group="exposure")) + 
       geom_line(aes(colour=exposure), linetype="dashed", size=0.1) +
-      geom_point(aes(colour=exposure),size=0.7,stroke=0, shape=15)+
-      ggtitle(ggtitle(gsub("____","\n",clean.y.axis(y.axis)))) +
+      geom_point(aes(colour=exposure),size=1.1,stroke=0, shape=15)+
+      ggtitle(ggtitle(gsub("____","\n",clean.y.axis(y.axis))), 
+              subtitle = key.sig[MGS==y.axis,lab]) +
       #scale_x_discrete(labels=names(n.gr)) +
-      scale_y_continuous(expand=c(0,0)) +
+      scale_y_continuous(expand=c(0.08,0.08)) +
+      xlab("AHI          ODI          T90") + 
       theme_classic() +
-      theme(plot.title = element_text(hjust = .5, face = 'bold',size=5.3),
-            #plot.subtitle = element_text(hjust = .5, face = 'bold', size=8),
-            axis.text = element_text(size=5.3), 
-            #axis.title.x = element_blank(),
-            axis.title.x = element_blank(),
+      theme(plot.title = element_text(hjust = .5, face = 'bold',size=5.5, 
+                                      margin = margin(b=2,t=2)),
+            plot.subtitle = element_text(hjust = .5, margin = margin(b=-10,r=2,l=1,t=2)),
+            axis.text.y = element_text(size=5.3), 
+            axis.title.x = element_text(size=5, hjust = .5),
             axis.title.y = element_blank(),
-            axis.text.x = element_text(size=4.2, angle=45),
+            #axis.text.x = element_text(size=4.5, angle=45),
+            axis.text.x = element_blank(),
             panel.border = element_blank(),
             legend.position = "none",
-            plot.margin = margin(r=5.5, l=3.5,t=2.5, b=4.5,unit="pt")) + 
+            plot.margin = margin(r=5.5, l=3.5,t=1.5, b=3.5,unit="pt"),
+            axis.line.x.bottom=element_line(size=0.08), 
+            axis.line.y.left = element_line(size=0.08), 
+            axis.ticks.length=unit(1.6, "points")) +
+            
             #panel.border = element_rect(linetype = "solid", colour = "black", size=0.5)) +
       scale_color_manual(values=c("orange","grey75","cornflowerblue"))
     
+      p1 <- p1 + scale_x_continuous(breaks = c(1:4,5.5:8.5,10:13))
     return(p1)
     }
     
@@ -179,29 +217,34 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     
     mgs.fdr <- clust.data$MGS[ord]
     
-        lineplots_3x <- lapply(mgs.fdr, line.plot.fun, dd=dades)
+        lineplots_3x <- lapply(mgs.fdr, line.plot.fun, dd=dades,key.sig=key.sig)
     names(lineplots_3x) <- mgs.fdr
     
-    lineplots_3x[[1]] <-  lineplots_3x[[1]] + 
-      guides(color=guide_legend(title="groups by:")) +
-      theme(legend.position = "right", 
-            legend.text = element_text(size=5),
-            legend.key.size = unit(0.5,"mm"), 
-            legend.title = element_text(size=5), 
-            legend.margin = margin(l=-6,r=0,t=-8,unit = "mm"),
-            plot.margin = margin(r=5.5, l=2.5,t=3.5, b=4.5,unit="pt"))
+    #lineplots_3x[[1]] <-  lineplots_3x[[1]] + 
+    #  guides(color=guide_legend(title="groups by:")) +
+    #  theme(legend.position = "right", 
+     #       legend.text = element_text(size=5),
+    #        legend.key.size = unit(0.5,"mm"), 
+    #        legend.title = element_text(size=5), 
+     #       legend.margin = margin(l=-6,r=0,t=-8,unit = "mm"),
+     #       plot.margin = margin(r=5.5, l=2.5,t=3.5, b=4.5,unit="pt"))
                                                 
     
-    saveRDS(lineplots_3x, file = paste0(output.plot,'/lineplots/lineplots_3x.rds'))
+    #saveRDS(lineplots_3x, file = paste0(output.plot,'/lineplots/lineplots_3x.rds'))
     
-    plot.merged <- plot_grid(plotlist=lineplots_3x, ncol=6, labels = NULL)
+    lineplots.merged <- plot_grid(plotlist=lineplots_3x, ncol=6, labels = NULL)
     
-    final.plot <- plot_grid(plot.merged, hm, labels=NULL, ncol=1, rel_heights = c(8,1.3))
+    final.plot <- plot_grid(lineplots.merged, hm, labels=NULL, ncol=1, rel_heights = c(8,1))
     
     
     
-    ggsave("final.plot.pdf", plot = final.plot, path="lineplots/")
-    ggsave("plots.merged.pdf", plot = plot.merged, path="lineplots/")
+    #ggsave("lineplot_hm_merged.pdf", plot = final.plot, path="lineplots/")
+    #ggsave("lineplots_merged.pdf", plot = lineplots.merged, path="lineplots/")
+    
+    pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/lineplots_pdf.pdf", 
+        width = 7, height = 10)
+    final.plot
+    dev.off()
     
     
     

@@ -26,7 +26,7 @@
   spearman.function(x1=outcomes,x2=exposure,covari = mod,data = dades)}))
 
   res.alpha <-  as.data.frame(res.alpha)
-  res.alpha$model <-  c("model1", "full model")
+  res.alpha$model <-  names(listmodels) 
 
 
   names(res.alpha) = c("MGS", "exposure", "cor.coefficient", "p.value", 
@@ -34,3 +34,4 @@
 
   fwrite(res.alpha, file = paste0(output,"cor_odi_alpha.tsv"), sep="\t")
 
+  res.alpha.odi <- res.alpha

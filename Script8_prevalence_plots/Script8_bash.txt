@@ -1,0 +1,17 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 1:00:00
+#SBATCH -J Script8_prevalence plots
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+ml R_packages
+
+cd $wrf
+
+Rscript Script8_prevalence.plots.R
+
+

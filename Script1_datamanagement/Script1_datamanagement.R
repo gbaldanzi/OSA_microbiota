@@ -267,6 +267,11 @@ pheno=merge(pheno, metab_collection_date, by="SCAPISid", all.x=T, all.y=F)
                                                      na.rm=T), include.lowest = T)]
   pheno[,t90cat:=factor(t90cat, levels = c("0", levels(t90cat)))]
   pheno[t90==0, t90cat := '0' ]
+  
+  # ODI categories 
+  pheno[,odicat := as.factor( cut(pheno$odi,breaks = quantile(odi, probs = seq(0,1,by=.25), na.rm=T), 
+                                  include.lowest = T) )]
+  pheno[,odicat := factor(odicat, levels = levels(odicat), labels = c("q1", "q2", "q3", "q4"))]
 
   # Save pheno data ####
   saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
