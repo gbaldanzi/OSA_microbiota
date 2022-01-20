@@ -43,7 +43,7 @@
   
   p2=ggplot(dat.plot, aes(x=Axis.1,y=Axis.2, color=t90cat))+
     # geom_point(size=1.1) +
-    geom_point(data=centroids, size=4)+
+    geom_point(data=centroids, size=2)+
     geom_errorbar(data=centroids,aes(ymin=Axis.2-se.Axis.2,ymax=Axis.2+se.Axis.2),width=0.001)+
     geom_errorbarh(data=centroids,aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
     #stat_ellipse(type = "t", size=1.3) +
@@ -65,13 +65,13 @@
   
   p2 <- p2 + theme(legend.title = element_blank()) 
   
-  p2 <- p2 + guides(color=guide_legend(nrow=2))
+  p2 <- p2 + guides(color=guide_legend(nrow=4))
   
-  ggsave("BC.t90cat.png", plot = p2, device = "png", 
-         path = "/home/baldanzi/Sleep_apnea/Results/")
+  #ggsave("BC.t90cat.png", plot = p2, device = "png", 
+  #       path = "/home/baldanzi/Sleep_apnea/Results/")
   
-  ggsave("BC.t90cat.pdf", plot = p2, device = "pdf", 
-         path = "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/")
+  #ggsave("BC.t90cat.pdf", plot = p2, device = "pdf", 
+  #       path = "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/")
   
   
 

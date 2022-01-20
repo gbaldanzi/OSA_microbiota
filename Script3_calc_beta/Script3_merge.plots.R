@@ -11,9 +11,10 @@
 
   source("Script3_calc_beta/Script3_calc_bc_ahi_plots.R")
   source("Script3_calc_beta/Script3_calc_bc_t90_plots.R")
+  source("Script3_calc_beta/Script3_calc_bc_odi_plots.R")
 
-  pcoa.plot.merged <- plot_grid(NULL,NULL,p1,p2,NULL,NULL,labels = c("","","A","B"), label_size = 12, nrow=3,
-                                label_y = 0.97, ncol=2, rel_heights = c(.3,1,.4))
+  pcoa.plot.merged <- plot_grid(NULL,NULL,NULL,p1,p2,p3,NULL,NULL,NULL,labels = c("","","","A","B","C"), label_size = 12, nrow=3,
+                                label_y = 0.97, ncol=3, rel_heights = c(.5,1,.4))
 
   ggsave("PCoA_sleepapnea.png", plot = pcoa.plot.merged, device = "png",
        path = "/home/baldanzi/Sleep_apnea/Results/")
