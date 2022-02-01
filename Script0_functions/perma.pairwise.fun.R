@@ -1,5 +1,40 @@
-# PERMANOVA function for beta-diversity 
+# PERMANOVA function pairwise comparisons of beta-diversity 
 
+# Wrapper function to run pairwise permanova comparisons 
+
+pairwise.perma.fun <- function(outcome = "BC", group_var = "OSAcat", covari = full.model, data = dades, nodes = 16){
+  
+  if(!length(unique(data[[group_var]]))>2) stop("Grouping variables (group_var) has less than 3 levels")
+  
+  list.res = vector(mode = "list",length = 0)  
+  
+  
+  l_grp <- levels(data[[group_var]])
+  
+  g1 = l_grp[1] ; g2 = l_grp[-1]
+  
+  for(i in 1:length(g2)){
+    message(paste(g1,g2[i],sep = "_"))
+    list.res[[paste(g1,g2[i],sep = "_")]] <-  perma.fun(outcome = outcome,group_var= group_var, group1 = g1, group2 = g2[i], covari = covari, data = data, nodes = nodes)
+  }
+  
+  g1 = g2[1] ; g2 = g2[-1]
+  
+  for(i in 1:length(g2)){
+    message(paste(g1,g2[i],sep = "_"))
+    list.res[[paste(g1,g2[i],sep = "_")]] <-  perma.fun(outcome = outcome, group_var= group_var,group1 = g1, group2 = g2[i], covari = covari, data = data, nodes = nodes)
+  }
+  
+  if(length(l_grp)>3) {  
+    g1 = g2[1] ; g2 = g2[-1]
+    
+    for(i in 1:length(g2)){
+      message(paste(g1,g2[i],sep = "_"))
+      list.res[[paste(g1,g2[i],sep = "_")]] <-  perma.fun(outcome = outcome, group_var= group_var,group1 = g1, group2 = g2[i], covari = covari, data = data, nodes = nodes)
+    }
+  }
+  return(list.res)
+}
 
 # The PERMANOVA function 
 PermanovaFunction = function(outcome, group1, group2, covari, data, distance = "bray", nodes = 1 , group_var= group_var){
@@ -66,7 +101,7 @@ clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
 message(paste("PERMANOVA OSA categories -",group1,group2))
 message(" ")
-res = PermanovaFunction(outcome = outcome, group1 = group1, group2 = group2, covari = model3, data = data, nodes = nodes, group_var= group_var)
+res = PermanovaFunction(outcome = outcome, group1 = group1, group2 = group2, covari = full.model, data = data, nodes = nodes, group_var= group_var)
 return(res)
 stopCluster(cl)
 }
@@ -90,38 +125,3 @@ clean.res <- function(list){
 }
 
 
-# Wrapper function to run pairwise permanova comparisons 
-
-pairwise.perma.fun <- function(outcome = "BC", group_var = "OSAcat", covari = model3, data = pheno, nodes = 16){
-
-  if(!length(unique(data[[group_var]]))>2) stop("Grouping variables (group_var) has less than 3 levels")
-
-    list.res = vector(mode = "list",length = 0)  
-
-  
-    l_grp <- levels(data[[group_var]])
-
-    g1 = l_grp[1] ; g2 = l_grp[-1]
-
-    for(i in 1:length(g2)){
-        message(paste(g1,g2[i],sep = "_"))
-        list.res[[paste(g1,g2[i],sep = "_")]] <-  perma.fun(outcome = outcome,group_var= group_var, group1 = g1, group2 = g2[i], covari = covari, data = data, nodes = nodes)
-    }
-
-    g1 = g2[1] ; g2 = g2[-1]
-
-    for(i in 1:length(g2)){
-        message(paste(g1,g2[i],sep = "_"))
-        list.res[[paste(g1,g2[i],sep = "_")]] <-  perma.fun(outcome = outcome, group_var= group_var,group1 = g1, group2 = g2[i], covari = covari, data = data, nodes = nodes)
-    }
-
-    if(length(l_grp)>3) {  
-        g1 = g2[1] ; g2 = g2[-1]
-  
-        for(i in 1:length(g2)){
-            message(paste(g1,g2[i],sep = "_"))
-            list.res[[paste(g1,g2[i],sep = "_")]] <-  perma.fun(outcome = outcome, group_var= group_var,group1 = g1, group2 = g2[i], covari = covari, data = data, nodes = nodes)
-        }
-    }
-    return(list.res)
-}

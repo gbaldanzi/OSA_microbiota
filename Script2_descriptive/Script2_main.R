@@ -3,7 +3,7 @@
 
 # Descriptive Statistics 
 
-# Last update: 2021-09-22
+# Last update: 2022-01-02
 
 message("")
 message("#Script 2 - main#")
@@ -15,10 +15,6 @@ library(tidyverse)
 library(data.table)
 library(Hmisc)
 library(compareGroups)
-library(ggpubr)
-library(flextable)
-library(vegan)
-library(RColorBrewer)
 
 
   # Import data
@@ -30,5 +26,3 @@ library(RColorBrewer)
   message("Run Descriptive - Phenotypes")
   source('Script2_descriptive/Script2_descriptivestatistics.R')
   
-  #message("Run Descriptive - Taxonomy")
-  #source('Script2_descriptive/Script2_taxonomy.R')

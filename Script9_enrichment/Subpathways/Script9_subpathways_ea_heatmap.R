@@ -7,7 +7,7 @@
 
 
 
-# Last update: 2022-01-04
+# Last update: 2022-01-20
 
 # In this last update, instead of running the enrichment analysis myself, I have
 # downloaded the results from the Gutsy Atlas and present them in the heatmap. 
@@ -244,8 +244,8 @@ h1 = Heatmap(hm.matrix_pos,
              cluster_columns = T,
              show_column_dend = F,
              
-             column_split = factor(c(rep("Increased abundance\nwith sleep apnea",n.increased),
-                                     rep("Decreased abundance\nwith sleep apnea",n.decreased))),
+             column_split = factor(c(rep("Increased abundance with OSA",n.increased),
+                                     rep("Decreased abundance with OSA",n.decreased))),
              column_title_gp = gpar(fontsize=9),
              column_gap = unit(2,"mm"),
              
@@ -299,9 +299,7 @@ h1 = Heatmap(hm.matrix_pos,
 pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.pdf", 
     width = 10, height = 8)
 set.seed(1)
-draw(h1, column_title = "Enrichment analysis for group of metabolites",
-     column_title_gp = gpar(fontsize = 12, fontface="bold"),
-     heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
+draw(h1, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
 
 dev.off()
 

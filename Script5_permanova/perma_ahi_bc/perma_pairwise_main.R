@@ -30,6 +30,8 @@
   dades <-  dades[match(rownames(BC),dades$SCAPISid),]
   
   dades[OSAcat=="no OSA", OSAcat:="noOSA"]
+  dades[,OSAcat := factor(OSAcat, levels = c("noOSA", "Mild", "Moderate", "Severe"), 
+                          labels = c("noOSA", "Mild", "Moderate", "Severe"))]
  
 
   # Runing PERMANOVA in parallel ####

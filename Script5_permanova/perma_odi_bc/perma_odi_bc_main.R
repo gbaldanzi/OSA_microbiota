@@ -45,13 +45,17 @@ expo = "odicat"
 
   
 # Runing PERMANOVA in parallel ####
-  source('Script5_permanova/perma_basic.model.R')
+  #source('Script5_permanova/perma_basic.model.R')
 
-  fwrite(res, file = paste0(output,"permanova_basic.model_odi_bc.tsv"), sep="\t")
+  #fwrite(res, file = paste0(output,"permanova_basic.model_odi_bc.tsv"), sep="\t")
   
-  source('Script5_permanova/perma_full.model.R')
+  #source('Script5_permanova/perma_full.model.R')
   
-  fwrite(res, file = paste0(output,"permanova_full.model_odi_bc.tsv"), sep="\t")
+  #fwrite(res, file = paste0(output,"permanova_full.model_odi_bc.tsv"), sep="\t")
+
+  source('Script5_permanova/perma_full.model.BMI.R')
+
+  fwrite(res, file = paste0(output,"permanova_full.model.bmi_odi_bc.tsv"), sep="\t")
 
  
   

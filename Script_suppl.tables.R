@@ -1,4 +1,6 @@
-# Project Sleep Apnea 
+# Project Sleep Apnea and gut microbiota 
+
+# 25 Jan 2022
 
 # Supplementary tables 
 
@@ -29,37 +31,27 @@ round.large <- function(x){
 
 # Table S2. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
 
+  list.perma.res <- list.files(path=input, pattern = "pairwise.perma.results")
   
-  list.res.ahi <- readRDS(paste0(input,"pairwise.perma.results.rds"))
-  list.res.ahi <- list.res.ahi[1:6]
-  
-  list.res.t90 <- readRDS(file=paste0(input,"pairwise.perma.results_t90.rds"))
-  
-  pairwise.table.fun <- function(lis) {
-    
-    table <- lapply(lis, function(x){
-      x[["variables"]] <-  gsub("no_OSA","noOSA",x[["variables"]])
-      l <- x[1,c("variables","Pr(>F)")] %>% 
-        separate(variables, c("group.1", "group.2")) %>%
-        rename(p.value = "Pr(>F)")
-      return(l)
-    })
-    
-    table <- do.call(rbind,table)
-    
+  table.perma.res <- lapply(list.perma.res, function(x){
+    table <- readRDS(paste0(input,x))
+    table <- table$table
+    table$group.1 <-  do.call(rbind,strsplit(table$Comparison,"_", fixed = T))[,1]
+    table$group.2 <-  do.call(rbind,strsplit(table$Comparison,"_", fixed = T))[,2]
+    table <- table[,c("group.1","group.2","p.value")]
     return(table)
-  }
+  })
   
-  table.res.ahi <- pairwise.table.fun(list.res.ahi)
-  table.res.ahi$group.1[table.res.ahi$group.1=="noOSA"] <- "No OSA"
+  names(table.perma.res) <- substring(list.perma.res, 24,26)
   
-  table.res.t90 <- pairwise.table.fun(list.res.t90)
-  table.res.t90$group.1[table.res.t90$group.1=="t0"] <- "T90=0"
+  table.perma.res$ahi$group.1[table.perma.res$ahi$group.1=="noOSA"] <- "No OSA"
   
+  table.perma.res$t90$group.1[table.perma.res$t90$group.1=="t0"] <- "T90=0"
   
   white.space <- data.frame(group.1="",group.2="",p.value="")
   
-  table.s2 <- rbind(table.res.ahi, white.space, table.res.t90)
+  table.s2 <- rbind(table.perma.res$ahi, white.space, table.perma.res$t90,
+                    white.space, table.perma.res$odi)
   
   write.xlsx2(table.s2, "Supp.tables.xlsx", sheetName="Table S2", col.names=T,
               row.names=F, append=T)
@@ -323,7 +315,8 @@ round.large <- function(x){
   
   message("Saving final version")
   
-  
   write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S9", col.names=F,
               row.names=F, append=T)
+  
+  message(paste("File name = Supp.tables.xlsx, saved at",getwd()))
   

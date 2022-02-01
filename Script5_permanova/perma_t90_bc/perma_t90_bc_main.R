@@ -61,5 +61,7 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
   
   fwrite(res, file = paste0(output,"permanova_full.model_t90_bc.tsv"), sep="\t")
   
-
+  source('Script5_permanova/perma_full.model.BMI.R')
+  
+  fwrite(res, file = paste0(output,"permanova_full.model.bmi_t90_bc.tsv"), sep="\t")
 

@@ -3,8 +3,8 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 16
-#SBATCH -t 72:00:00
-#SBATCH -J perma_osa_bc
+#SBATCH -t 24:00:00
+#SBATCH -J perma_odi_bc_full.modelBMI
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 

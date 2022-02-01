@@ -1,14 +1,16 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Descriptive Statistics 
+# This script will calculate alpha diversity (Shannon diversity index) for all participants
+
   library(vegan)
   library(data.table)
 
-# This script will calculate alpha diversity
-
-# Import data 
-  pheno <- readRDS(file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  # input = folder containing the dataset 
+  input="/home/baldanzi/Datasets/sleep_SCAPIS/"
+  
+  # Import data 
+  pheno <- readRDS(file=paste0(input,"pheno.MGS.Upp.rds"))
 
 #Calculate Shannon diversity ####
 
@@ -17,5 +19,5 @@
   
 # Save data
 
-  saveRDS(pheno, file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  saveRDS(pheno, file=paste0(input,"pheno.MGS.Upp.rds"))
   
