@@ -1,46 +1,44 @@
-# Script 6 Main 
+# Project: Sleep apnea and gut microbiota
+# Gabriel Baldanzi 
 
-model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
-model2 <- c(model1,"metformin","hypermed","dyslipmed","ppi","Fibrer",
+# Script 6 Main - Correlation with species abundance
+
+# This set of scripts will investigate the association between the relative 
+# abundance of gut microbiota species and four phenotypes (AHI, T90, ODI, BMI)
+
+  # Loading packages 
+  pacman::p_load(data.table, vegan, tidyr,dplyr)
+
+  # Folders 
+  input = "/home/baldanzi/Datasets/sleep_SCAPIS/"
+  output = "/home/baldanzi/Sleep_apnea/Results/"
+
+  # Importing data
+  pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
+
+  # Models
+  basic.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+  full.model <- c(basic.model,"metformin","hypermed","dyslipmed","ppi","Fibrer",
             "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
+  
+  # Functions 
+  source("Script0_functions/Spearman.correlation.function.R") # Correlation function 
+  source("Script0_functions/Script6.Functions.R")
 
-  message("Model 1")
-  source("cor_model1/Script6_cor1main.R")
+# Import data 
+
+  message("Basic Model")
+  source("cor_basic.model.R")
   
-  #source("cor_model1/Script6_venn1.R")
+  message("Full Model")
+  source("cor_full.model.R")
   
-  source("cor_model1/Script6_table.res1.R")
-  
-  message("Model 2")
-  source("cor_model2/Script6_cor2_main.R")
-  
-  #source("cor_model2/Script6_venn2.R")
-  
-  source("cor_model2/Script6_table.res2.R")
-  
-  
+  message("Creating Venn Diagram")
   source("Script6.venn.R")
   
   message("Sensitivity Analysis 1")
-  source("cor_SA/Script6_corsa_main.R")
-  
-  source("cor_SA/Script6_venn_sa.R")
-  
-  source("cor_SA/Script6_table.res_sa.R")
-  
-  source("cor_SA/Script6_corSA_table_mgs.fdr.R")
+  source("cor_sa_med.R")
   
   message("Sensitivity Analysis 2")
-  source("cor_SA2/Script6_corSA2_main.R")
-  
-  source("cor_SA2/Script6_vennSA2.R")
-  
-  source("cor_SA2/Script6_corSA2_table.R")
-  
-  
-  message("Sensitivity Analysis 3")
-  source("cor_SA3/Script6_corSA3_main.R")
-  
-  source("cor_SA3/Script6_corSA3_table.R")
-  
+  source("cor_sa_atb.R")
   

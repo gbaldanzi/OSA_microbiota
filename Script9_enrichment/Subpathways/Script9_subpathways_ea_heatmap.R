@@ -1,17 +1,17 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
-# Script created in 2021-08-16
 
-# Heatmap on the Enrichment analysis of subpathways among the metabolites 
-# correlated to the identified MGSs
+# This script wil create the Heatmap on the Enrichment analysis of 
+# subpathways among the metabolites 
+# correlated to the signature species 
 
+# The enrichment analysis results are imported from the Gutsy Atlas 
+# reference: Dekkers, K. F. et al. An online atlas of human plasma metabolite 
+# signatures of gut microbiome composition. 2021.12.23.21268179 
+# https://www.medrxiv.org/content/10.1101/2021.12.23.21268179v1 (2021) 
+# doi:10.1101/2021.12.23.21268179.
 
-
-# Last update: 2022-01-20
-
-# In this last update, instead of running the enrichment analysis myself, I have
-# downloaded the results from the Gutsy Atlas and present them in the heatmap. 
-# Only the signature species are presented. 
+# Last update: 2022-02-03
 
 rm(list=ls())
 
@@ -24,37 +24,38 @@ library(tidyverse)
 
 
   # Import the signature species 
-  input <-  "/home/baldanzi/Sleep_apnea/Results/"
+  results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
+  output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots"
 
 # Function to select the last characters of a string 
-cutlast <- function(char,n){
-  l <- nchar(char)
-  a <- l-n+1
-  return(substr(char,a,l))
-}
+  cutlast <- function(char,n){
+    l <- nchar(char)
+    a <- l-n+1
+    return(substr(char,a,l))
+  }
 
 
-fix.mgs.name.fun <- function(char){
-  char <- gsub("AF22_8LB","AF22-8LB",char)
-  char <- gsub("AM42_11","AM42-11",char)
-  char <- gsub("_"," ",char)
-}
+  fix.species.name.fun <- function(char){
+    char <- gsub("AF22_8LB","AF22-8LB",char)
+    char <- gsub("AM42_11","AM42-11",char)
+    char <- gsub("_"," ",char)
+  }
 
   # Results from the MGS-AHI/T90/BMI correlation - Full model 
 
-    res.m2 <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+    res.m2 <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
     res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
     
     Mgs.mgs <- unique(res.m2[,.(MGS,mgs)])
 
-  # Slee apnea signature mgs 
+  # Signature species of OSA 
 
-  mgs.m2 = readRDS(paste0(input, "mgs.m2.rds"))
+  mgs.m2 = readRDS(paste0(results.folder, "mgs.m2.rds"))
   mgs.rel <- unique(do.call('c',mgs.m2))
   mgs.rel.HG3A <- Mgs.mgs[MGS %in% mgs.rel, mgs]
   
   
-  # Import GUTSY Atlas results from enrichment analysis 
+  # Import enrichment analysis results GUTSY Atlas 
   ea_gutsy <- fread("/home/baldanzi/Datasets/gutsy_atlas/Supplementary_Table_6.tsv")
   
   names(ea_gutsy) <- gsub("-","_",names(ea_gutsy))
@@ -76,18 +77,19 @@ fix.mgs.name.fun <- function(char){
   mgs.decreased <- unique(res.m2[cor.coefficient<0 & MGS %in% mgs.rel & exposure %in% a , MGS])
 
   
-# Positive 
+# Enriched pathways/metabolite groups in the POSITIVE correlations ####
 
   res.table <- ea_gutsy[Direction=="Positive"]
   
-  # Filter to only the pathways that are FDR associated with one MGS
+  # Filter to pathways/metabolite groups that are FDR associated with at least one signature species 
   
-  table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% summarise(nr_p.05 = sum(q_value<.05))
+  table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% 
+    summarise(nr_p.05 = sum(q_value<.05))
   hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>0]
 
   hm.pathways <- hm.pathways[-which(hm.pathways=="Food Component/Plant")]
 
-
+  # Matrix results for the heatmap 
   hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = Estimate)
@@ -104,7 +106,7 @@ fix.mgs.name.fun <- function(char){
   rownames(hm.matrix_pos) <- gsub("_"," ",rownames(hm.matrix_pos))
   rownames(hm.matrix_pos) <- gsub("Metabolism","Metab.",rownames(hm.matrix_pos))
 
-
+  # q-values to produce the "*" on the heatmap
   qvalues_pos <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
       filter(Metabolite_subclass %in% hm.pathways) %>% 
       spread(key=Metabolite_subclass, value = q_value)
@@ -118,17 +120,17 @@ fix.mgs.name.fun <- function(char){
   qvalues_pos[is.na(qvalues_pos)] <- 1
 
 
-# Negative 
-
-# Import data
+ # Enriched pathways/metabolite groups in the NEGATIVE correlations ####
+ 
   res.table <- ea_gutsy[Direction=="Negative"]
 
-# Filter to only the pathways that are FDR associated with one MGS
-  table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% summarise(nr_p.05 = sum(q_value<.05))
+  # Filter to pathways/metabolite groups that are FDR associated with at least one signature species 
+  table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% 
+    summarise(nr_p.05 = sum(q_value<.05))
   hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>0]
   
-  
-  hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
+  # Matrix results for the heatmap 
+    hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = Estimate)
 
@@ -145,8 +147,8 @@ fix.mgs.name.fun <- function(char){
   rownames(hm.matrix_neg) <- gsub("Metabolism","Metab.",rownames(hm.matrix_neg))
   rownames(hm.matrix_neg) <- gsub(" (PC)","",rownames(hm.matrix_neg))
 
-
-  qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value) %>% 
+  # q-values to produce the "*" on the heatmap
+    qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value) %>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = q_value)
   
@@ -159,7 +161,7 @@ fix.mgs.name.fun <- function(char){
     qvalues_neg[is.na(qvalues_neg)] <- 1
 
 
-# annotation for increased or decreased MGS in sleep apnea 
+# Annotation for increased or decreased species in OSA 
 
   mgs.rel <- mgs.rel[mgs.rel %in% rownames(hm.matrix)]
 
@@ -167,12 +169,6 @@ fix.mgs.name.fun <- function(char){
                          correlated = vector(mode="character", 
                                              length=length(mgs.rel)))
 
-  #annotation[mgs.rel %in% mgs.ahi, correlated := "AHI"]
-  #annotation[mgs.rel %in% mgs.t90, correlated := "T90"]
-  #annotation[mgs.rel %in% mgs.ahi & mgs.rel %in% mgs.t90, correlated := "Both"]
-
-  #annotation[,correlated:=factor(correlated, levels=c("AHI" , "Both" , "T90"))]
-  
   annotation[mgs.rel %in% mgs.increased, correlated := "increased"]
   annotation[mgs.rel %in% mgs.decreased, correlated := "decreased"]
   
@@ -193,33 +189,34 @@ setDF(annotation)
 
   rownames(annotation) <- annotation$mgs.rel 
 
-
+  # Assert that the heatmap matrix and the annotation vector have in the same order
   hm.matrix_neg <- hm.matrix_neg[,match(annotation$mgs.rel,colnames(hm.matrix_neg))]
   hm.matrix_pos <- hm.matrix_pos[,match(annotation$mgs.rel,colnames(hm.matrix_pos))]
 
-
+  # Assert that the q-values matrix and the annotation vector have in the same order
   qvalues_pos <- qvalues_pos[,match(annotation$mgs.rel,colnames(qvalues_pos))]
   qvalues_neg <- qvalues_neg[,match(annotation$mgs.rel,colnames(qvalues_neg))]
 
   map.col = c("red", "blue")
   names(map.col) = c("increased", "decreased")
 
-
+  # Fix species names to better visualization in the heatmap
   noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_pos)) ) )
   noms <- paste0(noms$V1, " (", noms$V2, ")" )
-  noms <- fix.mgs.name.fun(noms) 
+  noms <- fix.species.name.fun(noms) 
   colnames(hm.matrix_pos) <- noms
 
   noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , colnames(hm.matrix_neg)) ) )
   noms <- paste0(noms$V1, " (", noms$V2, ")" )
-  noms <- fix.mgs.name.fun(noms) 
+  noms <- fix.species.name.fun(noms) 
   colnames(hm.matrix_neg) <- noms
 
   noms <- as.data.frame(do.call(rbind, strsplit( split = "____" , rownames(annotation)) ) )
   noms <- paste0(noms$V1, " (", noms$V2, ")" )
-  noms <- fix.mgs.name.fun(noms) 
+  noms <- fix.species.name.fun(noms) 
   rownames(annotation) <- noms
 
+  # Create object with the annotations for the Heatmap 
   ha = HeatmapAnnotation(Correlation=annotation$correlated,which = "col",
                                  name="Phenotype",
                                 show_legend = FALSE,
@@ -232,9 +229,9 @@ setDF(annotation)
                                  annotation_name_gp=gpar(fontsize = 7),
                                  annotation_name_side = "left")
 
-
-set.seed(1)
-h1 = Heatmap(hm.matrix_pos, 
+  # Create heatmap
+  set.seed(1)
+  h1 = Heatmap(hm.matrix_pos, 
              cell_fun = function(j, i, x, y, w, h, fill) {
                if(qvalues_pos[i, j] < 0.05) {
                  grid.text('*', x, y)
@@ -262,7 +259,7 @@ h1 = Heatmap(hm.matrix_pos,
              heatmap_legend_param = list(labels_gp = gpar(fontsize=4),
                                          title_gp = gpar(fontsize=6),
                                          grid_width = unit(1.5, "mm")),
-             top_annotation = ha) %v%
+             top_annotation = ha) %v% # The symbol '%v%' means one heatmap over the other
   
   Heatmap(hm.matrix_neg, 
           cell_fun = function(j, i, x, y, w, h, fill) {
@@ -295,20 +292,21 @@ h1 = Heatmap(hm.matrix_pos,
 
 
 
-
-pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.pdf", 
+  # Save the plot in pdf 
+  pdf(file = paste0(output.plot, "mgs_subpathway_ea_heatmap_gutsy.pdf"), 
     width = 10, height = 8)
-set.seed(1)
-draw(h1, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
+  set.seed(1)
+  draw(h1, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
 
-dev.off()
+  dev.off()
 
-png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.png", 
-width = 9, height = 8, units = 'in', res = 1500 )
-set.seed(1)
-draw(h1, column_title = "Enrichment analysis for group of metabolites",
+  # Save the plot in png 
+  png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.png", 
+  width = 9, height = 8, units = 'in', res = 1500 )
+  set.seed(1)
+  draw(h1, column_title = "Enrichment analysis for group of metabolites",
      column_title_gp = gpar(fontsize = 12, fontface="bold"),
      heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
 
-dev.off()
+  dev.off()
 

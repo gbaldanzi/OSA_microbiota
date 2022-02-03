@@ -84,7 +84,7 @@ which(sleep$Date>as.Date("2018-12-01")) #index of values that were typos
 # Creating a variable OSA severity 
 sleep[valid.ahi=="yes",OSAcat:= rec(ahi, rec = "0:4.9=0; 5:14.9=1; 15:29.9=2 ; 30:max=3")]
 sleep[,OSAcat:= factor(OSAcat, levels = c(0,1,2,3), 
-                          labels = c("no OSA", "Mild","Moderate", "Severe"))]
+                          labels = c("No OSA", "Mild","Moderate", "Severe"))]
 
 # CPAP and Splint data 
 # in the original data, CPAP and Splint only have the values 1 and NA

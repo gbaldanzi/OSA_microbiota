@@ -1,4 +1,6 @@
-# Script 7 - Functions 
+# Functions for enrichment analysis 
+
+# Gabriel Baldanzi 
 
 MGS.Enrich.Analysis <- function(data, 
                             p.value.name = "p.value",
@@ -41,5 +43,12 @@ MGS.Enrich.Analysis <- function(data,
     rm(paths)
     return(res)
 }
+
+
+  cutlast <- function(char,n){
+  l <- nchar(char)
+  a <- l-n+1
+  return(substr(char,a,l))
+  }
 
   

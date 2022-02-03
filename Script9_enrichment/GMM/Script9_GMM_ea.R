@@ -1,54 +1,47 @@
-# Script 9 - Enrichment analysis using model2 correlation coefficients 
+# Script 9 - Enrichment analysis using basic model correlation coefficients 
 
-# Gabriel Baldanzi v1 2021-10-25
+# Gabriel Baldanzi 
 
-# Last update: 
+# Last update: 2022-02-03
+
+rm(list=ls())
 
 # Loading packages 
-pacman::p_load(data.table,ggplot2, tidyr, fgsea,rio, ggvenn)
+pacman::p_load(data.table,ggplot2, tidyr, fgsea)
 
-source("MGS.Enrich.function.R")
+  # Functions 
+  source("Script0_functions/MGS.Enrich.function.R")
 
 # input and output folders 
-  input1 = "/home/baldanzi/Sleep_apnea/Results/"
-  input2 = "/home/baldanzi/Datasets/MGS/original/"
-  output = "/home/baldanzi/Sleep_apnea/Results/"
+  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+  input = "/home/baldanzi/Datasets/MGS/original/"
   output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
-  # Import results 
-  res <- fread(paste0(input1,"cor_all.var_mgs.tsv"))
-  
-  
-  cutlast <- function(char,n){
-    l <- nchar(char)
-    a <- l-n+1
-    return(substr(char,a,l))
-  }
+  # Import results from basic model 
+  res <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
   
   res[,mgs:=cutlast(MGS,9)]
-  
-  
   
   res.list <- list(AHI = res[exposure=="ahi",],
                    T90 = res[exposure=="t90",],
                    ODI = res[exposure=="odi",],
                    BMI = res[exposure=="BMI",])
+  
 
-# List of modules ####
-  load(paste0(input2,'MGS_HG3A.GMMs2MGS.RData')) # object = MGS_HG3A.GMMs2MGS
+  # List of modules ####
+  load(paste0(input,'MGS_HG3A.GMMs2MGS.RData')) # object = MGS_HG3A.GMMs2MGS
   list.modules <-  MGS_HG3A.GMMs2MGS
 
   # Enrichment analysis   
-    # Positive correlations 
+    # Positive correlations ####
     message("Positive correlations")
     res.pos = list()[1:4]
     
     for(i in 1:4){
-    print(i)
-      
+    
       res.pos[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  
                        p.value.name="p.value",
-                       cor.var.name = "cor.coefficient",
+                       cor.var.name = "rho",
                        MGS.var.name = "mgs",
                        enrich.var.list = list.modules,
                        direction = "positive", 
@@ -57,23 +50,24 @@ source("MGS.Enrich.function.R")
     }
 
     
-      # Merging with module annotation 
+      # Save results from enrichment analysis in the positive correlations  
     
         res.pos <- do.call(rbind,res.pos)
-        fwrite(res.pos, file = paste0(output,"ea_GMM_pos.tsv"))
+        fwrite(res.pos, file = paste0(results.folder,"ea_GMM_pos.tsv"))
       
-    # Negative correlations
+      # Negative correlations ####
 
         message("Negative correlations")
         # Removing the single MGS that is negative correlated and not present in list of modules
        # res.list <- lapply(res.list,function(x){x[mgs!="HG3A.1213",]})
+        
         res.neg = list()[1:4]
         
         for(i in 1:4){
-          print(i)
+          
         res.neg[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  
                            p.value.name="p.value",
-                           cor.var.name = "cor.coefficient",
+                           cor.var.name = "rho",
                            MGS.var.name = "mgs",
                            enrich.var.list = list.modules,
                            direction = "negative", 
@@ -81,7 +75,7 @@ source("MGS.Enrich.function.R")
         names(res.neg)[i] <- names(res.list)[i]
         }
         
-        
+        # Save results from enrichment analysis with negative correlations 
         res.neg <- do.call(rbind, res.neg)
-        fwrite(res.neg, file = paste0(output,"ea_GMM_neg.tsv"))
+        fwrite(res.neg, file = paste0(results.folder,"ea_GMM_neg.tsv"))
         

@@ -21,7 +21,7 @@ round.large <- function(x){
   
   table.s1 <- fread(paste0(input,"cor_all.var_alpha.tsv"))
   table.s1[,"p-value":=round.large(p.value)]
-  table.s1[,"Spearman's correlation":=round(cor.coefficient,3)]
+  table.s1[,"Spearman's correlation":=round(rho,3)]
   table.s1[,exposure := toupper(exposure)]
   
   table.s1 <- table.s1[,c("exposure","Spearman's correlation","p-value","N","model")]
@@ -70,11 +70,11 @@ round.large <- function(x){
   
   res[,exposure:=toupper(exposure)]
   
-  res[,c("cor.coefficient","p.value","q.value") := lapply(.SD,round,3) , 
-      .SDcols = c("cor.coefficient","p.value","q.value")]
+  res[,c("rho","p.value","q.value") := lapply(.SD,round.large) , 
+      .SDcols = c("rho","p.value","q.value")]
 
   
-  setnames(res,c("MGS","cor.coefficient","q.value","p.value"),
+  setnames(res,c("MGS","rho","q.value","p.value"),
            c("Metagenomic species","Spearman's correlation","q-value","p-value"))
   
   var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",

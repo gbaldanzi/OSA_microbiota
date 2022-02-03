@@ -1,43 +1,29 @@
 # Project: Sleep apnea and gut microbiota
-# Gabriel Baldanzi, 2021-09-06
+# Gabriel Baldanzi 
 
-# Last update: 2022-01-03
+# Last update: 2022-02-02
 
 # This script will create plots to investigate non-linear 
 # associations between MGS and AHI, T90, and ODI
 
-
 rm(list = ls())
 pacman::p_load(data.table,tidyverse,Hmisc, vegan, cowplot)
 
-# input and output folders 
-input1 = "/home/baldanzi/Sleep_apnea/Results/"
-input2 = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
+  # Folders 
+  input <-  "/home/baldanzi/Datasets/sleep_SCAPIS/"
+  results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
+  outupt.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots"
 
-#output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
-
-  # Import full data 
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-  
-  
-  # Rename levels for the factor variables OSAcat and t90cat (categories of sleep apnea)
-  pheno[OSAcat=="no OSA", OSAcat:= "No Sleep Ap."]
-  pheno[,OSAcat:=factor(OSAcat, levels = c("No Sleep Ap.", "Mild", "Moderate", "Severe"))]
-  
-  lev.t90cat <- levels(pheno[,t90cat])
-  pheno[,t90cat:=factor(t90cat, levels=lev.t90cat, labels = c("0","T1","T2","T3"))]
-  
-  pheno[,odicat := as.factor( cut(pheno$odi,breaks = quantile(odi, probs = seq(0,1,by=.25), na.rm=T), 
-                                  include.lowest = T) )]
+  # Importing data
+  pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
   
 
-  # Import results 
-  res.m2 <- fread(paste0(input1,"cor2_all.var_mgs.tsv"))
+  # Import results to create plots 
+  res.m2 <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
   res.m2[q.value>=0.001, q.value:=round(q.value, digits = 3)]
-  res.m2[,rho:=round(cor.coefficient,3)]
+  res.m2[,rho:=round(rho,3)]
 
-  # Select the relevant MGSs 
+  # Select the signature species  
   mgs.fdr.m2 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
   mgs.fdr <- unique(do.call('c',mgs.fdr.m2))  
   
@@ -77,10 +63,10 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
   # Heatmap ####
   res.matrix <- res.m2[MGS %in% mgs.fdr,]
   
-  a = c("MGS", "exposure", "cor.coefficient")
+  a = c("MGS", "exposure", "rho")
   clust.data <- res.matrix[,a,with=F] %>% pivot_wider(id_cols = MGS, 
                                            names_from = exposure, 
-                                           values_from= cor.coefficient)
+                                           values_from= rho)
   
   temp <- scale(clust.data[,c("ahi", "odi", "t90")])
   ord <- hclust(dist(temp, method="euclidean"), method="ward.D")$order
@@ -110,14 +96,8 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
     scale_x_discrete(position = "top", expand = c(0,0)) +
     scale_y_discrete(expand = c(0,0))
 
-  #grobs <- ggplotGrob(hm)$grobs
-  #legend <- get_legend(hm)
-  
-  #hm <- plot_grid(hm+theme(legend.position = "none"), legend, ncol = 2, 
- #                 rel_heights = c(1, 1.2), rel_widths = c(1,.06), axis="t")
-  
   # PDF file to check if the Heatmap was constructed properly 
-  ggsave(file="check_hm.pdf", plot=hm)
+  #ggsave(file="check_hm.pdf", plot=hm)
   
     # Key for significance ####
   
@@ -220,28 +200,12 @@ output.plot = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/"
         lineplots_3x <- lapply(mgs.fdr, line.plot.fun, dd=dades,key.sig=key.sig)
     names(lineplots_3x) <- mgs.fdr
     
-    #lineplots_3x[[1]] <-  lineplots_3x[[1]] + 
-    #  guides(color=guide_legend(title="groups by:")) +
-    #  theme(legend.position = "right", 
-     #       legend.text = element_text(size=5),
-    #        legend.key.size = unit(0.5,"mm"), 
-    #        legend.title = element_text(size=5), 
-     #       legend.margin = margin(l=-6,r=0,t=-8,unit = "mm"),
-     #       plot.margin = margin(r=5.5, l=2.5,t=3.5, b=4.5,unit="pt"))
-                                                
-    
-    #saveRDS(lineplots_3x, file = paste0(output.plot,'/lineplots/lineplots_3x.rds'))
-    
     lineplots.merged <- plot_grid(plotlist=lineplots_3x, ncol=6, labels = NULL)
     
     final.plot <- plot_grid(lineplots.merged, hm, labels=NULL, ncol=1, rel_heights = c(8,1))
     
-    
-    
-    #ggsave("lineplot_hm_merged.pdf", plot = final.plot, path="lineplots/")
-    #ggsave("lineplots_merged.pdf", plot = lineplots.merged, path="lineplots/")
-    
-    pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/lineplots_pdf.pdf", 
+    # Save plot in pdf 
+    pdf(file = paste0(output.plots,"lineplots_pdf.pdf"), 
         width = 7, height = 10)
     final.plot
     dev.off()

@@ -70,7 +70,18 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
 
   # 28 participants have sleep and gut microbiota data but do not have metabolomics data
 
-
+  
+  # Antibiotic data ####
+  # Antibiotic data 
+  atb = fread('/home/baldanzi/Datasets/Antibiotics/Processed/scapis_antibiotics_data_v1_20200804.tsv')
+  atb <- atb[Site=="Site5",]
+  atb_SCAPISid <- atb[Time_J01>-180,SUBJID]
+  
+  # Flagging individuals that used atb in the last 3 months. 
+  pheno[!SCAPISid %in% atb_SCAPISid, atb6m:='no']  
+  pheno[SCAPISid %in% atb_SCAPISid, atb6m:='yes']
+  
+  
   # Recoding variables ####
 
   # Month of anthropometric collection date - variable to account for seasonality
