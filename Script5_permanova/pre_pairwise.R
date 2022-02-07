@@ -24,17 +24,6 @@
   
   #Covariates 
   basic.model<-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  full.model <-  c(basic.model, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
-  
-
-  # Run the pairwise associations
-  source('Script5_permanova/perma_ahi_bc/perma_pairwise_ahi.R')
-  
-  source('Script5_permanova/perma_t90_bc/perma_pairwise_t90.R')
-
-  source('Script5_permanova/perma_odi_bc/perma_pairwise_odi.R')
-
-  
-  
+  full.model <-  c(basic.model,"BMI", "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
   
  

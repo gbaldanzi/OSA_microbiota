@@ -13,7 +13,7 @@ spearman.function = function(x1, x2, covari=NULL, data){
     dataset <- data[valid.t90=="yes"]
   } else {  dataset <- data }
   
-  if(any(class(dataset) %in% "dataset.table")){setDF(dataset)}
+  if(any(class(dataset) %in% "data.table")){setDF(dataset)}
   numeric.covari = names(dataset[covari])[sapply(dataset[covari],is.numeric)]
   factor.covari =  names(dataset[covari])[sapply(dataset[covari],is.factor)]
   factor.covari = c(factor.covari,
@@ -22,7 +22,7 @@ spearman.function = function(x1, x2, covari=NULL, data){
   if(any(is.na(dataset[,x1]))){stop("NA in x1")}
   if(any(is.na(dataset[,x2]))){stop("NA in x2")}
   
-  notexclude <-  complete.cases(dataset[,covari,with=F])
+  notexclude <-  complete.cases(dataset[,covari])
   temp.dataset=dataset[notexclude,]
   
   if(length(factor.covari)>0){  #Dummies variables 
@@ -34,25 +34,27 @@ spearman.function = function(x1, x2, covari=NULL, data){
     cov=c(numeric.covari,factor.covari)
   }
   #Partial Sperman correlation 
-  result=dataset.frame(matrix(ncol=7, nrow=length(x1)))
+  result=data.frame()
+  
   for(i in 1:length(x1)){
     
     res=pcor.test(temp.dataset[,x1[i]],temp.dataset[,x2],temp.dataset[,cov],
                   method = "spearman")
-    result[i,] <- dataset.frame(x=x1[i],exposure=x2,
+    temp <- data.frame(x=x1[i],exposure=x2,
                                 rho=res$estimate,
                                 p.value=res$p.value,
                                 N=res$n,
                                 method = res$Method,
                                 model = deparse(substitute(covari)),
                                 covariates=paste(covari,collapse = "+"))
-
+    
+    result <- rbind(result,temp)
   }
   
   if(length(x1)>1){
     result$q.value = p.adjust(result[,4], method="BH")
-    result$q.value[results$q.value>=0.001] <- round(result$q.value[results$q.value>=0.001],3)
-    results <-  results[order(results$q.value),]
+    result$q.value[result$q.value>=0.001] <- round(result$q.value[result$q.value>=0.001],3)
+    result <-  result[order(result$q.value),]
   }
   
   return(result)

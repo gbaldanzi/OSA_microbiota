@@ -8,6 +8,8 @@
 # This code will run pairwise comparisons between ODI severity group in 
 # relation to the beta-diversity (Bray Curtis Dissimilarity) 
 
+# Preparation 
+source('Script5_permanova/pre_pairwise.R')
 
   # Importing data
   dades <- copy(pheno[valid.t90=="yes",])

@@ -1,7 +1,7 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Last update: Jan 25, 2022
+# Last update: Fev 07, 2022
 
 # This code will investigate the beta-diversity (Bray Curtis Dissimilarity) 
 # in relation to OSA severity groups in 3 different models. 
@@ -38,12 +38,5 @@
                                 data = dades, model = full.model, nod=16)
   
   fwrite(res, file = paste0(output,"permanova_full.model_ahi_bc.tsv"), sep="\t")
-  
-  
-  # Full model + BMI
-  res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
-                                data = dades, model = full.model_BMI, nod=16)
-  
-  fwrite(res, file = paste0(output,"permanova_full.model.bmi_ahi_bc.tsv"), sep="\t")
   
 

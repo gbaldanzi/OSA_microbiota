@@ -7,8 +7,18 @@
 
 # Script to create a Table 1 with participants baseline characteristics 
 
-  # Folder where the table will be outputed 
-  output.plot="/home/baldanzi/Sleep_apnea/Descriptive/"
+# Loading packages
+library(tidyverse)
+library(data.table)
+library(Hmisc)
+library(compareGroups)
+
+# Folder where the table will be outputed 
+descriptive.folder="/home/baldanzi/Sleep_apnea/Descriptive/"
+
+# Import data
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
 
 # Table 1 only includes those participants with valid AHI 
 
@@ -63,7 +73,7 @@
   t1 = createTable(t, hide.no = "no")
   
 
-  saveRDS(t1, file = paste0(output.plot,'sleepapnea_table1.rds'))
+  saveRDS(t1, file = paste0(descriptive.folder,'sleepapnea_table1.rds'))
   
 
-  export2xls(t1, file = paste0(output.plot,'Table1.xlsx'))
+  export2xls(t1, file = paste0(descriptive.folder,'Table1.xlsx'))

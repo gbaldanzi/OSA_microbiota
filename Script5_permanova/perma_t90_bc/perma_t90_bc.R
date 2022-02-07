@@ -19,7 +19,7 @@
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
 
-output = "/home/baldanzi/Sleep_apnea/Results/"
+results.folder = "/home/baldanzi/Sleep_apnea/Results/"
 
   # Importing data
 
@@ -53,19 +53,13 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
   res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
                                 data = dades, model = basic.model, nod=16)
   
-  fwrite(res, file = paste0(output,"permanova_basic.model_t90_bc.tsv"), sep="\t")
+  fwrite(res, file = paste0(results.folder,"permanova_basic.model_t90_bc.tsv"), sep="\t")
   
   
   # Full model
   res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
                                 data = dades, model = full.model, nod=16)
   
-  fwrite(res, file = paste0(output,"permanova_full.model_t90_bc.tsv"), sep="\t")
+  fwrite(res, file = paste0(results.folder,"permanova_full.model_t90_bc.tsv"), sep="\t")
   
-  
-  # Full model + BMI
-  res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
-                                data = dades, model = full.model_BMI, nod=16)
-  
-  fwrite(res, file = paste0(output,"permanova_full.model.bmi_t90_bc.tsv"), sep="\t")
 

@@ -1,0 +1,17 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 16
+#SBATCH -t 73:00:00
+#SBATCH -J pairwise_ODI
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=FAIL
+
+ml R_packages
+cd $wrf
+
+# Pairwise analysis for bray-cutis dissimilarity between categories of ODI severity 
+
+Rscript 'Script5_permanova/perma_odi_bc/perma_pairwise_odi.R'
+

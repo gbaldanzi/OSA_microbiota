@@ -1,0 +1,377 @@
+---
+title: "Results with BMI adjustment"
+author: "Gabriel Baldanzi"
+date: " `r Sys.time()` "
+output: 
+  html_document:
+    toc: true 
+    fig_width: 6
+    fig_height: 4
+    number_sections: FALSE
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 4
+    theme: united
+    hightlist: espresso
+    css: style.css
+---
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1500px !important;
+      width: 1500px !important;
+    }
+
+    .book .book-body .page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 10px 10px 10px;
+    }
+
+    body {
+      max-width: 1500px !important;
+    }
+    code.r { /* Code block */
+    font-size: 14pt;
+    }
+    pre {
+  font-size: 12px
+    }
+    .tocify-header {
+    text-indent: initial;
+}
+    .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 2em;
+    }
+table.display td { white-space: nowrap; }
+    ```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+options(width = 20)
+library(tidyverse)
+library(vegan)
+library(ggvenn)
+library(data.table)
+library(kableExtra)
+library(DT)
+library(knitr)
+
+round.large <- function(x){
+  x[x>=0.001] <- round(x[x>=0.001],3)
+  return(x)
+}
+```
+
+<br>
+
+<br>
+
+## OSA and species relative abundance
+
+<br>
+    
+Obstructive sleep apnea measured with 3 variables: AHI, T90 and ODI     
+    
+Species filtered out if present in < 1% of study participants - 1,602 out of 1,985 included    
+
+<br>
+
+***
+
+<br>
+
+## Basic model
+
+<br>
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+
+<div class = "blue">
+
+Covariates = age + sex + alcohol + smoking + plate + shannon index 
+
+</div>
+
+<br> 
+
+```{r, }
+results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+
+res.bm <- fread(paste0(results.folder,"cor_all.var_mgs_temp.tsv"))
+res.bm[, rho := round(rho,3)]
+res.bm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+
+res.fm <- fread(paste0(results.folder,"cor2_all.var_mgs_temp.tsv"))
+res.fm[,rho:= round(rho,3)]
+res.fm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+
+n <- length(unique(res.bm[q.value<0.05,MGS]))
+```
+
+**`r n`** species associated with at least one of the three OSA variables.     
+
+These species will be analyzed with the fully adjusted model. 
+
+<br>
+
+
+Number of species witha q-value<0.05 for each OSA variable in the basic model
+
+<br>
+
+```{r,}
+t <- res.bm %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
+
+kable(t, format = "html", table.attr = "style='width:30%;'", 
+        caption = 'q < 0.05' ) %>%
+    kable_styling(position = "float_left")
+
+
+  res.list <- list(AHI = res.basic.model[exposure=="ahi",],
+                   T90 = res.basic.model[exposure=="t90",],
+                   ODI = res.basic.model[exposure=="odi",])
+
+
+mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
+
+# Create VennDiagram    
+ggvenn(mgs.fdr,
+                  fill_color = c("orange","cornflowerblue","grey83"),
+                  stroke_color = "white",
+                  stroke_size = .2, 
+                  show_percentage = F, 
+                  fill_alpha = .6, 
+                  set_name_size = 4,
+                  text_size = 3) +
+  ggtitle("Basic model") +
+  theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
+```
+
+<br>
+
+### Results table
+
+**Table with all species**
+
+```{r,}
+sketch = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+      th(colspan = 3, 'rho'),
+      th(colspan = 3, 'q-value'),
+      th(colspan = 3, 'N'),
+    ),
+    tr(
+      lapply(rep(c('  AHI  ', '  T90%  ', ' ODI '), 3), th)
+    )
+  )
+))
+
+t <- res.bm %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
+
+datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% 
+  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
+```
+
+<br>
+
+***
+
+***
+
+<br>
+
+## Full model {.tabset .tabset-pills}
+
+<br>
+
+<div class = "blue">
+
+Covariates = basic model + BMI + medication + energy intake + fiber + country of birth + 
+season + education + physical activity 
+
+</div>
+
+<br> 
+
+<br>
+
+### FDR 5%
+
+```{r, }
+n <- length(unique(res.fm[q.value<0.05,MGS]))
+```
+
+<br>
+
+<div class = "blue">
+
+**`r n`** species associated with at least one of the three OSA variables in the fully adjusted model.     
+
+</div>
+
+<br>
+
+Number of species with a q-value<.05 for each OSA variable in the full model
+
+<br>
+
+```{r,}
+t <- res.fm %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
+
+kable(t, format = "html", table.attr = "style='width:30%;'", 
+        caption = 'FDR 5%' ) %>%
+    kable_styling(position = "float_left")
+
+res.list <- list(AHI = res.full.model[exposure=="ahi",],
+                   T90 = res.full.model[exposure=="t90",],
+                   ODI = res.full.model[exposure=="odi",])
+
+
+mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
+
+# Create VennDiagram    
+ggvenn(mgs.fdr,
+                  fill_color = c("orange","cornflowerblue","grey83"),
+                  stroke_color = "white",
+                  stroke_size = .2, 
+                  show_percentage = F, 
+                  fill_alpha = .6, 
+                  set_name_size = 4,
+                  text_size = 3) +
+  ggtitle("full model, FDR 5%") +
+  theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
+```
+
+<br>
+
+No species was associated with AHI in the fully adjusted model with FDR = 5%
+
+
+<br>
+
+### FDR 10%
+
+```{r, }
+n <- length(unique(res.fm[q.value<0.10,MGS]))
+```
+
+<br>
+
+<div class = "blue">
+
+**`r n`** species associated with at least one of the three OSA variables in the fully adjusted model.     
+
+</div>
+
+<br>
+
+Number of species with a q-value<0.10 for each OSA variable in the full model
+
+```{r,}
+t <- res.fm %>% filter(q.value<.10) %>% group_by(exposure) %>% count()
+
+kable(t, format = "html", table.attr = "style='width:30%;'", 
+        caption = 'FDR 10%' ) %>%
+    kable_styling(position = "float_left")
+
+mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.10,MGS]})
+
+# Create VennDiagram    
+ggvenn(mgs.fdr,
+                  fill_color = c("orange","cornflowerblue","grey83"),
+                  stroke_color = "white",
+                  stroke_size = .2, 
+                  show_percentage = F, 
+                  fill_alpha = .6, 
+                  set_name_size = 4,
+                  text_size = 3) +
+  ggtitle("full model, FDR 10%") +
+  theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
+```
+
+<br>
+
+### FDR 20%
+
+```{r, }
+n <- length(unique(res.fm[q.value<0.20,MGS]))
+```
+
+<br>
+
+<div class = "blue">
+
+**`r n`** species associated with at least one of the three OSA variables in the fully adjusted model.     
+
+</div>
+
+<br>
+
+Number of species with a q-value<0.20 for each OSA variable in the full model
+
+```{r,}
+t <- res.fm %>% filter(q.value<.20) %>% group_by(exposure) %>% count()
+
+kable(t, format = "html", table.attr = "style='width:30%;'", 
+        caption = 'FDR 20%' ) %>%
+    kable_styling(position = "float_left")
+
+mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.20,MGS]})
+
+# Create VennDiagram    
+ggvenn(mgs.fdr,
+                  fill_color = c("orange","cornflowerblue","grey83"),
+                  stroke_color = "white",
+                  stroke_size = .2, 
+                  show_percentage = F, 
+                  fill_alpha = .6, 
+                  set_name_size = 4,
+                  text_size = 3) +
+  ggtitle("full model, FDR 20%") +
+  theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
+```
+
+<br>
+
+
+### Complete Results table
+
+**Table with all species**
+
+```{r,}
+t <- res.fm %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
+
+datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% 
+  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
+```
+
+
+

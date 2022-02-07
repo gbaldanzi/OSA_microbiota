@@ -11,7 +11,7 @@
 
   # Folders 
   input = "/home/baldanzi/Datasets/sleep_SCAPIS/"
-  output = "/home/baldanzi/Sleep_apnea/Results/"
+  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
 
   # Importing data
   pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
@@ -19,7 +19,7 @@
   # Models
   basic.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
   full.model <- c(basic.model,"metformin","hypermed","dyslipmed","ppi","Fibrer",
-            "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
+            "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month","BMI")
   
   # Functions 
   source("Script0_functions/Spearman.correlation.function.R") # Correlation function 

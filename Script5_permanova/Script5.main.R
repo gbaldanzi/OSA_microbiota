@@ -23,12 +23,10 @@ pacman::p_load(data.table, vegan, ggplot2,parallel)
   basic.model<-   c("age", "Sex", "Alkohol","smokestatus","plate")
 
   # full.model = basic.model + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  full.model <-  c(basic.model, "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
+  full.model <-  c(basic.model, "BMI", "Fibrer","Energi_kcal", "leisurePA", "educat",
+                   "placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
   
-  # full.model_BMI = full.model + BMI
-  full.model_BMI <-  c(full.model, "BMI")
-  
-  
+
   # Permanova Function 
   source('Script0_functions/permanova.fun.R')
 

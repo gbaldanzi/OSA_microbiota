@@ -7,15 +7,14 @@
 # BMI with gut microbiota species using the basic model
 
   # MGSs identified with basic model
-  mgs.m1 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m1.rds')
+  mgs.m1 <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m1.rds') 
   
   # Results from basic model
   # res.basic.model <- fread(paste0(output,"cor_all.var_mgs.tsv"))
   
   res.list <- list(AHI = res.basic.model[exposure=="ahi",],
                    T90 = res.basic.model[exposure=="t90",],
-                   ODI = res.basic.model[exposure=="odi",],
-                   BMI = res.basic.model[exposure=="BMI",])
+                   ODI = res.basic.model[exposure=="odi",])
   
   res.list = lapply(res.list,Clean.Correlation.Results)
   

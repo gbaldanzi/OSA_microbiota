@@ -6,13 +6,13 @@
 # Correlations with gut microbiota species using the full model
 
   # Import MGS identified in model 1
-  #mgs.m1  = readRDS(paste0(output,'mgs.m1.rds'))
+  # mgs.m1  = readRDS(paste0(results.folder,'mgs.m1.rds'))
   
 
 # Correlations
 
   res.full.model <- lapply(exposures,spearman.function, 
-                          x1=outcomes,
+                          x1=mgs.m1,
                           covari = full.model,
                           data = pheno)
 
@@ -26,11 +26,11 @@
   taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
   setnames(taxonomy,"maintax_mgs","MGS")
   
-  res <- merge(res, taxonomy, by="MGS", all.x=T)
+  res.full.model <- merge(res.full.model, taxonomy, by="MGS", all.x=T)
   
   
   # Save results for the full model
-  fwrite(res, file = paste0(output,"cor2_all.var_mgs.tsv"))
+  fwrite(res.full.model, file = paste0(results.folder,"cor2_all.var_mgs_temp.tsv"))
   
   
   # Signature species 
@@ -38,10 +38,9 @@
   
   setDT(res)
   
-  mgs.fdr.bmi = res[exposure=='BMI' & q.value<.05,MGS]
-  mgs.fdr.ahi = res[exposure=="ahi" & q.value<.05 &!MGS %in% mgs.fdr.bmi,MGS]
-  mgs.fdr.t90 = res[exposure=='t90' & q.value<.05 & !MGS %in% mgs.fdr.bmi,MGS]
-  mgs.fdr.odi = res[exposure=='odi' & q.value<.05 & !MGS %in% mgs.fdr.bmi,MGS]
+  mgs.fdr.ahi = res[exposure=="ahi" & q.value<.05 ,MGS]
+  mgs.fdr.t90 = res[exposure=='t90' & q.value<.05 ,MGS]
+  mgs.fdr.odi = res[exposure=='odi' & q.value<.05 ,MGS]
                      
   
   mgs.m2 <- list(mgs.fdr.ahi = mgs.fdr.ahi,
@@ -49,5 +48,5 @@
                  mgs.fdr.odi = mgs.fdr.odi) 
   
   
-  saveRDS(mgs.m2, paste0(output,'mgs.m2.rds'))
+  saveRDS(mgs.m2, paste0(results.folder,'mgs.m2.rds'))
  

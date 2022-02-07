@@ -2,15 +2,23 @@
 
 #SBATCH -A sens2019512
 #SBATCH -p core
-#SBATCH -n 16
-#SBATCH -t 72:00:00
+#SBATCH -n 1
+#SBATCH -t 10:00
 #SBATCH -J perma_pairwise
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
 ml R_packages
 
-cd $wrf
+cd $wrf/Script5_permanova
 
-Rscript Script5_permanova/Script5.pairwise.R
 
+
+# Pairwise permanova for ODI
+sbatch perma_odi_bc/ODI_perma.pairwise.txt 
+
+# Pairwise permanova for AHI 
+sbatch perma_ahi_bc/AHI_perma.pairwise.txt 
+
+# Pairwise permanova for T90
+sbatch perma_t90_bc/T90_perma.pairwise.txt 

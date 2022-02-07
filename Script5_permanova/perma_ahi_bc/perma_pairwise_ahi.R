@@ -6,6 +6,9 @@
 # This code will investigate pairwise comparison between groups 
 # of different OSA severity based on AHI
 
+# Preparation 
+source('Script5_permanova/pre_pairwise.R')
+
   # Importing data
   dades <- copy(pheno[valid.ahi=="yes",])
 
@@ -22,7 +25,7 @@
 
   # Running PERMANOVA in parallel ####
   
-  dades[OSAcat=="No OSA", OSAcat:="noOSA"]
+  dades[OSAcat=="no OSA", OSAcat:="noOSA"]
   dades[,OSAcat := factor(OSAcat, levels = c("noOSA", "Mild", "Moderate", "Severe"), 
                           labels = c("noOSA", "Mild", "Moderate", "Severe"))]
   
