@@ -32,7 +32,7 @@
   setnames(res.basic.model,"x","MGS")
 
   # Saving results 
-  fwrite(res.basic.model, file = paste0(results.folder,"cor_all.var_mgs_temp.tsv"))
+  fwrite(res.basic.model, file = paste0(results.folder,"cor_all.var_mgs.tsv"))
   
   mgs.m1 <- unique(res.basic.model[q.value<.05,][["MGS"]]) 
     

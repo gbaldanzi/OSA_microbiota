@@ -9,7 +9,6 @@ PermanovaFunction = function(outcome, exposure, covari, data, distance = "bray",
   if(!any(class(dades) %in% "data.table")){setDT(dades)}
   if(nrow(dades)==0){stop("Data has nrow == 0")}
   if(ncol(dades)==0){stop("Data has ncol == 0")}
-  if(!any(class(get(outcome)) %in% c("matrix"))){stop("outcome should be a matrix ")}
   if(length(exposure) != 1){stop("exposure should have length == 1 ")}
   
   # Permanova from vegan package cannot handle missing information 
@@ -38,14 +37,17 @@ PermanovaFunction = function(outcome, exposure, covari, data, distance = "bray",
 
 Permanova.parallel.FUN <- function(outcome,exposure,model,data,nod=16){
   
+  expo_p <<-  exposure
+  
   stopifnot(class(outcome) == "character")
   stopifnot(class(exposure) == "character")
-  stopifnot(class(get(outcome)) == "matrix")
   
+  stopifnot(any(class(get(outcome)) %in%  "matrix"))
+
   set.seed(123)
   nod=nod   # Number of workers to be used 
   cl = makeCluster(nod)
-  clusterExport(cl, varlist = c(outcome,exposure,
+  clusterExport(cl, varlist = c(outcome,"expo_p",
                                 deparse(substitute(data)),
                                 deparse(substitute(model))))
   clusterEvalQ(cl, library(vegan))

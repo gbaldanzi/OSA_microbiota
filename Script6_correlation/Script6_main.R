@@ -7,7 +7,10 @@
 # abundance of gut microbiota species and four phenotypes (AHI, T90, ODI, BMI)
 
   # Loading packages 
-  pacman::p_load(data.table, vegan, tidyr,dplyr)
+  library(data.table)
+  library(vegan)
+  library(tidyr)
+  library(dplyr)
 
   # Folders 
   input = "/home/baldanzi/Datasets/sleep_SCAPIS/"

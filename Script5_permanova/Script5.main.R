@@ -32,9 +32,9 @@ pacman::p_load(data.table, vegan, ggplot2,parallel)
 
   
   # Analysis by exposure variable 
-  source('Script5_permanova/perma_ahi_bc/perma_ahi_bc_main.R')
+  source('Script5_permanova/perma_ahi_bc/perma_ahi_bc.R')
 
-  source('Script5_permanova/perma_odi_bc/perma_odi_bc_main.R')
+  #source('Script5_permanova/perma_odi_bc/perma_odi_bc.R')
 
-  source('Script5_permanova/perma_t90_bc/perma_t90_bc_main.R')
+  source('Script5_permanova/perma_t90_bc/perma_t90_bc.R')
 

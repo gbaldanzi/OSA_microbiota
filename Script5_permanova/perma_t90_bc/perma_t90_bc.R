@@ -50,10 +50,10 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   # Runing PERMANOVA in parallel ####
   
   # Basic model 
-  res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
-                                data = dades, model = basic.model, nod=16)
+  # res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
+   #                             data = dades, model = basic.model, nod=16)
   
-  fwrite(res, file = paste0(results.folder,"permanova_basic.model_t90_bc.tsv"), sep="\t")
+  # fwrite(res, file = paste0(results.folder,"permanova_basic.model_t90_bc.tsv"), sep="\t")
   
   
   # Full model

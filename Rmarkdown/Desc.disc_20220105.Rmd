@@ -69,16 +69,16 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
 ttt = data.frame(AHI=nrow(pheno[valid.ahi=='yes',]),
                  T90=nrow(pheno[valid.t90=='yes',]),
-                 BMI=nrow(pheno))
+                 ODI=nrow(pheno[valid.t90=="yes",]))
 rownames(ttt) <- c("N")
 
 # Number of species present in more than 5 individuals 
-mgs=grep("HG3A.",names(pheno),value=T)
-data_pa <- decostand(x = pheno[,mgs,with=F], "pa")
-data_sum <- data.frame(prevalence=apply(data_pa, 2, sum))
-a1 = sum(data_sum$prevalence<5) 
+ mgs <- grep("HG3A.",names(pheno),value=T)
+ data_pa <- decostand(x = pheno[,mgs,with=F], "pa")
+ data_sum <- data.frame(prevalence=apply(data_pa, 2, sum)/nrow(data_pa))
+ a1 <-  data_sum$MGS[data_sum$prevalence <= 1/100]
 
-nr_mgs <- length(grep("HG3A.",names(pheno))) - a1
+nr_mgs <- length(grep("HG3A.",names(pheno))) - legnth(a1)
 ```
     
 <style>
@@ -87,7 +87,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 <div class = "blue">
 
 - We investigated which MGS correlated with either AHI, T90 or BMI.
-- MGS present in less than 5 individuals were removed (`r a1`) leaving in total `r nr_mgs`
+- `r a1` MGS  present in <1% of the participants were removed, leaving `r nr_mgs` MGS
 
 </div>
 
@@ -120,27 +120,16 @@ knitr::include_graphics("DAG_211124.png")
 
 # Alpha-diversity 
 
-## AHI {.unnumbered}
-     
-```{r, echo=FALSE, fig.align='center', fig.cap="Scatter of AHI and Shannon index", out.width="50%", out.height="50%"}
-#knitr::include_graphics("/home/baldanzi/Sleep_apnea/Descriptive/scatter.shannon.ahi.png")
-```
 
 ```{r, echo=FALSE}
 tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_ahi_alpha.tsv')
-tab[,rho:=round(cor.coefficient,3)]
+tab[,rho:=round(rho,3)]
 tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
 tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
+tab[,exposure:=toupper(exposure)]
 
-cov <- tab[,.(model,covariates)]
-cov[,covariates := gsub("[+]"," ",covariates)]
-for(i in nrow(cov):2){
-   cov[i,covariates:=gsub(cov$covariates[i-1],"",cov$covariates[i])]
-}
-#cov[model=="SA2", covariates:= "+sleep.time"]
-#cov[model=="SA", covariates:= "medication users excluded"]
 
-t <- tab[,.(model,rho,p.val,N)] 
+t <- tab[,.(exposure,rho,p.val,N,model)] 
 
 kable(t,format = "html", table.attr = "style='width:80%;'", 
         caption = 'Correlation - AHI and Shannon index',
@@ -194,23 +183,6 @@ tab[,rho:=round(cor.coefficient,3)]
 tab[2:nrow(tab),p.val:=as.character(round(p.value,digits = 3))]
 tab[1,p.val:=formatC(p.value[1],digits = 2, format ="e")]
 
-cov <- tab[,.(model,covariates)]
-cov[,covariates := gsub("[+]"," ",covariates)]
-for(i in nrow(cov):2){
-   cov[i,covariates:=gsub(cov$covariates[i-1],"",cov$covariates[i])]
-}
-#cov[model=="SA2", covariates:= "+sleep.time"]
-#cov[model=="SA", covariates:= "medication users excluded"]
-#cov[1:3,covariates := gsub(" ","+",covariates[1:3])]
-
-t <- tab[,.(model,rho,p.val,N)] 
-
-kable(t,format = "html", table.attr = "style='width:80%;'", 
-        caption = 'Correlation - T90 and Shannon index',
-      align = c("l","c","c","c") )%>%
-  #kable_classic(full_width = T) %>% 
-  kable_styling(position = "center")
-
 
 ```
 
@@ -219,6 +191,10 @@ kable(t,format = "html", table.attr = "style='width:80%;'",
 ## Models 
 
 ```{r,echo=FALSE}
+cov <- tab[,.(model,covariates)]
+cov[,covariates := gsub("[+]"," ",covariates)]
+cov <- unique(cov)
+
 kable(cov,format = "html", table.attr = "style='width:80%;'", 
         caption = 'Models',
         align = c('l','l')) %>%

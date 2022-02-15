@@ -30,17 +30,17 @@
   
   
   # Save results for the full model
-  fwrite(res.full.model, file = paste0(results.folder,"cor2_all.var_mgs_temp.tsv"))
+  fwrite(res.full.model, file = paste0(results.folder,"cor2_all.var_mgs.tsv"))
   
   
   # Signature species 
-  res$q.value[res$q.value>=0.001] <- round(res$q.value[res$q.value>=0.001] , digits = 3)
+  res.full.model$q.value[res.full.model$q.value>=0.001] <- round(res.full.model$q.value[res.full.model$q.value>=0.001] , digits = 3)
   
-  setDT(res)
+  setDT(res.full.model)
   
-  mgs.fdr.ahi = res[exposure=="ahi" & q.value<.05 ,MGS]
-  mgs.fdr.t90 = res[exposure=='t90' & q.value<.05 ,MGS]
-  mgs.fdr.odi = res[exposure=='odi' & q.value<.05 ,MGS]
+  mgs.fdr.ahi = res.full.model[exposure=="ahi" & q.value<.05 ,MGS]
+  mgs.fdr.t90 = res.full.model[exposure=='t90' & q.value<.05 ,MGS]
+  mgs.fdr.odi = res.full.model[exposure=='odi' & q.value<.05 ,MGS]
                      
   
   mgs.m2 <- list(mgs.fdr.ahi = mgs.fdr.ahi,
