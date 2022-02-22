@@ -185,6 +185,29 @@ kable(cov,format = "html", table.attr = "style='width:80%;'",
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/PCoA_sleepapnea.png")
 ```
    
+## Group sizes 
+
+```{r, echo=FALSE}
+t <- pheno[valid.ahi=="yes"] %>% group_by(OSAcat) %>% count()
+kable(t,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'Size AHI groups',
+        align = c('l','l')) %>%
+   kable_styling(position = "left")
+
+t <- pheno[valid.t90=="yes"] %>% group_by(t90cat) %>% summarize(N=length(t90cat), min = min(t90), max=max(t90))
+kable(t,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'Size T90 groups',
+        align = c('l','l')) %>%
+   kable_styling(position = "float_left")
+
+t <- pheno[valid.t90=="yes"] %>% group_by(odicat) %>% summarize(N=length(odicat), min = min(odi), max=max(odi))
+kable(t,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'Size ODI groups',
+        align = c('l','l')) %>%
+   kable_styling(position = "center")
+
+```
+   
 ## Results {.tabset}
 
 ### Summary
@@ -804,62 +827,54 @@ datatable(t,container=sketch_imp,rownames = FALSE, filter="top", options = list(
 
 <br>
 
-# Sensitivity analysis 
+# SA Medication
    
 Sensitivity analysis: remove medication users (ppi,metformin,anti-hypertensive,cholesterol-lowering)
 
-## Venn diagram
-
-```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_bmiahi_sa.png")
-
-t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa.rds')
-setDT(t)
-n = nrow(t)
-```
-
-`r n` MGSs correlated with either AHI, T90, ODI or BMI in the Sens. Analysis
-
-<br>
-
-&nbsp;
-
-***
-
-&nbsp;
-
-## Table for the Signature MGS {.tabset}
 
 ```{r,}
 mgs.fdr <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
-mgs.fdr_n <- length(unique(do.call('c',mgs.fdr)))
-names(mgs.fdr) <- c("ahi", "t90", "odi")
-```
 
-**`r mgs.fdr_n`** MGS were correlated with AHI, ODI or T90, but not with BMI
+names(mgs.fdr) <- c("ahi", "t90", "odi")
+
+res.sa.med <- fread("/home/baldanzi/Sleep_apnea/Results/corsamed_all.var_mgs.tsv")
+res.fm <- fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
+
+a=c("MGS","exposure","rho","p.value","q.value","N")
+res.sa.med <- res.sa.med[,a,with=F]
+res.sa.med[,rho:=round(rho,3)]
+res.sa.med[,p.value:=round.large(p.value)]
+res.fm <- res.fm[,a,with=F]
+res.fm[,rho:=round(rho,3)]
+res.fm[,p.value:=round.large(p.value)]
+
+
+res.fm <- res.fm[exposure %in% c("odi","t90"),names(res.sa.med),with=F]
+names(res.fm)[-c(1:2)] <- paste0(names(res.fm)[-c(1:2)], "_full_model")
+names(res.sa.med)[-c(1:2)] <- paste0(names(res.sa.med)[-c(1:2)], "_SA")
+
+res.sa.med <- merge(res.sa.med, res.fm, by=c("MGS","exposure"), all.x=T, all.y=F)
+
+```
 
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 
-t <- readRDS('/home/baldanzi/Sleep_apnea/Results/table.res_sa_mgs.fdr.rds')
-setDT(t$ahi)
-setDT(t$t90)
-setDT(t$odi)
+t.t90 <- res.sa.med[exposure=="t90",]
 
+t.t90 <- t.t90[MGS %in% mgs.fdr$t90,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
 
-t.ahi <- t$ahi[MGS %in% mgs.fdr$ahi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
+t.odi <- res.sa.med[exposure=="odi"]
 
-t.t90 <- t$t90[MGS %in% mgs.fdr$t90,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
-
-t.odi <- t$odi[MGS %in% mgs.fdr$odi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
+t.odi <- t.odi[MGS %in% mgs.fdr$odi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
 
 sketch2 = htmltools::withTags(table(
   class = 'display',
   thead(
     tr(
       th(rowspan = 2, 'MGS'),
-      th(colspan = 3, 'Model2'),
-      th(colspan = 4, 'SA'),
+      th(colspan = 3, 'Full Model'),
+      th(colspan = 4, 'SA Medication'),
     ),
     tr(
       lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
@@ -869,23 +884,6 @@ sketch2 = htmltools::withTags(table(
 
 ```
 
-### AHI {-}
-
-```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-
-datatable(t.ahi,container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")
-
-```
-
-***
 
 <br>
 
@@ -925,12 +923,10 @@ datatable(t.odi,container=sketch2,rownames = FALSE, class = 'cell-border stripe'
 
 ```
 
-***
+
 
 <br>
 
-
-&nbsp;
 
 ***
 
@@ -942,15 +938,41 @@ datatable(t.odi,container=sketch2,rownames = FALSE, class = 'cell-border stripe'
 
 &nbsp;
 
-Re-run the full model analysis for the signature species after excluding participants that had used any antibiotic in the last 6 months 
+Re-run the full model analysis for the species identified with the full model  after excluding participants that had used any antibiotic in the last 6 months 
 
 <br>
 
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 
-list.res <- readRDS("/home/baldanzi/Sleep_apnea/Results/table.res_sa_atb_step2.rds") 
-table.fun <- function(x) {datatable(x, rownames = FALSE, class = 'cell-border stripe', options = list(
+res.sa.atb <- fread("/home/baldanzi/Sleep_apnea/Results/corsaatb_all.var_mgs.tsv")
+res.fm <- fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
+
+a=c("MGS","exposure","rho","p.value","q.value","N")
+res.sa.atb <- res.sa.atb[,a,with=F]
+res.sa.atb[,rho:=round(rho,3)]
+res.sa.atb[,p.value:=round.large(p.value)]
+res.fm <- res.fm[,a,with=F]
+res.fm[,rho:=round(rho,3)]
+res.fm[,p.value:=round.large(p.value)]
+
+
+res.fm <- res.fm[exposure %in% c("odi","t90"),names(res.sa.atb),with=F]
+names(res.fm)[-c(1:2)] <- paste0(names(res.fm)[-c(1:2)], "_full_model")
+names(res.sa.atb)[-c(1:2)] <- paste0(names(res.sa.atb)[-c(1:2)], "_SA")
+
+res.sa.atb <- merge(res.sa.atb, res.fm, by=c("MGS","exposure"), all.x=T, all.y=F)
+
+t.t90 <- res.sa.atb[exposure=="t90",]
+
+t.t90 <- t.t90[MGS %in% mgs.fdr$t90,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
+
+t.odi <- res.sa.atb[exposure=="odi"]
+
+t.odi <- t.odi[MGS %in% mgs.fdr$odi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
+
+
+table.fun <- function(x) {datatable(x, container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
   rowCallback = JS(
     "function(row, data) {",
     "for (i = 1; i < data.length; i++) {",
@@ -958,27 +980,18 @@ table.fun <- function(x) {datatable(x, rownames = FALSE, class = 'cell-border st
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>% formatStyle(c(1,3,5,7), `border-right` = "solid 2px")}
+    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")}
 
 ```
 
 <br>
 
-## AHI {-}
-```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-table.fun(list.res$ahi)
-```
-
-<br>
-
-***
-
-<br>
 
 ## T90 {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-table.fun(list.res$t90) 
+table.fun(t.t90) 
 ```
+
 <br>
 
 ***
@@ -987,7 +1000,7 @@ table.fun(list.res$t90)
 
 ## ODI {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-table.fun(list.res$odi) 
+table.fun(t.odi) 
 ```
 
 <br>
@@ -1157,7 +1170,7 @@ Enrichment for GMM modules, after excluding individuals using metformin (N=141)
 
 <div class = "blue">
 
-- *`r mgs.fdr_n` MGS were correlated with either* **AHI** , **T90** *or* **ODI** *but not to BMI in the fully-adjusted model*   
+- *XXXX MGS were correlated with either* **AHI** , **T90** *or* **ODI** *but not to BMI in the fully-adjusted model*   
 - *Data on MGS-metabolite correlations was available for 37 species*
 
 </div>

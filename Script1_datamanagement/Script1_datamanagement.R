@@ -78,8 +78,8 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   atb_SCAPISid <- atb[Time_J01>-180,SUBJID]
   
   # Flagging individuals that used atb in the last 3 months. 
-  pheno[!SCAPISid %in% atb_SCAPISid, atb6m:='no']  
-  pheno[SCAPISid %in% atb_SCAPISid, atb6m:='yes']
+  pheno[!Subject %in% atb_SCAPISid, atb6m:='no']  
+  pheno[Subject %in% atb_SCAPISid, atb6m:='yes']
   
   
   # Recoding variables ####

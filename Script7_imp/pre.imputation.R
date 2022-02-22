@@ -80,6 +80,10 @@ variables.export <- c("SCAPISid", "ahi", "odi", "t90", "valid.ahi",
 
 pheno <- pheno[valid.t90=="yes",]
 
+pheno[,leisurePA:=factor(leisurePA, labels=c("PA1","PA2","PA3","PA4"))]
+
+pheno[,educat:=factor(educat, labels=c("cat0", "cat1", "cat2", "cat3"))]
+
 
 require(foreign)
 write.dta(pheno[,variables.export,with=F], paste0(input,"pheno.dta"))

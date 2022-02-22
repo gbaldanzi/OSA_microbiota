@@ -21,8 +21,9 @@
 
   # Models
   basic.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
-  full.model <- c(basic.model,"metformin","hypermed","dyslipmed","ppi","Fibrer",
-            "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month","BMI")
+  full.model <- c(basic.model,"BMI","Fibrer","Energi_kcal" ,"leisurePA", 
+                  "educat","placebirth","visit.month","metformin","hypermed",
+                  "dyslipmed","ppi")
   
   # Functions 
   source("Script0_functions/Spearman.correlation.function.R") # Correlation function 

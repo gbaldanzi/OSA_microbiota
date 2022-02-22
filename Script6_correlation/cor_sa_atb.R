@@ -6,7 +6,7 @@
 # This script was created to carry out the sensitivity analysis comparing the results 
 # after exclusion of participants who have used antibiotic 
 
-# In this script, we will only include the mgs that were FDR significant in the basic model 
+# In this script, we will only include the mgs that were FDR significant in the full model 
 
   # Import data 
   pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
@@ -16,34 +16,28 @@
   
   # Import signatures species 
   
-  mgs.fdr  = readRDS(paste0(input,'mgs.m2.rds'))  # Signature MGSs 
+  mgs.fdr  = readRDS(paste0(results.folder,'mgs.m2.rds'))  # Signature MGSs 
   
   
   # Correlations 
 
-    #AHI
-  mgs.m1 = mgs.fdr$mgs.fdr.ahi
-  
-  res.ahi <- spearman.function(x1=mgs.m1,x2="ahi",
-                          covari = full.model,
-                          data = pheno)
   
     #T90
-  mgs.m1 = mgs.fdr$mgs.fdr.t90
+  mgs.m1 = mgs.fdr$t90
   
   res.t90 <- spearman.function(x1=mgs.m1,x2="t90",
                                covari = full.model,
-                               data = pheno)
+                               data = pheno[atb6m=="no",])
   
-    #ODI
-  mgs.m1 = mgs.fdr$mgs.fdr.odi
+  #ODI
+  mgs.m1 = mgs.fdr$odi
   
   res.odi <- spearman.function(x1=mgs.m1,x2="odi",
                                covari = full.model,
-                               data = pheno)
+                               data = pheno[atb6m=="no",])
   
   #Poll results
-  res <- rbind(res.ahi, res.t90, res.odi)
+  res <- rbind(res.t90, res.odi)
   res$model= "sa_atb6m"
   
   setDT(res)
@@ -51,6 +45,6 @@
   
   
   #Save results
-  fwrite(res, file = paste0(output,"cor_sa_atb6m_step2_all.var_mgs.tsv"))
+  fwrite(res, file = paste0(results.folder,"corsaatb_all.var_mgs.tsv"))
 
 

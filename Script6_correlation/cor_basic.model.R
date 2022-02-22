@@ -36,6 +36,6 @@
   
   mgs.m1 <- unique(res.basic.model[q.value<.05,][["MGS"]]) 
     
-  saveRDS(mgs.m1, paste0(results.folder,'mgs.m1_temp.rds'))
+  saveRDS(mgs.m1, paste0(results.folder,'mgs.m1.rds'))
   
   
