@@ -8,7 +8,6 @@
 
   # Loading packages 
   library(data.table)
-  library(vegan)
   library(tidyr)
   library(dplyr)
 
@@ -20,10 +19,15 @@
   pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
 
   # Models
-  basic.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
-  full.model <- c(basic.model,"BMI","Fibrer","Energi_kcal" ,"leisurePA", 
-                  "educat","placebirth","visit.month","metformin","hypermed",
-                  "dyslipmed","ppi")
+  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+  main.model.BMI <- c(main.model, "BMI")
+  extended.model <- c(main.model.BMI,"Fibrer","Energi_kcal" ,"leisurePA", 
+                  "educat","placebirth","visit.month")
+  medication.model <- c(main.model.BMI, "metformin","hypermed", "dyslipmed", "ppi")
+  
+  # Outcomes and exposures
+  outcomes  <-  grep("____",names(pheno),value=T)
+  exposures <- c("ahi","t90","odi")
   
   # Functions 
   source("Script0_functions/Spearman.correlation.function.R") # Correlation function 
@@ -31,18 +35,26 @@
 
 # Import data 
 
-  message("Basic Model")
-  source("cor_basic.model.R")
+  message("Main Model without BMI")
+  source("Script6_correlation/cor_main.model.R")
   
-  message("Full Model")
-  source("cor_full.model.R")
+  message("Main Model with BMI")
+  source("Script6_correlation/cor_main.model.BMI.R")
+  
+  message("Extended Model")
+  source("Script6_correlation/cor_extended.model.R")
+  
+  message("Medication Model")
+  source("Script6_correlation/cor_medication.model.R")
+  
+  message("Sensitivity Analysis - Atb")
+  source("Script6_correlation/cor_sa_atb.R")
   
   message("Creating Venn Diagram")
-  source("Script6.venn.R")
+  source("Script6_correlation/Script6.venn.R")
   
-  message("Sensitivity Analysis 1")
-  source("cor_sa_med.R")
+  #message("Sensitivity Analysis 1")
+  #source("cor_sa_med.R")
   
-  message("Sensitivity Analysis 2")
-  source("cor_sa_atb.R")
+
   

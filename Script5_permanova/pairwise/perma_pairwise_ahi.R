@@ -7,7 +7,7 @@
 # of different OSA severity based on AHI
 
 # Preparation 
-source('Script5_permanova/pre_pairwise.R')
+source('Script5_permanova/pairwise/pre_pairwise.R')
 
   # Importing data
   dades <- copy(pheno[valid.ahi=="yes",])
@@ -25,20 +25,20 @@ source('Script5_permanova/pre_pairwise.R')
 
   # Running PERMANOVA in parallel ####
   
-  dades[OSAcat=="no OSA", OSAcat:="noOSA"]
+  dades[OSAcat=="No OSA", OSAcat:="noOSA"]
   dades[,OSAcat := factor(OSAcat, levels = c("noOSA", "Mild", "Moderate", "Severe"), 
                           labels = c("noOSA", "Mild", "Moderate", "Severe"))]
   
-  list.res <- pairwise.perma.fun(outcome="BC", group_var="OSAcat", covari=full.model, data=dades, nodes=16)
+  list.res <- pairwise.perma.fun(outcome="BC", group_var="OSAcat", covari=main.model, data=dades, nodes=16)
   
 
-  saveRDS(list.res,file=paste0(output,"pairwise.perma.results_ahi.rds"))
+  saveRDS(list.res,file=paste0(results.folder,"pairwise.perma.results_ahi.rds"))
 #---------------------------------------------------------------------------#
 
   # Produce a final summary results table with FDR-p-values 
   
-  list.res = readRDS(paste0(output,"pairwise.perma.results_ahi.rds"))
+  list.res = readRDS(paste0(results.folder,"pairwise.perma.results_ahi.rds"))
   
   list.res$table <- clean.res(list.res[1:6]) 
   
-  saveRDS(list.res,file=paste0(output,"pairwise.perma.results_ahi.rds"))
+  saveRDS(list.res,file=paste0(results.folder,"pairwise.perma.results_ahi.rds"))

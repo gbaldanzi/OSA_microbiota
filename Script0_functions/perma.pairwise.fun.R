@@ -2,7 +2,7 @@
 
 # Wrapper function to run pairwise permanova comparisons 
 
-pairwise.perma.fun <- function(outcome = "BC", group_var = "OSAcat", covari = full.model, data = dades, nodes = 16){
+pairwise.perma.fun <- function(outcome = "BC", group_var = "OSAcat", covari = main.model, data = dades, nodes = 16){
   
   if(!length(unique(data[[group_var]]))>2) stop("Grouping variables (group_var) has less than 3 levels")
   
@@ -96,12 +96,12 @@ perma.fun <- function(outcome, group1, group2, covari, data, nodes = 1, group_va
 set.seed(123)
 data.char <- deparse(substitute(data))
 cl = makeCluster(nodes)
-clusterExport(cl, varlist = c("BC",data.char,"basic.model","full.model"))
+clusterExport(cl, varlist = c("BC",data.char,"main.model"))
 clusterEvalQ(cl, library(vegan))
 clusterEvalQ(cl, library(data.table))
 message(paste("PERMANOVA OSA categories -",group1,group2))
 message(" ")
-res = PermanovaFunction(outcome = outcome, group1 = group1, group2 = group2, covari = full.model, data = data, nodes = nodes, group_var= group_var)
+res = PermanovaFunction(outcome = outcome, group1 = group1, group2 = group2, covari = main.model, data = data, nodes = nodes, group_var= group_var)
 return(res)
 stopCluster(cl)
 }

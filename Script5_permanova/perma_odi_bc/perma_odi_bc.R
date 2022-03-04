@@ -1,7 +1,7 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Last Update: 2022-02-02
+# Last Update: 2022-02-22
 
 # This code will investigate the beta-diversity (Bray Curtis Dissimilarity)
 # in relation to ODI in 3 different models. 
@@ -18,27 +18,27 @@
   # Making sure that BC and dades have the same order of observations 
   dades = dades[match(rownames(BC),dades$SCAPISid),]
 
-# Outcome - character name (length=1) with matrix distance 
-outc = "BC"
+  # Outcome - character name (length=1) with matrix distance 
+  outc = "BC"
 
-# Main Exposure - character name (length=1)
-expo = "odicat"
+  # Main Exposure - character name (length=1)
+  expo = "odicat"
 
   
 # Runing PERMANOVA in parallel ####
 
   # Basic model 
-  res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
-                              data = dades, model = basic.model, nod=16)
+  # res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
+    #                          data = dades, model = basic.model, nod=16)
   
-  fwrite(res, file = paste0(results.folder,"permanova_basic.model_odi_bc.tsv"), sep="\t")
+#  fwrite(res, file = paste0(results.folder,"permanova_basic.model_odi_bc.tsv"), sep="\t")
   
   
   # Full model
-  res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
+   res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
                                 data = dades, model = full.model, nod=16)
   
-  fwrite(res, file = paste0(results.folder,"permanova_full.model_odi_bc.tsv"), sep="\t")
+   fwrite(res, file = paste0(results.folder,"permanova_full.model_odi_bc.tsv"), sep="\t")
 
 
  

@@ -69,7 +69,11 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
                     leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
                     hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ odi+ t90+ shannon, 
                   data= datatable1, 
-                  include.miss = FALSE, chisq.test.perm = TRUE)
+                  include.miss = FALSE, chisq.test.perm = TRUE, 
+                  method = c(age = 2, Alkohol = 2, BMI = 2, 
+                             ahi = 2 , odi = 2, t90 = 2, 
+                             shannon = 2))
+  
   t1 = createTable(t, hide.no = "no")
   
 

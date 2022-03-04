@@ -18,11 +18,12 @@ source('Script0_functions/Spearman.correlation.function.R')
 # Models ####
 
   #Covariates 
-  # basic.model : adjust for age + sex + alcohol + smoking + plate + received 
-  basic.model <-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  # full model = basic model + fiber intake + Energy intake + physical activity + education + country of birth + ppi + metformin +  antihypertensive + cholesterol-lowering 
-  full.model <-  c(basic.model,"BMI", "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", 
-                   "visit.month", "metformin","hypermed","dyslipmed","ppi")
+  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","BMI")
+  
+  extended.model <- c(main.model,"Fibrer","Energi_kcal" ,"leisurePA", 
+                  "educat","placebirth","visit.month")
+   
+  medication.model <- c(main.model, "metformin","hypermed", "dyslipmed", "ppi")
 
 # Run correlation analysis 
   
@@ -32,12 +33,15 @@ source('Script0_functions/Spearman.correlation.function.R')
   
   
     res.temp1 <- lapply(exposures,spearman.function,
-                     x1="shannon",covari=basic.model,data = pheno)
+                     x1="shannon",covari=main.model,data = pheno)
     
     res.temp2 <- lapply(exposures,spearman.function,
-                        x1="shannon",covari=full.model,data = pheno)
+                        x1="shannon",covari=extended.model,data = pheno)
     
-    res.alpha <- do.call(rbind,c(res.temp1,res.temp2))
+    res.temp3 <- lapply(exposures,spearman.function,
+                        x1="shannon",covari=medication.model,data = pheno)
+    
+    res.alpha <- do.call(rbind,c(res.temp1,res.temp2,res.temp3))
   
 # Save results 
   

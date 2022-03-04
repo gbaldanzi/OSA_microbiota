@@ -19,8 +19,6 @@
 # Loading packages 
 pacman::p_load(data.table, vegan, ggplot2,parallel)
 
-results.folder = "/home/baldanzi/Sleep_apnea/Results/"
-
   # Importing data
 
   pheno <- readRDS(file="/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
@@ -30,7 +28,6 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   BC = fread('/home/baldanzi/Datasets/sleep_SCAPIS/T90.BCmatrix.csv', header=T, sep = ',')
   BC = as.matrix(BC)
   row.names(BC) = colnames(BC)
-
 
   # Data set 
   dades <- pheno[valid.t90=="yes",]
@@ -45,19 +42,18 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   # Main Exposure - character name (length=1)
   expo = "t90cat"
 
-
-
+  
   # Runing PERMANOVA in parallel ####
   
   # Basic model 
   # res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
-   #                             data = dades, model = basic.model, nod=16)
+  #                              data = dades, model = basic.model, nod=16)
   
   # fwrite(res, file = paste0(results.folder,"permanova_basic.model_t90_bc.tsv"), sep="\t")
   
   
   # Full model
-  res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
+   res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
                                 data = dades, model = full.model, nod=16)
   
   fwrite(res, file = paste0(results.folder,"permanova_full.model_t90_bc.tsv"), sep="\t")

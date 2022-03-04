@@ -16,28 +16,17 @@
   
   # Import signatures species 
   
-  mgs.fdr  = readRDS(paste0(results.folder,'mgs.m2.rds'))  # Signature MGSs 
+  mgs.fdr  = readRDS(paste0(results.folder,'mgs.m1.rds'))  # Signature MGSs 
   
   
   # Correlations 
 
+  res <- lapply(exposures,spearman.function, 
+                          x1=mgs.m1,
+                          covari = main.model.BMI,
+                          data = pheno)
   
-    #T90
-  mgs.m1 = mgs.fdr$t90
-  
-  res.t90 <- spearman.function(x1=mgs.m1,x2="t90",
-                               covari = full.model,
-                               data = pheno[atb6m=="no",])
-  
-  #ODI
-  mgs.m1 = mgs.fdr$odi
-  
-  res.odi <- spearman.function(x1=mgs.m1,x2="odi",
-                               covari = full.model,
-                               data = pheno[atb6m=="no",])
-  
-  #Poll results
-  res <- rbind(res.t90, res.odi)
+  res  <- do.call(rbind,res)
   res$model= "sa_atb6m"
   
   setDT(res)

@@ -1,8 +1,8 @@
-# Script 9 - Enrichment analysis using basic model correlation coefficients 
+# Script 9 - Enrichment analysis using main model correlation coefficients 
 
 # Gabriel Baldanzi 
 
-# Last update: 2022-02-03
+# Last update: 2022-02-24
 
 rm(list=ls())
 
@@ -15,10 +15,15 @@ pacman::p_load(data.table,ggplot2, tidyr, fgsea)
 # input and output folders 
   results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   input = "/home/baldanzi/Datasets/MGS/original/"
-  output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-
+  
+  # Import pathways/modules names 
+  gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
+  
+  gmm.names[,Name:=str_to_title(Name)]
+  gmm.names[,Name:=gsub("Ii","II",Name)]
+  
   # Import results from basic model 
-  res <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
+  res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
   
   res[,mgs:=cutlast(MGS,9)]
   
@@ -32,7 +37,7 @@ pacman::p_load(data.table,ggplot2, tidyr, fgsea)
   list.modules <-  MGS_HG3A.GMMs2MGS
   
   for(m in names(list.modules)){
-    list.modules[[m]] <- list.modules[[m]][list.modules[[m]] %in% res$mgs]
+    list.modules[[m]] <- list.modules[[m]][list.modules[[m]] %in% res[rho>0,mgs]]
   }
 
   # Enrichment analysis   
@@ -56,13 +61,18 @@ pacman::p_load(data.table,ggplot2, tidyr, fgsea)
       # Save results from enrichment analysis in the positive correlations  
     
         res.pos <- do.call(rbind,res.pos)
-        fwrite(res.pos, file = paste0(results.folder,"ea_GMM_pos_new.tsv"))
+        res.pos <- merge(res.pos,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
+        fwrite(res.pos, file = paste0(results.folder,"ea_GMM_pos.tsv"))
       
       # Negative correlations ####
 
         message("Negative correlations")
-        # Removing the single MGS that is negative correlated and not present in list of modules
-       # res.list <- lapply(res.list,function(x){x[mgs!="HG3A.1213",]})
+
+        list.modules <-  MGS_HG3A.GMMs2MGS
+        
+        for(m in names(list.modules)){
+          list.modules[[m]] <- list.modules[[m]][list.modules[[m]] %in% res[rho<0,mgs]]
+        }
         
         res.neg = list()[1:3]
         
@@ -74,11 +84,12 @@ pacman::p_load(data.table,ggplot2, tidyr, fgsea)
                            MGS.var.name = "mgs",
                            enrich.var.list = list.modules,
                            direction = "negative", 
-                           maxSize = Inf)
+                           maxSize = 700)
         names(res.neg)[i] <- names(res.list)[i]
         }
         
         # Save results from enrichment analysis with negative correlations 
         res.neg <- do.call(rbind, res.neg)
-        fwrite(res.neg, file = paste0(results.folder,"ea_GMM_neg_new.tsv"))
+        res.neg <- merge(res.neg,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
+        fwrite(res.neg, file = paste0(results.folder,"ea_GMM_neg.tsv"))
         

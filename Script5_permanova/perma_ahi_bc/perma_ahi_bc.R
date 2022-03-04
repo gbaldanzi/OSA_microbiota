@@ -28,15 +28,15 @@
   
   # Basic model 
   #res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
-   #                             data = dades, model = basic.model, nod=16)
+    #                            data = dades, model = basic.model, nod=16)
 
-  #fwrite(res, file = paste0(output,"permanova_basic.model_ahi_bc.tsv"), sep="\t")
+  #fwrite(res, file = paste0(results.folder,"permanova_basic.model_ahi_bc.tsv"), sep="\t")
 
   
   # Full model
   res <- Permanova.parallel.FUN(outcome = "BC", exposure=expo, 
                                 data = dades, model = full.model, nod=16)
   
-  fwrite(res, file = paste0(output,"permanova_full.model_ahi_bc.tsv"), sep="\t")
+  fwrite(res, file = paste0(results.folder,"permanova_full.model_ahi_bc.tsv"), sep="\t")
   
 

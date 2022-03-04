@@ -64,11 +64,11 @@ foreach mgs of varlist HG3A*{
 	mi passive: egen X_rank_imp = rank(ahi)
 	mi passive: egen Y_rank_imp = rank(`mgs')
 	
-	foreach var in age Alkohol shannon {
+	foreach var in age Alkohol shannon BMI {
 		qui mi passive: egen rank_`var' = rank(`var')
 	}
 	
-	local basic_model Sex rank_age rank_Alkohol smokestatus_* plate_* rank_shannon 
+	local basic_model Sex rank_age rank_Alkohol smokestatus_* plate_* rank_shannon rank_BMI
 
 	qui mi estimate,saving(model1,replace): regress X_rank_imp `basic_model'
 	mi predict Xxb_imp using model1
@@ -80,7 +80,7 @@ foreach mgs of varlist HG3A*{
 	mi passive: egen Xres_imp_std=std(Xres_imp)
 	mi passive: egen Yres_imp_std=std(Yres_imp)
 
-	mi estimate: regress Yres_imp_std Xres_imp_std,dof(3302)
+	mi estimate: regress Yres_imp_std Xres_imp_std,dof(3301)
 	
 	
 	matrix A = r(table)

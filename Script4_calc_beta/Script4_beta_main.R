@@ -15,8 +15,8 @@
   # Folder where dataset is located 
     input <- "/home/baldanzi/Datasets/sleep_SCAPIS/"
     
-  # Folder for output results 
-    output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots/"
+  # Folder to output plots 
+    output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots"
 
   # Import data
   pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))

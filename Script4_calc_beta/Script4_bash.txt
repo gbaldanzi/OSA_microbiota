@@ -2,9 +2,9 @@
 
 #SBATCH -A sens2019512
 #SBATCH -p core
-#SBATCH -n 16
+#SBATCH -n 2
 #SBATCH -t 24:00:00
-#SBATCH -J script3_beta
+#SBATCH -J script4_beta
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
@@ -12,4 +12,4 @@ cd /proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512
 
 ml R_packages
 
-Rscript Script3_calc_beta/Script3_beta_main.R
+Rscript Script4_calc_beta/Script4_beta_main.R

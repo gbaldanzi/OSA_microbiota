@@ -80,6 +80,7 @@ round.large <- function(x){
 ```{r,}
 pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
 
+# Table with the number of participants with avaliable information for each OSA variable
 ttt = data.frame(AHI=nrow(pheno[valid.ahi=='yes',]),
                  T90=nrow(pheno[valid.t90=='yes',]),
                  ODI=nrow(pheno[valid.t90=="yes",]))
@@ -108,15 +109,38 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
   #kable_classic(full_width = T) %>% 
   kable_styling(position = "left")
 
-t <- cor(pheno[,.(ahi,t90,odi,BMI)], use="complete.obs",method = "spearman")
-t <- round(t,2)
-
-kable(t, format = "html", table.attr = "style='width:40%;'",
-      caption = "Correlation between OSA parameters and BMI") %>% 
-      kable_styling(position = "float_right")
 ```
 
 
+<br>
+<br>
+
+```{r,}
+# Create correlation table for the OSA parameters and BMI 
+comb = combn(c("ahi","t90","odi","BMI"), m=2)
+
+t <- matrix(ncol = 4,nrow=ncol(comb))
+
+for(i in 1:ncol(comb)){
+  c = cor.test(pheno[[comb[1,i]]],pheno[[comb[2,i]]], use="complete.obs",method = "spearman")
+  t[i,1] <- comb[1,i]
+  t[i,2] <- comb[2,i]
+  t[i,3] <- round(c$estimate,3)
+  t[i,4] <- formatC(c$p.value,2, format="e")
+}
+
+t <- as.data.frame(t)
+names(t) <- c("var1", "var2", "rho", "p-value")
+t$var1 <- toupper(t$var1)
+t$var2 <- toupper(t$var2)
+
+kable(t, format = "html", table.attr = "style='width:40%;'",
+      caption = "Spearman's correlation between OSA parameters and BMI") %>% 
+      kable_styling(position = "left")
+```
+
+
+<br>
 
 &nbsp;
 
@@ -213,6 +237,8 @@ kable(t,format = "html", table.attr = "style='width:30%;'",
 
 ```
    
+<br>   
+   
 ## Results {.tabset}
 
 ### Summary
@@ -238,8 +264,12 @@ ps[,R2:= round(R2,4)]
 datatable(ps, rownames = FALSE, filter = "top")
 ```
 
+<br>
+
+***
 
 <br>
+
 
 ```{r loopbeta, results='asis', echo=FALSE, dev=c('svg')}
 mod.names <- names(perma.res.osa)
@@ -254,10 +284,17 @@ for(m in mod.names){
     kable_styling())
   cat("  \n")
   cat("<br>")
+  cat("<br>")
   cat("  \n")
 }
 
 ```
+
+<br>
+
+***
+
+<br>
 
 ## Pairwise comparisons {.tabset}
 
@@ -330,19 +367,23 @@ for(m in c("AHI","T90","ODI")){
 <br>
 
 
-# MGS
+# Species relative abundance
+
+In this analysis, we investigated the association of AHI, T90, and ODI with the relative abudance of each of the 1602 species.   
+
+In a initial step, associations were investigated using a model without and a model with BMI
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="80%", out.height="80%"}
 knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_sleepapnea.png")
 ```
 
-## Main Model no BMI 
+## Main Model without BMI 
 
 <br>
 
 <div class = "blue">
 
-main model no BMI = age + sex + smoking + alcohol + extraction batch + shannon
+main model without BMI = age + sex + smoking + alcohol + plate + shannon
 
 </div>
 
@@ -352,20 +393,28 @@ main model no BMI = age + sex + smoking + alcohol + extraction batch + shannon
 
 results.folder = "/home/baldanzi/Sleep_apnea/Results/"
 
-res.bm <- fread(paste0(results.folder,"cor_all.var_mgs_temp.tsv"))
+res.bm <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
 res.bm[, rho := round(rho,3)]
 res.bm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
 
-res.fm <- fread(paste0(results.folder,"cor2_all.var_mgs_temp.tsv"))
+res.BMI <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+res.BMI[, rho := round(rho,3)]
+res.BMI[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+
+mgs.fdr <- unique(res.BMI[q.value<.05,MGS])
+mgs.t90 <- res.BMI[exposure == "t90" & q.value<.05,MGS]
+mgs.odi <- res.BMI[exposure == "odi" & q.value<.05,MGS]
+
+res.fm <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
 res.fm[,rho:= round(rho,3)]
 res.fm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+res.fm <- res.fm[MGS %in% mgs.fdr,]
 
 n <- length(unique(res.bm[q.value<0.05,MGS]))
 ```
 
-**`r n`** species associated with at least one of the three OSA variables.     
+**`r n`** species associated with at least one of the three OSA variables in the model without BMI.     
 
-These species will be analyzed with the fully adjusted model. 
 
 <br>
 
@@ -377,17 +426,16 @@ Number of species with a q-value<0.05 for each OSA variable in the main model wi
 ```{r,}
 t <- res.bm %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
 
-kable(t, format = "html", table.attr = "style='width:30%;'", 
-        caption = 'q < 0.05' ) %>%
+kable(t, format = "html", table.attr = "style='width:30%;'") %>%
     kable_styling(position = "left")
 
 ```
 
 &nbsp;    
     
-### Results table
+***Full Results Table***
 
-**Table with all species**
+<details>
 
 ```{r,}
 sketch = htmltools::withTags(table(
@@ -419,172 +467,53 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
   formatStyle(c(1,4,7), `border-right` = "solid 2px") 
 ```
 
+</details>
+
 <br>
 
 ***
 
-***
-
 <br>
 
-## Main Model no BMI 
+## Main Model with BMI 
 
 <br>
 
 <div class = "blue">
 
-main model no BMI = age + sex + smoking + alcohol + extraction batch + shannon
+main model with BMI = age + sex + smoking + alcohol + plate + shannon + BMI
 
 </div>
 
 <br>
 
 ```{r, echo=FALSE}
-
-results.folder = "/home/baldanzi/Sleep_apnea/Results/"
-
-res.bm <- fread(paste0(results.folder,"cor_all.var_mgs_temp.tsv"))
-res.bm[, rho := round(rho,3)]
-res.bm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
-
-res.BMI <- fread(paste0(results.folder,"cor.bmi_all.var_mgs_temp.tsv"))
-res.BMI[, rho := round(rho,3)]
-res.BMI[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
-
-res.fm <- fread(paste0(results.folder,"cor2_all.var_mgs_temp.tsv"))
-res.fm[,rho:= round(rho,3)]
-res.fm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
-
 n <- length(unique(res.BMI[q.value<0.05,MGS]))
 ```
 
 **`r n`** species associated with at least one of the three OSA variables after adjusting for BMI.     
 
-These species will be analyzed with the extended model. 
-
 <br>
 
-
-Number of species with a q-value<0.05 for each OSA variable in the main model without BMI adjustment
-
-<br>
-
-```{r,}
-t <- res.bm %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
-
-kable(t, format = "html", table.attr = "style='width:30%;'", 
-        caption = 'q < 0.05' ) %>%
-    kable_styling(position = "left")
-
-```
-
-&nbsp;
 
 Number of species with a q-value<0.05 for each OSA variable in the main model with BMI adjustment
 
-<br>
-
 ```{r,}
 t <- res.BMI %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
 
-kable(t, format = "html", table.attr = "style='width:30%;'", 
-        caption = 'q < 0.05' ) %>%
+kable(t, format = "html", table.attr = "style='width:30%;'") %>%
     kable_styling(position = "left")
 
 ```
 
 &nbsp;
-    
-### Results table
 
-**Table with all species**
 
-```{r,}
-sketch = htmltools::withTags(table(
-  class = 'display',
-  thead(
-    tr(
-      th(rowspan = 2, 'MGS'),
-      th(colspan = 3, 'rho'),
-      th(colspan = 3, 'q-value'),
-      th(colspan = 3, 'N'),
-    ),
-    tr(
-      lapply(rep(c('  AHI  ', '  T90  ', ' ODI '), 3), th)
-    )
-  )
-))
+<details>
 
-t <- res.bm %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
-
-datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% 
-  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
-```
-
-<br>
-
-***
-
-***
-
-<br>
-
-## Main model with BMI {.tabset .tabset-pills}
-
-<br>
-
-<div class = "blue">
-
-Covariates = age + sex + smoking + alkohol + shannon + plate + BMI 
-
-</div>
-
-<br> 
-
-### FDR 5%
-
-```{r, }
-n <- length(unique(res.BMI[q.value<0.05,MGS]))
-```
-
-<br>
-
-<div class = "blue">
-
-**`r n`** species associated with at least one of the three OSA variables in the main model with BMI adjustment
-
-</div>
-
-<br>
-
-Number of species with a q-value<.05 for each OSA variable in the main model with BMI 
-
-<br>
+**Full Results Table**
 
 ```{r,}
-t <- res.BMI %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
-
-kable(t, format = "html", table.attr = "style='width:30%;'", 
-        caption = 'FDR 5%' ) %>%
-    kable_styling(position = "left")
-
-```
-
-&nbsp;   
-&nbsp;    
-
-### Results table
-
-```{r, echo=FALSE}
-
 t <- res.BMI %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
 
 datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
@@ -600,18 +529,20 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 ```
 
 
+</details>
 
 <br>
 
-<br>
-
-***
 
 ***
 
 <br>
 
 ## Extended model {.tabset .tabset-pills}
+
+    
+
+This model was use as a secondary analysis to account other potential confounders.
 
 <br>
 
@@ -622,49 +553,57 @@ season + education + physical activity
 
 </div>
 
-<br> 
-
-<br>
-
-### FDR 5%
-
 ```{r, }
-n <- length(unique(res.fm[q.value<0.05,MGS]))
+n <- length(unique(res.fm[MGS %in% mgs.fdr & p.value<0.05,MGS]))
 ```
 
 <br>
 
 <div class = "blue">
 
-**`r n`** species associated with at least one of the three OSA variables in the extended model.     
+**`r n`** species continued associated with T90 or ODI in the extended model (p-value<.05). 
 
 </div>
 
 <br>
 
-Number of species with a q-value<.05 for each OSA variable in the extended model
 
-<br>
-
-```{r,}
-t <- res.fm %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
-
-kable(t, format = "html", table.attr = "style='width:30%;'", 
-        caption = 'FDR 5%' ) %>%
-    kable_styling(position = "left")
-
-```
-
-&nbsp;   
-&nbsp;    
-
-### Results table
+### T90 {-}
 
 ```{r, echo=FALSE}
+res.BMI <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+res.BMI[, rho := round(rho,3)]
+res.BMI[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+res.BMI <- res.BMI[exposure %in% c("odi","t90") & MGS %in% mgs.fdr,]
 
-t <- res.fm %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
+res <- res.fm[MGS %in% mgs.fdr, .(MGS,exposure,rho,p.value,q.value,N)]
 
-datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
+names(res)[-c(1:2)] <- paste0(names(res)[-c(1:2)], "_ext.model")
+
+res <- merge(res.BMI[,.(MGS,exposure,rho,p.value,N)], res, by=c("MGS","exposure"), all.x=F, all.y=T)
+
+t.t90 <- res[MGS %in% mgs.t90 & exposure=="t90",]
+
+t.odi <- res[MGS %in% mgs.odi & exposure=="odi"]
+
+
+sketch3 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+       th(rowspan = 2, 'exposure'),
+      th(colspan = 3, 'Main Model with BMI'),
+      th(colspan = 4, 'Extended Model'),
+    ),
+    tr(
+      lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
+    )
+  )
+))
+
+
+table.fun <- function(x) {datatable(x, container=sketch3,rownames = FALSE, class = 'cell-border stripe', options = list(
   rowCallback = JS(
     "function(row, data) {",
     "for (i = 1; i < data.length; i++) {",
@@ -672,8 +611,21 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
     "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
     "}",
     "}",
-    "}"))) %>% 
-  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
+    "}"))) %>% formatStyle(c(1,5), `border-right` = "solid 2px")}
+
+table.fun(t.t90)
+```
+
+<br>
+
+***
+
+<br>
+
+### ODI {-}
+
+```{r,}
+table.fun(t.odi)
 ```
 
 <br>
@@ -683,39 +635,21 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 <br>
 
 
-## Signature species {.tabset .tabset-pills}
+## BMI-independent species {.tabset .tabset-pills}
 
 ### AHI {-}
-     
-     
-```{r, warning=FALSE, message=FALSE}
-  mgs.m1 <-  readRDS("/home/baldanzi/Sleep_apnea/Results/mgs.m1.rds")
-  t <- fread("/home/baldanzi/Sleep_apnea/Results/cor.BMI_all.var_mgs.tsv")
-  t[,rho:=round(rho,3)]
-  t[q.value>=0.001,q.value:=round(q.value,3)]
-  t[p.value>=0.001,p.value:=round(p.value,3)]
-  
-  species.names.fdr <- unique(do.call(c,mgs.m2))
-  prevalence <- round(apply(decostand(pheno[,species.names.fdr,with=F], "pa"), 2, function(x) sum(x)/nrow(pheno)),3)*100
-  prevalence <- data.table(MGS = names(prevalence), prevalence = prevalence)
-  
-  t <- merge(t,prevalence, by="MGS", all.x=T)
 
-  # AHI 
-  a <- c("MGS","prevalence","genus","family","order","class","phylum", "rho","p.value","q.value")
-  t2 <-  t[exposure =="ahi" & MGS %in% mgs.m2[["mgs.fdr.ahi"]], a ,with=F]
-  
-  datatable(t2,rownames = FALSE, options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>%  formatStyle(c(2,7), `border-right` = "solid 2px")
+No species associated with AHI independent of BMI 
+ 
+<br>
 
-```
+<br>
+
+<br>
+
+<br>
+
+<br>
 
 <br>
 
@@ -724,10 +658,23 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 <br>
 
 ### T90 {-}
-    
-```{r, warning=FALSE, message=FALSE}
-  t2 <-  t[exposure =="t90" & MGS %in% mgs.m2[["mgs.fdr.t90"]], a ,with=F]
 
+```{r, warning=FALSE, message=FALSE}
+  t <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
+  t[,rho:=round(rho,3)]
+  t[q.value>=0.001,q.value:=round(q.value,3)]
+  t[p.value>=0.001,p.value:=round(p.value,3)]
+  t <- t[MGS %in% mgs.fdr,.(MGS,exposure,rho,p.value,q.value)]
+  
+  prevalence <- round(apply(decostand(pheno[,mgs.fdr,with=F], "pa"), 2, function(x) sum(x)/nrow(pheno)),3)*100
+  prevalence <- data.table(MGS = names(prevalence), prevalence = prevalence)
+  
+  t <- merge(t,prevalence, by="MGS", all.x=T)
+  
+  a <- c("MGS","prevalence","rho", "p.value", "q.value")
+  
+  t2 <-  t[exposure =="t90" & MGS %in% mgs.t90, a ,with=F]
+  
   datatable(t2,rownames = FALSE, options = list(
   rowCallback = JS(
     "function(row, data) {",
@@ -738,7 +685,7 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
     "}",
     "}"))) %>%  formatStyle(c(2,7), `border-right` = "solid 2px")
 ```
-  
+
 <br>
 
 ***
@@ -748,8 +695,8 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 ### ODI {-}
     
 ```{r, warning=FALSE, message=FALSE}
-  t2 <-  t[exposure =="odi" & MGS %in% mgs.m2[["mgs.fdr.odi"]], a ,with=F]
-
+  t2 <-  t[exposure =="odi" & MGS %in% mgs.odi, a ,with=F]
+  
   datatable(t2,rownames = FALSE, options = list(
   rowCallback = JS(
     "function(row, data) {",
@@ -767,13 +714,14 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 
 <br>
 
-### All {-}
+### Taxonomy {-}
 
 ```{r, warning=FALSE, message=FALSE}
-  a <- c("MGS","prevalence","exposure", "rho","p.value","q.value")
-  t2 <-  t[MGS %in% species.names.fdr, a ,with=F]
+  t <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
   
-  datatable(t2,rownames = FALSE, filter="top" , options = list(
+  t <- t[MGS %in% mgs.fdr,.(MGS,genus,family,order,class,phylum)]
+  
+  datatable(t,rownames = FALSE, filter="top" , options = list(
   rowCallback = JS(
     "function(row, data) {",
     "for (i = 1; i < data.length; i++) {",
@@ -794,19 +742,19 @@ datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
 
 <br>
 
-In this step, we imputed the AHI value in those participants that had information on T90 and ODI but not on AHI. This corresponds to 360 participants for the basic model and XXX for the full model.    
+In this step, we imputed the AHI value in those participants that had information on T90 and ODI but not on AHI. This corresponds to 360 participants for the main model.    
      
 Imputation was performed with multiple imputation using the predictive mean matching in 10 chained equations and the five nearest neighbors. The uncertainty of imputations was accounted using the Rubin's rule (REFERENCE).
 
 <br>
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="80%", out.height="80%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_sleepapnea_imp.png")
+#knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_sleepapnea_imp.png")
 ```
 
 <br>
 
-## Basic model
+## Main model with BMI
 
 <br>
 
@@ -819,10 +767,13 @@ names(res.bm.imp) <- gsub("_",".",names(res.bm.imp))
 res.bm.imp[,rho:=round(rho,3)]
 res.bm.imp[,c('q.value','p.value') := lapply(.SD,round.large), .SDcols = c("q.value","p.value")]
 
-res.bm[,MGS:=cutlast(MGS,9)]
+res.BMI <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+res.BMI[, rho := round(rho,3)]
+res.BMI[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+res.BMI[,MGS:=cutlast(MGS,9)]
 
 
-res.bm.imp <- rbind(res.bm.imp, res.bm[exposure %in% c("odi","t90"), names(res.bm.imp),with=F])
+res.bm.imp <- rbind(res.bm.imp, res.BMI[exposure %in% c("odi","t90"), names(res.bm.imp),with=F])
 
 res.bm.imp[,MGS:=factor(MGS)]
 res.bm.imp[,exposure:=factor(exposure)]
@@ -861,9 +812,9 @@ res.bm.imp[,rho:=round(rho,3)]
 res.bm.imp[,c('q.value','p.value') := lapply(.SD,round.large), .SDcols = c("q.value","p.value")]
 res.bm.imp[exposure=="ahi", exposure:="ahi_imp"]
 
-res.bm[,MGS:=cutlast(MGS,9)]
+res.BMI[,MGS:=cutlast(MGS,9)]
 
-res.bm.imp <- rbind(res.bm.imp, res.bm[exposure %in% c("ahi"), names(res.bm.imp),with=F])
+res.bm.imp <- rbind(res.bm.imp, res.BMI[exposure %in% c("ahi"), names(res.bm.imp),with=F])
 
   species.names <- grep("HG3A",names(pheno),value=T)
   prevalence <- round(apply(decostand(pheno[,species.names,with=F], "pa"), 2, function(x) sum(x)/nrow(pheno)),3)*100
@@ -914,220 +865,88 @@ datatable(t,container=sketch_imp,rownames = FALSE, filter="top", options = list(
 
 <br>
 
-## Full model 
 
-<br>
 
-```{r full.model.imp, echo=FALSE}
-results.folder = "/home/baldanzi/Sleep_apnea/Results/"
-
-res.fm.imp <- fread(paste0(results.folder,"cor2_ahi_imput_mgs.tsv"))
-res.fm.imp[,MGS:= gsub("_",".",MGS)]
-names(res.fm.imp) <- gsub("_",".",names(res.fm.imp))
-res.fm.imp[,rho:=round(rho,3)]
-res.fm.imp[,c('q.value','p.value') := lapply(.SD,round.large), .SDcols = c("q.value","p.value")]
-
-res.fm[,MGS:=cutlast(MGS,9)]
-
-res.fm.imp <- rbind(res.fm.imp, res.fm[exposure %in% c("odi","t90"), names(res.fm.imp),with=F])
-
-res.fm.imp[,MGS:=factor(MGS)]
-res.fm.imp[,exposure:=factor(exposure)]
-
-res.fm.imp <- merge(res.fm.imp,prevalence,by="MGS",all.x=T, all.y=F)
-
-t <- res.fm.imp %>% pivot_wider(id_cols = c(MGS,prevalence), names_from = exposure, values_from = c(rho,q.value,N))
-
-datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% 
-  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
-
-```
-
-<br>
-
-***
-
-<br>
-
-### Imp. vs Non-imp.
-
-<br>
-
-<details>
-
-```{r comparison.imp, echo=FALSE}
-res.fm.imp <- fread(paste0(results.folder,"cor2_ahi_imput_mgs.tsv"))
-res.fm.imp[,MGS:= gsub("_",".",MGS)]
-names(res.fm.imp) <- gsub("_",".",names(res.fm.imp))
-res.fm.imp[,rho:=round(rho,3)]
-res.fm.imp[,c('q.value','p.value') := lapply(.SD,round.large), .SDcols = c("q.value","p.value")]
-res.fm.imp[exposure=="ahi", exposure:="ahi_imp"]
-
-res.fm[,MGS:=cutlast(MGS,9)]
-
-res.fm.imp <- rbind(res.fm.imp, res.fm[exposure %in% c("ahi"), names(res.fm.imp),with=F])
-
-res.fm.imp[,MGS:=factor(MGS)]
-res.fm.imp[,exposure:=factor(exposure)]
-
-t <- res.fm.imp %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
-
-sketch_imp = htmltools::withTags(table(
-  class = 'display',
-  thead(
-    tr(
-      th(rowspan = 2, 'MGS'),
-      th(colspan = 2, 'rho'),
-      th(colspan = 2, 'q-value'),
-      th(colspan = 2, 'N'),
-    ),
-    tr(
-      lapply(rep(c('  AHI_imp.  ', '  AHI  '), 3), th)
-    )
-  )
-))
-
-datatable(t,container=sketch_imp,rownames = FALSE, filter="top", options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% 
-  formatStyle(c(1,3,5), `border-right` = "solid 2px") 
-
-```
-
-</details>
-
-<br>
-
-***
-
-<br>
-
-# SA Medication
+# SA Medication {.tabset .tabset-pills}
    
-Sensitivity analysis: remove medication users (ppi,metformin,anti-hypertensive,cholesterol-lowering)
+Sensitivity analysis: adjust for medication use.     
+(ppi,metformin,anti-hypertensive,cholesterol-lowering)
 
 
 ```{r,}
-mgs.fdr <- readRDS('/home/baldanzi/Sleep_apnea/Results/mgs.m2.rds')
+res.BMI <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
+res.BMI <- res.fm[MGS %in% mgs.fdr,]
 
-names(mgs.fdr) <- c("ahi", "t90", "odi")
-
-res.sa.med <- fread("/home/baldanzi/Sleep_apnea/Results/corsamed_all.var_mgs.tsv")
-res.fm <- fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
+res.sa.med <- fread("/home/baldanzi/Sleep_apnea/Results/cor.med_all.var_mgs.tsv")
+res.sa.med <- res.sa.med[MGS %in% mgs.fdr,]
 
 a=c("MGS","exposure","rho","p.value","q.value","N")
 res.sa.med <- res.sa.med[,a,with=F]
 res.sa.med[,rho:=round(rho,3)]
 res.sa.med[,p.value:=round.large(p.value)]
-res.fm <- res.fm[,a,with=F]
-res.fm[,rho:=round(rho,3)]
-res.fm[,p.value:=round.large(p.value)]
 
+res.BMI <- res.BMI[,.(MGS,exposure,rho,p.value,N)]
+res.BMI[,rho:=round(rho,3)]
+res.BMI[,p.value:=round.large(p.value)]
+res.BMI <- res.BMI[exposure %in% c("odi","t90"),]
 
-res.fm <- res.fm[exposure %in% c("odi","t90"),names(res.sa.med),with=F]
-names(res.fm)[-c(1:2)] <- paste0(names(res.fm)[-c(1:2)], "_full_model")
 names(res.sa.med)[-c(1:2)] <- paste0(names(res.sa.med)[-c(1:2)], "_SA")
 
-res.sa.med <- merge(res.sa.med, res.fm, by=c("MGS","exposure"), all.x=T, all.y=F)
-
+res.sa.med <- merge(res.BMI, res.sa.med, by=c("MGS","exposure"), all.x=F, all.y=T)
 ```
 
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t.t90 <- res.sa.med[MGS %in% mgs.t90 & exposure=="t90",]
 
-t.t90 <- res.sa.med[exposure=="t90",]
+t.odi <- res.sa.med[MGS %in% mgs.odi & exposure=="odi"]
 
-t.t90 <- t.t90[MGS %in% mgs.fdr$t90,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
-
-t.odi <- res.sa.med[exposure=="odi"]
-
-t.odi <- t.odi[MGS %in% mgs.fdr$odi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
-
-sketch2 = htmltools::withTags(table(
+sketch3 = htmltools::withTags(table(
   class = 'display',
   thead(
     tr(
       th(rowspan = 2, 'MGS'),
-      th(colspan = 3, 'Full Model'),
-      th(colspan = 4, 'SA Medication'),
+      th(rowspan = 2, 'exposure'),
+      th(colspan = 3, 'Main Model with BMI'),
+      th(colspan = 4, 'S.A. Medication'),
     ),
     tr(
       lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
     )
   )
 ))
-
 ```
-
 
 <br>
 
-### T90 {-}
+## T90 {-}
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-
-datatable(t.t90,container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")
-
+table.fun(t.t90)
 ```
 
 ***
 
 <br>
 
-### ODI {-}
+## ODI {-}
 
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-
-datatable(t.odi,container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")
-
+table.fun(t.odi)
 ```
 
-
-
 <br>
-
 
 ***
 
 <br>
-<br>
 
 
-# SA - antibiotic users {.tabset}
+# SA - antibiotic users {.tabset .tabset-pills}
 
 &nbsp;
 
-Re-run the full model analysis for the species identified with the full model  after excluding participants that had used any antibiotic in the last 6 months 
+Re-run the main model with BMI analysis after excluding participants that had used any antibiotic in the last 6 months 
 
 <br>
 
@@ -1135,41 +954,45 @@ Re-run the full model analysis for the species identified with the full model  a
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
 
 res.sa.atb <- fread("/home/baldanzi/Sleep_apnea/Results/corsaatb_all.var_mgs.tsv")
-res.fm <- fread("/home/baldanzi/Sleep_apnea/Results/cor2_all.var_mgs.tsv")
+res.BMI <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
+res.BMI <- res.BMI[MGS %in% mgs.fdr,]
+res.sa.atb <- res.sa.atb[MGS %in% mgs.fdr,]
 
 a=c("MGS","exposure","rho","p.value","q.value","N")
 res.sa.atb <- res.sa.atb[,a,with=F]
 res.sa.atb[,rho:=round(rho,3)]
 res.sa.atb[,p.value:=round.large(p.value)]
-res.fm <- res.fm[,a,with=F]
-res.fm[,rho:=round(rho,3)]
-res.fm[,p.value:=round.large(p.value)]
+
+a=c("MGS","exposure","rho","p.value","N")
+res.BMI <- res.BMI[,a,with=F]
+res.BMI[,rho:=round(rho,3)]
+res.BMI[,p.value:=round.large(p.value)]
+res.BMI <- res.BMI[exposure %in% c("odi","t90"),]
 
 
-res.fm <- res.fm[exposure %in% c("odi","t90"),names(res.sa.atb),with=F]
-names(res.fm)[-c(1:2)] <- paste0(names(res.fm)[-c(1:2)], "_full_model")
 names(res.sa.atb)[-c(1:2)] <- paste0(names(res.sa.atb)[-c(1:2)], "_SA")
 
-res.sa.atb <- merge(res.sa.atb, res.fm, by=c("MGS","exposure"), all.x=T, all.y=F)
+res.sa.atb <- merge(res.BMI,res.sa.atb, by=c("MGS","exposure"), all.x=F, all.y=T)
 
-t.t90 <- res.sa.atb[exposure=="t90",]
+t.t90 <- res.sa.atb[MGS %in% mgs.t90 & exposure=="t90",]
 
-t.t90 <- t.t90[MGS %in% mgs.fdr$t90,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
-
-t.odi <- res.sa.atb[exposure=="odi"]
-
-t.odi <- t.odi[MGS %in% mgs.fdr$odi,.(MGS,rho_full_model,p.value_full_model,N_full_model, rho_SA,p.value_SA,q.value_SA,N_SA)]
+t.odi <- res.sa.atb[MGS %in% mgs.odi & exposure=="odi",]
 
 
-table.fun <- function(x) {datatable(x, container=sketch2,rownames = FALSE, class = 'cell-border stripe', options = list(
-  rowCallback = JS(
-    "function(row, data) {",
-    "for (i = 1; i < data.length; i++) {",
-    "if ( data[i]<0.001 & data[i]>0){",
-    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-    "}",
-    "}",
-    "}"))) %>% formatStyle(c(1,4), `border-right` = "solid 2px")}
+sketch3 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+       th(rowspan = 2, 'exposure'),
+      th(colspan = 3, 'Main Model with BMI'),
+      th(colspan = 4, 'S.A. Antibiotic'),
+    ),
+    tr(
+      lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
+    )
+  )
+))
 
 ```
 
@@ -1206,24 +1029,24 @@ Enrichment analysis of GMM modules among the species associated to AHI, T90, ODI
 
 ### Positive correlations {-}
 ```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
-knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_GMM_pos.png")
+t = fread('/home/baldanzi/Sleep_apnea/Results/ea_GMM_pos.tsv')
+t <- t[,.(pathway,Name,exposure, NES,q.value)]
+t <- t[exposure == "t90" & q.value <.05]
+setDT(t)
+t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
 
-t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_pos.rds')
-#setDT(t)
-#t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
-#t[pval>=0.001,pval:=round(pval,digits = 3)]
 
-#table.fun <- function(x) {datatable(x,filter="top", rownames = FALSE, class = 'cell-border stripe', options = list(
-#  rowCallback = JS(
-#    "function(row, data) {",
-#    "for (i = 1; i < data.length; i++) {",
-#    "if ( data[i]<0.001 & data[i]>0){",
-#    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
-#    "}",
-#    "}",
-#    "}"))) %>% formatStyle(c(1,4,8,12,16), `border-right` = "solid 2px")}
+table.fun <- function(x) {datatable(x,filter="top", rownames = FALSE, class = 'cell-border stripe', options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% formatStyle(c(2,3), `border-right` = "solid 2px")}
 
-#table.fun(t)
+table.fun(t)
 
 #modules.ahi = t[sig_ahi==T , pathway]
 #modules.t90 = t[sig_t90==T , pathway]
@@ -1272,14 +1095,14 @@ t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_pos.rds')
 <br>
 
 ```{r,}
-#gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
+gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
 
-#load("/home/baldanzi/Datasets/MGS/original/MGS_HG3A.GMMs2MGS.RData") # object = MGS_HG3A.GMMs2MGS
-#  size.modules <-  sapply(MGS_HG3A.GMMs2MGS,length)
-#  size.modules <- data.frame(Module = names(size.modules), size = size.modules)
-#  gmm.names <- merge(gmm.names,size.modules, by="Module")
+load("/home/baldanzi/Datasets/MGS/original/MGS_HG3A.GMMs2MGS.RData") # object = MGS_HG3A.GMMs2MGS
+  size.modules <-  sapply(MGS_HG3A.GMMs2MGS,length)
+  size.modules <- data.frame(Module = names(size.modules), size = size.modules)
+  gmm.names <- merge(gmm.names,size.modules, by="Module")
   
-#datatable(gmm.names,rownames = FALSE)
+datatable(gmm.names,rownames = FALSE)
 ```
 
 <br>

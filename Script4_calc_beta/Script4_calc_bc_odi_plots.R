@@ -3,6 +3,21 @@
 
 # PCoA separated by ODI severity groups 
 
+  # Import data
+  valid.t90 <- pheno[valid.t90=='yes',]
+
+  # Import BC
+  BC <-  fread(paste0(input,'T90.BCmatrix.csv'),sep=",")
+  BC <-  as.matrix(BC)
+  rownames(BC) <-  colnames(BC) 
+
+  # Import PCoA of BC 
+  load(paste0(input,'pc_BC_t90'))
+
+  # Plotting the first 2 principal coordinate 
+  # First: extracting the principal coordinate values for every sample 
+  dat.plot=data.frame(pcoa.bray.t90$vectors, odicat = valid.t90$odicat)
+
   # PCoA ####
   
   centroids <- aggregate(cbind(Axis.1,Axis.2)~odicat,dat.plot,mean)
@@ -19,8 +34,8 @@
     scale_color_manual(labels = paste0(names(Ns), " (n = ",Ns,")"),
                        values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
     ggtitle("ODI severity groups") +
-    xlab(paste0("PCo1 \n (",round(100*pcoa.bray.t90$values$Relative_eig[1],1),"% )")) +
-    ylab(paste0("PCo2 \n (",round(100*pcoa.bray.t90$values$Relative_eig[2],1),"% )")) +
+    xlab(paste0("PCo1 \n (",round(100*pcoa.bray.t90$values$Relative_eig[1],1),"%)")) +
+    ylab(paste0("PCo2 \n (",round(100*pcoa.bray.t90$values$Relative_eig[2],1),"%)")) +
     xlim(-0.08, 0.08) + ylim(-0.08, .08) +
     theme_light()+
     theme(axis.text.x = element_text(angle = 0),

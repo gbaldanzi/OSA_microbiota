@@ -8,7 +8,7 @@
 # relation to the beta-diversity (Bray Curtis Dissimilarity) 
 
 # Preparation 
-source('Script5_permanova/pre_pairwise.R')
+source('Script5_permanova/pairwise/pre_pairwise.R')
 
   # Importing data
     dades <- copy(pheno[valid.t90=="yes",])
@@ -29,16 +29,16 @@ source('Script5_permanova/pre_pairwise.R')
                          labels = c("t0", "t1", "t2", "t3"))]
   
   
-  list.res <- pairwise.perma.fun(outcome="BC", group_var="t90cat", covari=full.model, data=dades, nodes=16)
+  list.res <- pairwise.perma.fun(outcome="BC", group_var="t90cat", covari=main.model, data=dades, nodes=16)
   
   
-  saveRDS(list.res,file=paste0(output,"pairwise.perma.results_t90.rds"))
+  saveRDS(list.res,file=paste0(results.folder,"pairwise.perma.results_t90.rds"))
 #---------------------------------------------------------------------------#
 
   # Produce a final summary results table with FDR-p-values 
   
-  list.res = readRDS("/home/baldanzi/Sleep_apnea/Results/pairwise.perma.results_t90.rds")
+  list.res = readRDS(paste0(results.folder,"pairwise.perma.results_t90.rds"))
   
   list.res$table <- clean.res(list.res[1:6]) 
   
-  saveRDS(list.res,file=paste0(output,"pairwise.perma.results_t90.rds"))
+  saveRDS(list.res,file=paste0(results.folder,"pairwise.perma.results_t90.rds"))

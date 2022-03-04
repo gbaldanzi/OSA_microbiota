@@ -43,8 +43,8 @@
     scale_color_manual(labels = paste0(names(Ns), " (n = ",Ns,")"),
                        values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
     ggtitle("T90 severity groups") +
-    xlab(paste0("PCo1 \n (",round(100*pcoa.bray.t90$values$Relative_eig[1],1),"% )")) +
-    ylab(paste0("PCo2 \n (",round(100*pcoa.bray.t90$values$Relative_eig[2],1),"% )")) +
+    xlab(paste0("PCo1 \n (",round(100*pcoa.bray.t90$values$Relative_eig[1],1),"%)")) +
+    ylab(paste0("PCo2 \n (",round(100*pcoa.bray.t90$values$Relative_eig[2],1),"%)")) +
     xlim(-0.08, 0.08) + ylim(-0.08, .08) +
     theme_light()+
     theme(axis.text.x = element_text(angle = 0),

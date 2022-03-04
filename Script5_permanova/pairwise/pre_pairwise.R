@@ -10,7 +10,7 @@
   pacman::p_load(data.table, vegan ,parallel)
 
   # Folders
-  output = "/home/baldanzi/Sleep_apnea/Results/"
+  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   input = "/home/baldanzi/Datasets/sleep_SCAPIS/"
 
   
@@ -23,7 +23,5 @@
 
   
   #Covariates 
-  basic.model<-   c("age", "Sex", "Alkohol","smokestatus","plate")
-  full.model <-  c(basic.model,"BMI", "Fibrer","Energi_kcal", "leisurePA", "educat","placebirth", "visit.month", "metformin","hypermed","dyslipmed","ppi")
+  main.model<-   c("age", "Sex", "Alkohol","smokestatus","plate", "BMI")
   
- 

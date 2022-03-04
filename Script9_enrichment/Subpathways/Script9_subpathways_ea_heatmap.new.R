@@ -26,7 +26,7 @@ library(tidyverse)
   # Import the signature species 
   results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
   output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots"
-  #wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
+  wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
 
 # Function to select the last characters of a string 
   cutlast <- function(char,n){
@@ -42,19 +42,21 @@ library(tidyverse)
     char <- gsub("TF06_15AC","TF06-15AC",char)
     char <- gsub("AF46_10NS","AF46-10NS",char)
     char <- gsub("AF36_15AT","AF36-15AT",char)
+    char <- gsub("Marseille P4005","Marseille-P4005", char)
+    char <- gsub('[(]HG3A.0168[)]',"",char)
     char <- gsub("_"," ",char)
   }
 
   # Results from the MGS-AHI/T90/ODI correlation - Full model 
 
-    res.fm <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
+    res.bm <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
     
-    Mgs.mgs <- unique(res.fm[,.(MGS,mgs)])
+    Mgs.mgs <- unique(res.bm[,.(MGS,mgs)])
 
   # Species associated with T90 or ODI 
     
-    mgs.t90 <- res.fm[exposure=="t90" & q.value<.05, mgs]
-    mgs.odi <- res.fm[exposure=="odi" & q.value<.05, mgs]
+    mgs.t90 <- res.bm[exposure=="t90" & q.value<.05, mgs]
+    mgs.odi <- res.bm[exposure=="odi" & q.value<.05, mgs]
 
 
   # Import enrichment analysis results GUTSY Atlas 
@@ -71,9 +73,9 @@ library(tidyverse)
   
   # Positive and negative associations 
   
-  temp.data <- res.fm %>% filter(mgs %in% c(mgs.t90,mgs.odi)) %>% 
+  temp.data <- res.bm[,.(MGS,mgs,exposure,rho,q.value)] %>% 
+    filter(mgs %in% c(mgs.t90,mgs.odi)) %>% 
     filter(exposure %in% c("t90","odi")) %>%
-    select(MGS,mgs,exposure,rho,q.value) %>% 
     pivot_wider(id_cols=c(MGS,mgs), names_from = exposure, values_from = c(rho,q.value))
   
   setDT(temp.data)
@@ -103,12 +105,12 @@ library(tidyverse)
   
   table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% 
     summarise(nr_p.05 = sum(q_value<.05))
-  hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>=2]
+  hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>=1]
 
-  hm.pathways <- hm.pathways[-which(hm.pathways=="Food Component/Plant")]
+  #hm.pathways <- hm.pathways[-which(hm.pathways=="Food Component/Plant")]
 
   # Matrix results for the heatmap 
-  hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
+  hm.matrix <- res.table[,.(MGS, Metabolite_subclass, Estimate)] %>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = Estimate)
   
@@ -125,7 +127,7 @@ library(tidyverse)
   colnames(hm.matrix_pos) <- gsub("Metabolism","Metab.", colnames(hm.matrix_pos))
 
   # Positive "q-values" to produce the "*" on the heatmap ####
-  qvalues_pos <- res.table %>% select(MGS, Metabolite_subclass, q_value)%>% 
+  qvalues_pos <- res.table[,.(MGS, Metabolite_subclass, q_value)] %>% 
       filter(Metabolite_subclass %in% hm.pathways) %>% 
       spread(key=Metabolite_subclass, value = q_value)
   
@@ -145,10 +147,10 @@ library(tidyverse)
   # Filter to pathways/metabolite groups that are FDR associated with at least one signature species 
   table.pathways <- res.table %>% group_by(Metabolite_subclass) %>% 
     summarise(nr_p.05 = sum(q_value<.05))
-  hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>=2]
+  hm.pathways <- table.pathways$Metabolite_subclass[table.pathways$nr_p.05>=1]
   
   # Matrix results for the heatmap 
-    hm.matrix <- res.table %>% select(MGS, Metabolite_subclass, Estimate)%>% 
+    hm.matrix <- res.table[,.(MGS, Metabolite_subclass, Estimate)] %>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = Estimate)
 
@@ -166,7 +168,7 @@ library(tidyverse)
   colnames(hm.matrix_neg) <- gsub(" (PC)","",colnames(hm.matrix_neg))
 
   # Negative "q-values" to produce the "*" on the heatmap ####
-    qvalues_neg <- res.table %>% select(MGS, Metabolite_subclass, q_value) %>% 
+    qvalues_neg <- res.table[,.(MGS, Metabolite_subclass, q_value)] %>% 
     filter(Metabolite_subclass %in% hm.pathways) %>% 
     spread(key=Metabolite_subclass, value = q_value)
   
@@ -259,7 +261,9 @@ library(tidyverse)
              #row_split = factor(annotation$correlation),
              
              row_split = factor(c(rep("Positive T90/ODI-associated species",length(pos.mgs)),
-                                     rep("Negative T90/ODI-associated species",length(neg.mgs)))),
+                                     rep("Negative T90/ODI-associated species",length(neg.mgs))), 
+                                levels = c("Positive T90/ODI-associated species", 
+                                           "Negative T90/ODI-associated species")),
              cluster_row_slices = T,
              cluster_rows = T,
              #row_title = c("Positive T90/ODI-associated species",
@@ -310,10 +314,16 @@ library(tidyverse)
           width = unit(5*ncol(hm.matrix_neg),"mm")) 
 
  
-
+  message("Saving plots")
   # Save the plot in pdf 
   pdf(file = paste0(output.plot, "mgs_subpathway_ea_heatmap_gutsy_new.pdf"), 
     width = 10, height = 10)
+  set.seed(2)
+  draw(h1, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
+  dev.off()
+  
+  pdf(file = paste0(wrf, "mgs_subpathway_ea_heatmap_gutsy_new.pdf"), 
+      width = 11, height = 9)
   set.seed(2)
   draw(h1, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
   dev.off()
@@ -327,4 +337,5 @@ library(tidyverse)
      heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend=T)
 
   dev.off()
+  message("Plots saved")
 
