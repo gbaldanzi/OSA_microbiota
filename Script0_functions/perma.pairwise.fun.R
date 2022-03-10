@@ -115,12 +115,13 @@ clean.res <- function(list){
   require(data.table)
   
   res = lapply(list, function(x){
-    x[1,c("variables","Pr(>F)")]
+    x[1,c("variables","R2","Pr(>F)")]
   })
   
   t <- do.call(rbind,res)
-  names(t) <- c("Comparison", "p.value")
-  t$q.value <- p.adjust(t$p.value , method = "BH")
+    #t$q.value <- p.adjust(t$p.value , method = "BH")
+  t$R2 <- round(t$R2*100,2)
+  names(t) <- c("Comparison","R2 (%)","p-value")
   return(t)
 }
 

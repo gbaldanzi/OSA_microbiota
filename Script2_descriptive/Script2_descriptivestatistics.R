@@ -28,15 +28,16 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   #cpap_self, splint_self, apneasurgery_self,
   #ahi, odi, sat90, cpap, splint 
   
-  dat1 = pheno[valid.ahi=='yes',] %>% select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, educat,
+  dat1 = pheno %>% 
+    select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, educat,
                                            leisurePA, placebirth, diabd, hypertension, dyslipidemia, metformin, 
-                                           hypermed, dyslipmed, ppi, Fibrer, Energi_kcal, ahi, odi,t90, shannon)
+                                           hypermed, dyslipmed, ppi, Fibrer, Energi_kcal, ahi, odi,t90, shannon,
+                                          t90cat, odicat, valid.t90, valid.ahi)
 
 
   dat1[OSAcat == "no OSA", OSAcat:= "No OSA"]
   dat1[,OSAcat:=factor(OSAcat, levels = c("No OSA", "Mild", "Moderate", "Severe"))]
-
-
+  
   # "Table 1" - Population characteristics ####
   datatable1 <-  as.data.frame(dat1)  # Passing data to a new object without the SCAPIS ID
 
@@ -56,10 +57,10 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
              "Birth place", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Metformin",
              "Anti-hypertensive med.", "Hyperlipidemia med.", "PPI","Fiber (g/day)","Energy intake (kcal/day)",
-             "AHI (events/h)","ODI (events/h)", "T90 (%)", "Shannon Index")
+             "AHI (events/h)","ODI (events/h)", "T90 (%)", "Shannon Index", "T90 groups", "ODI groups")
 
   j=1
-  for(i in names(datatable1)){
+  for(i in names(mylabel)){
     label(datatable1[[i]]) <- mylabel[j]
     j=j+1
   }
@@ -72,12 +73,55 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
                   include.miss = FALSE, chisq.test.perm = TRUE, 
                   method = c(age = 2, Alkohol = 2, BMI = 2, 
                              ahi = 2 , odi = 2, t90 = 2, 
-                             shannon = 2))
+                             shannon = 2, Fibrer = 2, Energi_kcal = 2))
   
-  t1 = createTable(t, hide.no = "no")
+  t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
+                     digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
+                                leisurePA = 1, placebirth = 1, diabd = 1, ahi = 1, 
+                                odi = 1, t90 = 1, shannon = 1, diabd = 1, hypertension = 1, 
+                                Fibrer = 1, Energi_kcal = 0, ppi = 1, hypermed = 1, 
+                                dyslipmed = 1))
   
-
-  saveRDS(t1, file = paste0(descriptive.folder,'sleepapnea_table1.rds'))
-  
-
   export2xls(t1, file = paste0(descriptive.folder,'Table1.xlsx'))
+  
+  wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
+  
+  export2xls(t1, file = paste0(wrf,'Table1.xlsx'))
+  
+  
+  # T90 groups 
+  t = compareGroups(t90cat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
+                      leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
+                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ odi+ t90+ shannon, 
+                    data= datatable1, 
+                    include.miss = FALSE, chisq.test.perm = TRUE, 
+                    method = c(age = 2, Alkohol = 2, BMI = 2, 
+                               ahi = 2 , odi = 2, t90 = 2, 
+                               shannon = 2))
+  
+  t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T)
+  
+  export2xls(t1, file = paste0(descriptive.folder,'Table1_t90cat.xlsx'))
+  
+  wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
+  
+  export2xls(t1, file = paste0(wrf,'Table1_t90cat.xlsx'))
+  
+  
+  # ODI groups 
+  t = compareGroups(odicat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
+                      leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
+                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ odi+ t90+ shannon, 
+                    data= datatable1, 
+                    include.miss = FALSE, chisq.test.perm = TRUE, 
+                    method = c(age = 2, Alkohol = 2, BMI = 2, 
+                               ahi = 2 , odi = 2, t90 = 2, 
+                               shannon = 2))
+  
+  t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T)
+  
+  export2xls(t1, file = paste0(descriptive.folder,'Table1_odicat.xlsx'))
+  
+  wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
+  
+  export2xls(t1, file = paste0(wrf,'Table1_odicat.xlsx'))

@@ -16,20 +16,23 @@ round.large <- function(x){
   return(x)
 }
 
-# Table S1. Association between OSA and alpha-diveristy (Shannon index) ####
+# Table S3. Association between OSA and alpha-diveristy (Shannon index) ####
   input <- "/home/baldanzi/Sleep_apnea/Results/"
   
-  table.s1 <- fread(paste0(input,"cor_all.var_alpha.tsv"))
-  table.s1[,"p-value":=round.large(p.value)]
-  table.s1[,"Spearman's correlation":=round(rho,3)]
-  table.s1[,exposure := toupper(exposure)]
+  table.s3 <- fread(paste0(input,"cor_all.var_alpha.tsv"))
+  table.s3[,"p-value":=round.large(p.value)]
+  table.s3[,"Spearman's correlation":=round(rho,3)]
+  table.s3[,exposure := toupper(exposure)]
   
-  table.s1 <- table.s1[,c("exposure","Spearman's correlation","p-value","N","model")]
+  table.s3 <- table.s3[,c("exposure","Spearman's correlation","p-value","N","model")]
+  table.s3 <- table.s3[model %in% c("main.model", "extended.model")]
+  table.s3[model =="main.model", model := "Main Model"]
+  table.s3[model == "extended.model", model := "Extended Model"]
   
-  write.xlsx2(table.s1, "Supp.tables.xlsx", sheetName="Table S1", col.names=T,
+  write.xlsx2(table.s3, "Supp.tables.xlsx", sheetName="Table S3", col.names=T,
               row.names=F, append=F)
 
-# Table S2. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
+# Table S4. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
 
   list.perma.res <- list.files(path=input, pattern = "pairwise.perma.results")
   
@@ -38,7 +41,7 @@ round.large <- function(x){
     table <- table$table
     table$group.1 <-  do.call(rbind,strsplit(table$Comparison,"_", fixed = T))[,1]
     table$group.2 <-  do.call(rbind,strsplit(table$Comparison,"_", fixed = T))[,2]
-    table <- table[,c("group.1","group.2","p.value")]
+    table <- table[,c("group.1","group.2","R2 (%)","p-value")]
     return(table)
   })
   
@@ -48,30 +51,32 @@ round.large <- function(x){
   
   table.perma.res$t90$group.1[table.perma.res$t90$group.1=="t0"] <- "T90=0"
   
-  white.space <- data.frame(group.1="",group.2="",p.value="")
+  white.space <- data.frame(group.1="",group.2="",R2= "", p.value="")
+  names(white.space) <- names(table.perma.res$ahi)
   
-  table.s2 <- rbind(table.perma.res$ahi, white.space, table.perma.res$t90,
+  table.s4 <- rbind(table.perma.res$ahi, white.space, table.perma.res$t90,
                     white.space, table.perma.res$odi)
   
-  write.xlsx2(table.s2, "Supp.tables.xlsx", sheetName="Table S2", col.names=T,
+  write.xlsx2(table.s4, "Supp.tables.xlsx", sheetName="Table S4", col.names=T,
               row.names=F, append=T)
   
 
-# Suppl Table 3 - results from the basic model for all 4 phenotypes ####
+# Table S5 - results from the main model without BMI for all 3 OSA parameters ####
 
-  # Results from model1 
+  # Results from main model without BMI 
   res <- fread(paste0(input,"cor_all.var_mgs.tsv"))
   
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  #taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
   
-  res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  #res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
   
   res[,MGS:=paste0(MainTax," (",mgs,")")]
   
   res[,exposure:=toupper(exposure)]
   
-  res[,c("rho","p.value","q.value") := lapply(.SD,round.large) , 
-      .SDcols = c("rho","p.value","q.value")]
+  res[,rho:=round(rho,3)]
+  res[,c("p.value","q.value") := lapply(.SD,round.large) , 
+      .SDcols = c("p.value","q.value")]
 
   
   setnames(res,c("MGS","rho","q.value","p.value"),
@@ -84,23 +89,24 @@ round.large <- function(x){
   table.res <- res[,var.table,with=F]
   
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S3", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S5", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 4 - results from the fully adjusted model for all 3 phenotypes  ####
+  # Suppl Table 6 - results from the main model with BMI for all 3 phenotypes  ####
   
   # Results from model2 
-  res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+  res <- fread(paste0(input,"cor.bmi_all.var_mgs.tsv"))
   
   res[,MGS:=paste0(MainTax," (",mgs,")")]
   
   res[,exposure:=toupper(exposure)]
   
-  res[,c("cor.coefficient","p.value","q.value") := lapply(.SD,round,3) , 
-      .SDcols = c("cor.coefficient","p.value","q.value")]
+  res[,rho:=round(rho,3)]
+  res[,c("p.value","q.value") := lapply(.SD,round.large) , 
+      .SDcols = c("p.value","q.value")]
   
   
-  setnames(res,c("MGS","cor.coefficient","q.value","p.value"),
+  setnames(res,c("MGS","rho","q.value","p.value"),
            c("Metagenomic species","Spearman's correlation","q-value","p-value"))
   
   var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
@@ -109,42 +115,168 @@ round.large <- function(x){
   
   table.res <- res[,var.table,with=F]
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S4", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S6", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 5. List of Signatures species / Metagenomics information ####
-  
-  mgs.m2 <- readRDS(paste0(input,'mgs.m2.rds'))
-  
-  mgs.m2 <- unique(do.call(c,mgs.m2))
   
   
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
-  prev <- pheno[,mgs.m2,with=F]
-  prev[,(mgs.m2) := lapply(.SD,decostand,method="pa"), .SDcols=mgs.m2]
-  prev <- data.frame(maintax_mgs=mgs.m2,
-                     prevalence=round(t(prev[, lapply(.SD,function(x) sum(x)/nrow(prev)), 
-                                             .SDcols=mgs.m2]),3)*100)
+  # Suppl Table 7 - results from the imputation analysis ####
+  
+  # Results from the AHI-imputed analysis 
+  res <- fread(paste0(input,"cor_ahi_imput_mgs.tsv"))
+  
+  res[,MGS:=gsub("_",".",MGS)]
   
   taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
   
-  taxonomy <- taxonomy[maintax_mgs %in% mgs.m2,]
+  res <- merge(res,taxonomy, by.x="MGS", by.y="mgs", all.x=T, all.y=F)
   
-  taxonomy <- merge(taxonomy,prev,by="maintax_mgs")
+  res[,MGS:=paste0(MainTax," (",MGS,")")]
   
-  taxonomy[,MainTax:= paste0(MainTax, " (", mgs,")")]
+  res[,exposure:=toupper(exposure)]
   
-  a = c("mgs","maintax_mgs","Level")
-  
-  taxonomy <- taxonomy[,-a,with=F]
-  
-  setnames(taxonomy,"MainTax","OSA signature species")
-  
-  setcolorder(taxonomy,c("OSA signature species","prevalence"))
+  res[,rho:=round(rho,3)]
+  res[,c("p_value","q_value") := lapply(.SD,round.large) , 
+      .SDcols = c("p_value","q_value")]
   
   
-  write.xlsx2(taxonomy, "Supp.tables.xlsx", sheetName="Table S5", col.names=T,
+  setnames(res,c("MGS","rho","q_value","p_value"),
+           c("Metagenomic species","Spearman's correlation","q-value","p-value"))
+  
+  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
+                 "q-value", "N","subspecies","species",
+                 "genus", "family", "order","class","phylum","superkingdom")
+  
+  table.res <- res[,var.table,with=F]
+  
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S7", col.names=T,
               row.names=F, append=T)
+  
+  
+  
+  # Suppl Table 8. Extended model results 
+  
+  res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+  
+    # The 28 species associated with either ODI or T90
+    sig.mgs <- readRDS(paste0(input,'mgs.m1.rds'))
+  
+  res <- res[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  
+  res[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res[,exposure:=toupper(exposure)]
+  
+  # rounding 
+  res[,rho:=round(rho,3)]
+  res[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
+  
+  # change names for the final table
+  setnames(res,c("MGS","rho","p.value"),
+           c("Metagenomic species","Spearman's correlation","p-value"))
+  
+  # selecting variables for the final table
+  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
+                 "N","species","genus", "family", "order","class","phylum","superkingdom")
+  
+  table.res <- res[,var.table,with=F]
+  
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S8", col.names=T,
+              row.names=F, append=T)
+  
+  
+  
+  # Suppl Table 9. Model adjusted for medicaiton use 
+  
+  res <- fread(paste0(input,"cor.med_all.var_mgs.tsv"))
+  
+  res <- res[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  
+  res[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res[,exposure:=toupper(exposure)]
+  
+  # rounding 
+  res[,rho:=round(rho,3)]
+  res[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
+  
+  # change names for the final table
+  setnames(res,c("MGS","rho","p.value"),
+           c("Metagenomic species","Spearman's correlation","p-value"))
+  
+  # selecting variables for the final table
+  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
+                 "N","species","genus", "family", "order","class","phylum","superkingdom")
+  
+  table.res <- res[,var.table,with=F]
+  
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S9", col.names=T,
+              row.names=F, append=T)
+  
+  
+  # Suppl Table 10. Model excluding individuals that used any antibiotic 6mo before sampling
+  
+  res <- fread(paste0(input,"corsaatb_all.var_mgs.tsv"))
+  
+  res <- res[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  
+  res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  
+  res[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res[,exposure:=toupper(exposure)]
+  
+  # rounding 
+  res[,rho:=round(rho,3)]
+  res[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
+  
+  # change names for the final table
+  setnames(res,c("MGS","rho","p.value"),
+           c("Metagenomic species","Spearman's correlation","p-value"))
+  
+  # selecting variables for the final table
+  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
+                 "N","species","genus", "family", "order","class","phylum","superkingdom")
+  
+  table.res <- res[,var.table,with=F]
+  
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S10", col.names=T,
+              row.names=F, append=T)
+  
+  
+  #List of Signatures species / Metagenomics information ####
+  
+  #mgs.m2 <- readRDS(paste0(input,'mgs.m2.rds'))
+  
+  #mgs.m2 <- unique(do.call(c,mgs.m2))
+  
+  
+  #pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  #prev <- pheno[,mgs.m2,with=F]
+  #prev[,(mgs.m2) := lapply(.SD,decostand,method="pa"), .SDcols=mgs.m2]
+  #prev <- data.frame(maintax_mgs=mgs.m2,
+   #                  prevalence=round(t(prev[, lapply(.SD,function(x) sum(x)/nrow(prev)), 
+    #                                         .SDcols=mgs.m2]),3)*100)
+  
+  #taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  
+  #taxonomy <- taxonomy[maintax_mgs %in% mgs.m2,]
+  
+  #taxonomy <- merge(taxonomy,prev,by="maintax_mgs")
+  
+  #taxonomy[,MainTax:= paste0(MainTax, " (", mgs,")")]
+  
+  #a = c("mgs","maintax_mgs","Level")
+  
+  #taxonomy <- taxonomy[,-a,with=F]
+  
+  #setnames(taxonomy,"MainTax","OSA signature species")
+  
+  #setcolorder(taxonomy,c("OSA signature species","prevalence"))
+  
+  
+  #write.xlsx2(taxonomy, "Supp.tables.xlsx", sheetName="Table S5", col.names=T,
+    #          row.names=F, append=T)
   
   # Suppl. Table 6 - medication use ####
   

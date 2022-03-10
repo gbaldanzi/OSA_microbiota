@@ -148,6 +148,36 @@ kable(t, format = "html", table.attr = "style='width:40%;'",
 
 &nbsp;
 
+**Interval between fecal sample collection and OSA monitoring**
+
+```{r,echo=TRUE}
+
+fecal = fread('/proj/sens2019512/SCAPIS_org/SCAPIS/final_release_CMv1/temporal_phenotypes/146-165-1-3_merged_Uppsala_biobank__KEY_FILE_clean.tsv')
+
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
+fecal <- merge(fecal, pheno[,.(export_id, AttendSleepStudy, date)], 
+               by.x="scapis_rid", by.y = "export_id", all.y=T)
+
+fecal[,fecdate:=as.Date(collection_date, format='%Y-%m-%d')]
+
+fecal[date=="29oct2105" , date := "29oct2015"]
+fecal[,sledate1:= as.Date(fecal$date, format='%d%b%Y')]
+fecal[,sledate2:= as.Date(fecal$date, format='%d-%B-%y')]
+fecal[is.na(sledate1), sledate1 := sledate2]
+
+fecal[,interval := fecdate - sledate1]
+
+quantile(abs(fecal$interval), probs = seq(0, 1, 0.25),na.rm=T)
+```
+
+
+&nbsp;
+
+***
+
+&nbsp;
+
 # DAG
 
 ```{r DAG, echo=FALSE, out.width="90%", out.height="90%",fig.align='center'}
