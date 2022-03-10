@@ -154,8 +154,9 @@ round.large <- function(x){
   
   
   
-  # Suppl Table 8. Extended model results 
+  # Suppl Table 8. Sensitivity analyses ####
   
+  # Extended model results 
   res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
   
     # The 28 species associated with either ODI or T90
@@ -172,76 +173,67 @@ round.large <- function(x){
   res[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
   
   # change names for the final table
-  setnames(res,c("MGS","rho","p.value"),
-           c("Metagenomic species","Spearman's correlation","p-value"))
+  setnames(res,c("rho","p.value","N"), c("extend.model_correlation","extend.model_p-value",
+                                         "extend.model_N"))
+  
+  
+  # Medical model results 
+  res.med <- fread(paste0(input,"cor.med_all.var_mgs.tsv"))
+  
+  res.med <- res.med[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  
+  res.med[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res.med[,exposure:=toupper(exposure)]
+  
+  # rounding 
+  res.med[,rho:=round(rho,3)]
+  res.med[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
+  
+  # change names for the final table
+  res.med <- res.med[,.(MGS,exposure,rho,p.value,N)]
+  setnames(res.med,c("rho","p.value","N"), c("medication_correlation","medication_p-value",
+                                             "medication_N"))
+  
+  
+  # Antibiotic results 
+  res.atb <- fread(paste0(input,"corsaatb_all.var_mgs.tsv"))
+  
+  res.atb <- res.atb[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  
+  res.atb <- merge(res.atb,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  
+  res.atb[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res.atb[,exposure:=toupper(exposure)]
+  
+  # rounding 
+  res.atb[,rho:=round(rho,3)]
+  res.atb[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
+  
+  # change names for the final table
+  res.atb <- res.atb[,.(MGS,exposure,rho,p.value,N)]
+  setnames(res.atb,c("rho","p.value","N"), c("antibiotic_correlation","antibiotic_p-value","antibiotic_N"))
+  
+  
+  
+  # Merge all sensitivity analysis results 
+  res <- merge(res,res.med, by =c("MGS","exposure"))
+  res <- merge(res,res.atb, by = c("MGS","exposure"))
+  
   
   # selecting variables for the final table
-  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
-                 "N","species","genus", "family", "order","class","phylum","superkingdom")
+  setnames(res,"MGS","Metagenomic species")
+  var.table <- c("Metagenomic species", "exposure", "extend.model_correlation", 
+                 "extend.model_p-value","extend.model_N","medication_correlation",
+                 "medication_p-value","medication_N", "antibiotic_correlation","antibiotic_p-value",
+                 "antibiotic_N","species","genus", "family", "order","class","phylum","superkingdom")
   
   table.res <- res[,var.table,with=F]
   
   write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S8", col.names=T,
               row.names=F, append=T)
   
-  
-  
-  # Suppl Table 9. Model adjusted for medicaiton use 
-  
-  res <- fread(paste0(input,"cor.med_all.var_mgs.tsv"))
-  
-  res <- res[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
-  
-  res[,MGS:=paste0(MainTax," (",mgs,")")]
-  
-  res[,exposure:=toupper(exposure)]
-  
-  # rounding 
-  res[,rho:=round(rho,3)]
-  res[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
-  
-  # change names for the final table
-  setnames(res,c("MGS","rho","p.value"),
-           c("Metagenomic species","Spearman's correlation","p-value"))
-  
-  # selecting variables for the final table
-  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
-                 "N","species","genus", "family", "order","class","phylum","superkingdom")
-  
-  table.res <- res[,var.table,with=F]
-  
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S9", col.names=T,
-              row.names=F, append=T)
-  
-  
-  # Suppl Table 10. Model excluding individuals that used any antibiotic 6mo before sampling
-  
-  res <- fread(paste0(input,"corsaatb_all.var_mgs.tsv"))
-  
-  res <- res[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
-  
-  res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
-  
-  res[,MGS:=paste0(MainTax," (",mgs,")")]
-  
-  res[,exposure:=toupper(exposure)]
-  
-  # rounding 
-  res[,rho:=round(rho,3)]
-  res[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
-  
-  # change names for the final table
-  setnames(res,c("MGS","rho","p.value"),
-           c("Metagenomic species","Spearman's correlation","p-value"))
-  
-  # selecting variables for the final table
-  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
-                 "N","species","genus", "family", "order","class","phylum","superkingdom")
-  
-  table.res <- res[,var.table,with=F]
-  
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S10", col.names=T,
-              row.names=F, append=T)
   
   
   #List of Signatures species / Metagenomics information ####
