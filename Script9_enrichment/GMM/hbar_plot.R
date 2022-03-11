@@ -31,8 +31,9 @@
   res.pos[, Name := factor(Name, levels = Name[order(NES)])]
   
   p <- ggplot(res.pos, aes(y=Name, x=NES)) + 
-    geom_bar(aes(fill=q.value), stat="identity") + 
-    xlab("NES") + ylab("") +
+    geom_bar(aes(fill=q.value), stat="identity", width = .6) + 
+    xlab("Normalized enrichment score") + ylab("") +
+    scale_x_continuous(expand=c(0,0)) +
     #facet_grid(rows = vars(HL1), scales = "free", switch="y",
      #          space = "free_y") +
     #coord_flip() + 

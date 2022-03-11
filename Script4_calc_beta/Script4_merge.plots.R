@@ -9,9 +9,9 @@
   library(data.table)
   library(ggplot2)
 
-  source(paste0(input.script, "Script4_calc_bc_ahi_plots.R"))
-  source(paste0(input.script, "Script4_calc_bc_t90_plots.R"))
-  source(paste0(input.script, "Script4_calc_bc_odi_plots.R"))
+  source("Script4_calc_beta/Script4_calc_bc_ahi_plots.R")
+  source("Script4_calc_beta/Script4_calc_bc_t90_plots.R")
+  source("Script4_calc_beta/Script4_calc_bc_odi_plots.R")
   
   output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots"
 
@@ -21,7 +21,7 @@
   ggsave("PCoA_sleepapnea.pdf", plot = pcoa.plot.merged, device = "pdf", 
        path = output.plot)
   
-  ggsave("PCoA_sleepapnea.png", plot = pcoa.plot.merged, device = "png", 
+  ggsave("PCoA_sleepapnea.pdf", plot = pcoa.plot.merged, device = "pdf", 
   path = '/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/')
   ggsave("PCoA_sleepapnea.png", plot = pcoa.plot.merged, device = "png", 
          path = output.plot)

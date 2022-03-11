@@ -99,7 +99,12 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
                                ahi = 2 , odi = 2, t90 = 2, 
                                shannon = 2))
   
-  t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T)
+  t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
+                     digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
+                                leisurePA = 1, placebirth = 1, diabd = 1, ahi = 1, 
+                                odi = 1, t90 = 1, shannon = 1, diabd = 1, hypertension = 1, 
+                                Fibrer = 1, Energi_kcal = 0, ppi = 1, hypermed = 1, 
+                                dyslipmed = 1))
   
   export2xls(t1, file = paste0(descriptive.folder,'Table1_t90cat.xlsx'))
   
@@ -118,7 +123,12 @@ pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
                                ahi = 2 , odi = 2, t90 = 2, 
                                shannon = 2))
   
-  t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T)
+  t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
+                     digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
+                                leisurePA = 1, placebirth = 1, diabd = 1, ahi = 1, 
+                                odi = 1, t90 = 1, shannon = 1, diabd = 1, hypertension = 1, 
+                                Fibrer = 1, Energi_kcal = 0, ppi = 1, hypermed = 1, 
+                                dyslipmed = 1))
   
   export2xls(t1, file = paste0(descriptive.folder,'Table1_odicat.xlsx'))
   

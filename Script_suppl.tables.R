@@ -8,6 +8,11 @@ library(xlsx)
 library(tidyverse)
 library(vegan)
 library(data.table)
+message("finished loading pckgs")
+rm(list=ls())
+t0 <- Sys.time()
+print(t0)
+if(file.exists('Supp.tables.xlsx')){file.remove('Supp.tables.xlsx')}
 
 # Function for rounding small values into scientific format 
 round.large <- function(x){
@@ -31,6 +36,7 @@ round.large <- function(x){
   
   write.xlsx2(table.s3, "Supp.tables.xlsx", sheetName="Table S3", col.names=T,
               row.names=F, append=F)
+  rm(table.s3)
 
 # Table S4. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
 
@@ -59,6 +65,10 @@ round.large <- function(x){
   
   write.xlsx2(table.s4, "Supp.tables.xlsx", sheetName="Table S4", col.names=T,
               row.names=F, append=T)
+  rm(table.s4)
+  rm(table.perma.res)
+  rm(list.perma.res)
+  rm(white.space)
   
 
 # Table S5 - results from the main model without BMI for all 3 OSA parameters ####
@@ -121,6 +131,8 @@ round.large <- function(x){
   
   
   # Suppl Table 7 - results from the imputation analysis ####
+  message("Results from the imputation analysis")
+  print(Sys.time()-t0)
   
   # Results from the AHI-imputed analysis 
   res <- fread(paste0(input,"cor_ahi_imput_mgs.tsv"))
@@ -155,14 +167,20 @@ round.large <- function(x){
   
   
   # Suppl Table 8. Sensitivity analyses ####
+  message("Table for the Sensitivity anlaysis")
+  print(Sys.time()-t0)
+  
+  # Main model results 
+  res.bmi <- fread(paste0(input,"cor.bmi_all.var_mgs.tsv"))
+  mgs.t90 <- res.bmi[q.value<.05 & exposure =="t90",MGS]
+  mgs.odi <- res.bmi[q.value<.05 & exposure =="odi",MGS]
   
   # Extended model results 
   res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
   
-    # The 28 species associated with either ODI or T90
-    sig.mgs <- readRDS(paste0(input,'mgs.m1.rds'))
-  
-  res <- res[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  res1 <- res[MGS %in% mgs.t90 & exposure %in% c("t90")]
+  res2 <- res[MGS %in% mgs.odi & exposure %in% c("odi")]
+  res <- rbind(res1,res2)
   
   res[,MGS:=paste0(MainTax," (",mgs,")")]
   
@@ -180,7 +198,9 @@ round.large <- function(x){
   # Medical model results 
   res.med <- fread(paste0(input,"cor.med_all.var_mgs.tsv"))
   
-  res.med <- res.med[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  res1 <- res.med[MGS %in% mgs.t90 & exposure %in% c("t90")]
+  res2 <- res.med[MGS %in% mgs.odi & exposure %in% c("odi")]
+  res.med <- rbind(res1,res2)
   
   res.med[,MGS:=paste0(MainTax," (",mgs,")")]
   
@@ -199,7 +219,9 @@ round.large <- function(x){
   # Antibiotic results 
   res.atb <- fread(paste0(input,"corsaatb_all.var_mgs.tsv"))
   
-  res.atb <- res.atb[MGS %in% sig.mgs & exposure %in% c("t90","odi")]
+  res1 <- res.atb[MGS %in% mgs.t90 & exposure %in% c("t90")]
+  res2 <- res.atb[MGS %in% mgs.odi & exposure %in% c("odi")]
+  res.atb <- rbind(res1,res2)
   
   res.atb <- merge(res.atb,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
   
@@ -233,10 +255,16 @@ round.large <- function(x){
   
   write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S8", col.names=T,
               row.names=F, append=T)
+  rm(table.res)
+  rm(res.atb)
+  rm(res.med)
+  rm(res)
   
   
   
   # Suppl Table 9 - GMM enrichment analysis ####
+  message("Table for the GMM enrichment analysis results")
+  
   
   res.pos <- fread(paste0(input,"ea_GMM_pos.tsv"))
   res.neg <- fread(paste0(input,"ea_GMM_neg.tsv"))
@@ -254,9 +282,12 @@ round.large <- function(x){
   
   setnames(res,c("pathway","pval","q.value"),c("Gut metabolic module","p-value","q-value"))
   
-  write.xlsx2(res, "Supp.tables.xlsx", sheetName="Table S9", col.names=T,
-              row.names=F, append=T)
+  setDF(res)
+  write.xlsx2(res, "Supp.tables_GMM.xlsx", sheetName="Table S9", col.names=T,
+              row.names=F, append=F)
 
   
   message(paste("File name = Supp.tables.xlsx, saved at",getwd()))
+  message(paste("File name = Supp.tables_GMM.xlsx, saved at",getwd()))
+  print(Sys.time())
   
