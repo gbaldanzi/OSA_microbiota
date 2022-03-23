@@ -179,7 +179,7 @@ library(vegan)
     
     osa.gmm <- unique(res.pos[q.value<.05,pathway], res.neg[q.value<.05,pathway])
     
-    # Import GMM abundance 
+    # Import GMM abundance ####
     library(rio)
     GMM.uppsala <- import('/proj/sens2019512/SCAPIS_org/SCAPIS/final_release_CMv1/Uppsala/upugut03.GMMComp.percent.xlsx')
     GMM.malmo <- import('/proj/sens2019512/SCAPIS_org/SCAPIS/final_release_CMv1/Malmo/lungut03.GMMComp.percent.xlsx')

@@ -290,5 +290,27 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   pheno[,odicat := factor(odicat, levels = levels(odicat), labels = c("q1", "q2", "q3", "q4"))]
 
   
+  # GMM abundance ####
+  GMM.uppsala <- import('/proj/sens2019512/SCAPIS_org/SCAPIS/final_release_CMv1/Uppsala/upugut03.GMMComp.percent.xlsx')
+
+  names(GMM.uppsala) <- gsub("_b", "", names(GMM.uppsala)) # Making ids compatible with the data.MGS 
+  names(GMM.uppsala) <- gsub("b", "", names(GMM.uppsala))
+  names(GMM.uppsala) <- gsub("c", "", names(GMM.uppsala))
+  
+  rownames(GMM.uppsala) <- GMM.uppsala$Module
+  GMM.uppsala$Module <- NULL
+  GMM.uppsala$annotations <- NULL
+  
+  GMM.uppsala <- t(GMM.uppsala)
+  modules.table <- colnames(GMM.uppsala)
+  id <- rownames(GMM.uppsala)
+  
+  GMM.uppsala <- as.data.frame(GMM.uppsala)
+  names(GMM.uppsala) <- modules.table
+  GMM.uppsala$sample.id <- id 
+  
+  pheno <- merge(pheno, GMM.uppsala, by="sample.id", all.x=T, all.y=F)
+  
+  
   # Save pheno data ####
   saveRDS(pheno, file=paste0(output,"pheno.MGS.Upp.rds"))

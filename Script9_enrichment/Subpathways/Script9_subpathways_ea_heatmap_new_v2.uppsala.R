@@ -100,9 +100,9 @@ library(scales)
   osa.gmm <- unique(ea.gmm.met$modules)
   
   # Import results on the association with SBP/DBP/HbA1c 
-  res.mgs.bp <- fread(paste0(results.folder, 'cor.sig.mgs.gmm_bphb_uppsala.tsv'))
-  res.mgs.bp.bmi <- fread(paste0(results.folder, 'cor.bmi.sig.mgs.gmm_bphb_uppsala.tsv'))
-  res.mgs.bp.ahi <- fread(paste0(results.folder, 'cor.ahi.sig.mgs.gmm_bphb_uppsala.tsv'))
+  res.mgs.bp <- fread(paste0(results.folder, 'cor.sig.mgs.gmm_bphb.tsv'))
+  res.mgs.bp.bmi <- fread(paste0(results.folder, 'cor.bmi.sig.mgs.gmm_bphb.tsv'))
+  res.mgs.bp.ahi <- fread(paste0(results.folder, 'cor.ahi.sig.mgs.gmm_bphb.tsv'))
   
   
   # Import enrichment of GMM ####
@@ -500,13 +500,13 @@ library(scales)
 
   message("Saving plots")
   # Draw ####
-  pdf(file = paste0(output.plot, "mgs_subpathway_ea_heatmap_gutsy_new.uppsala.pdf"), 
+  pdf(file = paste0(output.plot, "mgs_subpathway_ea_heatmap_gutsy.pdf"), 
     width = 10, height = 10)
   set.seed(10)
   draw(h1, heatmap_legend_side = "right", merge_legend=F)
   dev.off()
   
-  pdf(file = paste0(wrf, "mgs_subpathway_ea_heatmap_gutsy_new.uppsala.pdf"), 
+  pdf(file = paste0(wrf, "mgs_subpathway_ea_heatmap_gutsy.pdf"), 
       width = 11, height = 9)
   set.seed(10)
   draw(h1, heatmap_legend_side = "right", show_heatmap_legend=F, ht_gap = unit(c(3, 6), "mm"))
