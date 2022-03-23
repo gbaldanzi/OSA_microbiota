@@ -18,9 +18,8 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   source("Script0_functions/Spearman.correlation.function.R")
 
 
-  # load data ####
-  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
-  phenofull <- readRDS(paste0(input,"phenotype_upp_malm.rds"))
+  # import data ####
+  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   
   # import the significant species 
   osa.mgs <- readRDS(paste0(results.folder,'mgs.m1.rds'))
@@ -29,7 +28,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   # Covariates 
   covariates <- c("age", "Sex", "Alkohol","smokestatus",
                   "Fibrer","Energi_kcal" ,"leisurePA", "placebirth",
-                  "plate","Site" )
+                  "plate","shannon")
   
   
   # Correlation of significant species with SBP and DBP ####
@@ -39,7 +38,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   temp.data = phenofull[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
   
   res.bp <- lapply(outcomes,spearman.function, 
-                           x1=osa.mgs,
+                           x1=c(osa.mgs,osa.gmm),
                            covari = covariates,
                            data = temp.data[hypermed=="no",])
   
@@ -54,7 +53,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   temp.data = phenofull[!is.na(Hba1cFormattedResult),]
   
   res.hb <- lapply(outcomes,spearman.function, 
-                   x1=osa.mgs,
+                   x1=c(osa.mgs,osa.gmm),
                    covari = covariates,
                    data = temp.data[metformin=="no",])
   
@@ -66,34 +65,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   
   osa.gmm <- unique(res.pos[q.value<.05,pathway], res.neg[q.value<.05,pathway])
   
-  # Correlation of GMMs with SBP and DBP ####
-  
-  outcomes = c("SBP_Mean", "DBP_Mean")
-  
-  temp.data = phenofull[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
-  
-  res.gmm.bp <- lapply(outcomes, spearman.function, 
-                   x1 = osa.gmm,
-                   covari = covariates,
-                   data = temp.data[hypermed=="no",])
-  
-  res.gmm.bp <- do.call(rbind,res.gmm.bp)
-  
-  
-  # Correlation of GMM with HbA1c ####
-  
-  outcomes <-  c("Hba1cFormattedResult")
-  
-  temp.data <-  phenofull[!is.na(Hba1cFormattedResult),]
-  
-  res.gmm.hb <- lapply(outcomes,spearman.function, 
-                   x1 = osa.gmm,
-                   covari = covariates,
-                   data = temp.data[metformin=="no",])
-  
-  res.gmm.hb <- do.call(rbind, res.gmm.hb)
-  
-  res <- rbind(res.bp, res.hb, res.gmm.bp, res.gmm.hb)
+  res <- rbind(res.bp, res.hb)
   
  
   # Multiple testing adjustment 
@@ -106,7 +78,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
   
   # Save results ####
-  fwrite(res, file=paste0(results.folder, "cor.sig.mgs.gmm_bphb.tsv"))
+  fwrite(res, file=paste0(results.folder, "cor.sig.mgs.gmm_bphb_uppsala.tsv"))
   
 
   # Model adjusted for BMI too
@@ -120,7 +92,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   temp.data = phenofull[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
   
   res.bp <- lapply(outcomes,spearman.function, 
-                   x1=osa.mgs,
+                   x1=c(osa.mgs,osa.gmm),
                    covari = covariates.bmi,
                    data = temp.data[hypermed=="no",])
   
@@ -133,41 +105,13 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   temp.data = phenofull[!is.na(Hba1cFormattedResult),]
   
   res.hb <- lapply(outcomes,spearman.function, 
-                   x1=osa.mgs,
+                   x1=c(osa.mgs,osa.gmm),
                    covari = covariates.bmi,
                    data = temp.data[metformin=="no",])
   
   res.hb <- do.call(rbind, res.hb)
   
-  
-  # Correlation of GMMs with SBP and DBP ####
-  
-  outcomes = c("SBP_Mean", "DBP_Mean")
-  
-  temp.data = phenofull[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
-  
-  res.gmm.bp <- lapply(outcomes, spearman.function, 
-                       x1 = osa.gmm,
-                       covari = covariates.bmi,
-                       data = temp.data[hypermed=="no",])
-  
-  res.gmm.bp <- do.call(rbind,res.gmm.bp)
-  
-  
-  # Correlation of GMM with HbA1c ####
-  
-  outcomes <-  c("Hba1cFormattedResult")
-  
-  temp.data <-  phenofull[!is.na(Hba1cFormattedResult),]
-  
-  res.gmm.hb <- lapply(outcomes,spearman.function, 
-                       x1 = osa.gmm,
-                       covari = covariates.bmi,
-                       data = temp.data[metformin=="no",])
-  
-  res.gmm.hb <- do.call(rbind, res.gmm.hb)
-  
-  res <- rbind(res.bp, res.hb, res.gmm.bp, res.gmm.hb)
+  res <- rbind(res.bp, res.hb)
   
   
   # Multiple testing adjustment 
@@ -180,7 +124,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
   
   # Save results ####
-  fwrite(res, file=paste0(results.folder, "cor.bmi.sig.mgs.gmm_bphb.tsv"))
+  fwrite(res, file=paste0(results.folder, "cor.bmi.sig.mgs.gmm_bphb_uppsala.tsv"))
 
   
   
@@ -188,7 +132,6 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   # Model adjusted for BMI too
   
   ahi.model = c(covariates, "BMI", "ahi","t90")
-  ahi.model <- ahi.model[-which(ahi.model=="Site")]
   
   # Correlation with SBP and DBP 
   
@@ -228,6 +171,6 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
   
   # Save results ####
-  fwrite(res, file=paste0(results.folder, "cor.ahi.sig.mgs.gmm_bphb.tsv"))
+  fwrite(res, file=paste0(results.folder, "cor.ahi.sig.mgs.gmm_bphb_uppsala.tsv"))
   
   
