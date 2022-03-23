@@ -1,0 +1,1257 @@
+---
+title: "OSA and the gut microbiota - Results"
+author: "Gabriel Baldanzi"
+date: " `r Sys.time()` "
+output: 
+  html_document:
+    toc: true 
+    fig_width: 6
+    fig_height: 4
+    number_sections: TRUE
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 4
+    theme: united
+    hightlist: espresso
+    css: style.css
+    
+---
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1500px !important;
+      width: 1500px !important;
+    }
+
+    .book .book-body .page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 10px 10px 10px;
+    }
+
+    body {
+      max-width: 1500px !important;
+    }
+    code.r { /* Code block */
+    font-size: 14pt;
+    }
+    pre {
+  font-size: 12px
+    }
+    .tocify-header {
+    text-indent: initial;
+}
+    .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 2em;
+    }
+table.display td { white-space: nowrap; }
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+options(width = 20)
+library(tidyverse)
+library(vegan)
+library(data.table)
+library(kableExtra)
+library(compareGroups)
+library(DT)
+library(knitr)
+
+
+cutlast <- function(char,n){
+  l <- nchar(char)
+  a <- l-n+1
+  return(substr(char,a,l))
+}
+
+round.large <- function(x){
+  x[x>=0.001] <- round(x[x>=0.001],3)
+  return(x)
+}
+```
+
+```{r,}
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
+# Table with the number of participants with avaliable information for each OSA variable
+ttt = data.frame(AHI=nrow(pheno[valid.ahi=='yes',]),
+                 T90=nrow(pheno[valid.t90=='yes',]),
+                 ODI=nrow(pheno[valid.t90=="yes",]))
+rownames(ttt) <- c("N")
+
+nr_mgs <- length(grep("HG3A.",names(pheno))) 
+
+a1 <- 1985 - nr_mgs
+```
+    
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+- We investigated which MGS correlated with either AHI, T90 or BMI.
+- `r a1` MGS  present in <1% of the participants were removed, leaving `r nr_mgs` MGS
+
+</div>
+
+&nbsp;
+
+```{r, }
+  kable(ttt,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'Number of participants examined for each variable') %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "left")
+
+```
+
+
+<br>
+<br>
+
+```{r,}
+# Create correlation table for the OSA parameters and BMI 
+comb = combn(c("ahi","t90","odi","BMI"), m=2)
+
+t <- matrix(ncol = 4,nrow=ncol(comb))
+
+for(i in 1:ncol(comb)){
+  c = cor.test(pheno[[comb[1,i]]],pheno[[comb[2,i]]], use="complete.obs",method = "spearman")
+  t[i,1] <- comb[1,i]
+  t[i,2] <- comb[2,i]
+  t[i,3] <- round(c$estimate,3)
+  t[i,4] <- formatC(c$p.value,2, format="e")
+}
+
+t <- as.data.frame(t)
+names(t) <- c("var1", "var2", "rho", "p-value")
+t$var1 <- toupper(t$var1)
+t$var2 <- toupper(t$var2)
+
+kable(t, format = "html", table.attr = "style='width:40%;'",
+      caption = "Spearman's correlation between OSA parameters and BMI") %>% 
+      kable_styling(position = "left")
+```
+
+
+<br>
+
+&nbsp;
+
+***
+
+&nbsp;
+
+**Interval between fecal sample collection and OSA monitoring**
+
+```{r,echo=TRUE}
+
+fecal = fread('/proj/sens2019512/SCAPIS_org/SCAPIS/final_release_CMv1/temporal_phenotypes/146-165-1-3_merged_Uppsala_biobank__KEY_FILE_clean.tsv')
+
+pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+
+fecal <- merge(fecal, pheno[,.(export_id, AttendSleepStudy, date)], 
+               by.x="scapis_rid", by.y = "export_id", all.y=T)
+
+fecal[,fecdate:=as.Date(collection_date, format='%Y-%m-%d')]
+
+fecal[date=="29oct2105" , date := "29oct2015"]
+fecal[,sledate1:= as.Date(fecal$date, format='%d%b%Y')]
+fecal[,sledate2:= as.Date(fecal$date, format='%d-%B-%y')]
+fecal[is.na(sledate1), sledate1 := sledate2]
+
+fecal[,interval := fecdate - sledate1]
+
+quantile(abs(fecal$interval), probs = seq(0, 1, 0.25),na.rm=T)
+```
+
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# DAG
+
+```{r DAG, echo=FALSE, out.width="90%", out.height="90%",fig.align='center'}
+knitr::include_graphics("DAG_211124.png")
+```
+
+&nbsp;
+
+***
+
+&nbsp;
+
+# Alpha-diversity 
+
+&nbsp;  
+&nbsp;   
+
+
+```{r, echo=FALSE}
+tab = fread('/home/baldanzi/Sleep_apnea/Results/cor_all.var_alpha.tsv')
+tab[,rho:=round(rho,3)]
+tab[p.value > .001, p.val := round(p.value,digits = 3)]
+tab[p.value < .001, p.val := formatC(p.value,digits = 2, format ="e")]
+tab[,exposure:=toupper(exposure)]
+
+
+t <- tab[,.(exposure,rho,p.val,N,model)] 
+
+datatable(t,rownames = FALSE, filter="top")
+
+```
+
+
+## Models
+
+&nbsp;   
+&nbsp;  
+
+```{r,echo=FALSE}
+cov <- tab[,.(model,covariates)]
+cov[,covariates := gsub("[+]"," + ",covariates)]
+cov <- unique(cov)
+
+kable(cov,format = "html", table.attr = "style='width:80%;'", 
+        caption = 'Models',
+        align = c('l','l')) %>%
+  #kable_classic(full_width = T) %>% 
+  kable_styling(position = "center")
+```
+
+
+&nbsp;
+
+***
+
+&nbsp;
+
+
+# Beta diversity {.tabset}
+   
+## Plot    
+   
+```{r ,out.width='60%', out.height='60%', fig.align='center'}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/PCoA_sleepapnea.png")
+```
+   
+## Group sizes 
+
+```{r, echo=FALSE}
+t <- pheno[valid.ahi=="yes"] %>% group_by(OSAcat) %>% count()
+kable(t,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'Size AHI groups',
+        align = c('l','l')) %>%
+   kable_styling(position = "left")
+
+t <- pheno[valid.t90=="yes"] %>% group_by(t90cat) %>% summarize(N=length(t90cat), min = min(t90), max=max(t90))
+kable(t,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'Size T90 groups',
+        align = c('l','l')) %>%
+   kable_styling(position = "float_left")
+
+t <- pheno[valid.t90=="yes"] %>% group_by(odicat) %>% summarize(N=length(odicat), min = min(odi), max=max(odi))
+kable(t,format = "html", table.attr = "style='width:30%;'", 
+        caption = 'Size ODI groups',
+        align = c('l','l')) %>%
+   kable_styling(position = "center")
+
+```
+   
+<br>   
+   
+## Results {.tabset}
+
+### Summary
+
+```{r, }
+results.folder = '/home/baldanzi/Sleep_apnea/Results/'
+#permafiles = list.files(path=results.dr, pattern="*_osa_bc.tsv", full.names=T)
+#permafiles <- permafiles[-grep("permadisp", permafiles)]
+permafiles <- list.files(path=results.folder, pattern = "permanova_")
+
+perma.res.osa = lapply(paste0(results.folder,permafiles), fread)
+
+names(perma.res.osa) <- substr(permafiles,11,nchar(permafiles)-7)
+
+ps <- lapply(perma.res.osa, function(x) x[1, c('variables','R2','Pr(>F)')])
+ps <- lapply(1:length(ps), function(x) ps[[x]][,model:=substr(names(ps)[x],0,nchar(names(ps)[x])-4)])
+ps <- do.call(rbind,ps)
+ps[variables == "OSAcat", variables := "AHI groups"]
+ps[variables == "t90cat", variables := "T90 groups"]
+ps[variables == "odicat", variables := "ODI groups"]
+ps[,R2:= round(R2,4)]
+
+datatable(ps, rownames = FALSE, filter = "top")
+```
+
+<br>
+
+***
+
+<br>
+
+
+```{r loopbeta, results='asis', echo=FALSE, dev=c('svg')}
+mod.names <- names(perma.res.osa)
+perma.res.osa = lapply(perma.res.osa,function(dd){
+  apply(dd,2,function(x){ifelse(!is.na(x),x,"")})
+  })
+
+for(m in mod.names){
+  cat(sprintf("\n### %s {-} \n\n", m))
+  cat(knitr::kable(perma.res.osa[[m]], 
+               caption = paste0("OSA and BC - ", m)) %>% 
+    kable_styling())
+  cat("  \n")
+  cat("<br>")
+  cat("<br>")
+  cat("  \n")
+}
+
+```
+
+<br>
+
+***
+
+<br>
+
+## Pairwise comparisons {.tabset}
+
+```{r, results='asis', echo=FALSE, dev=c('svg')}
+pw = list.files(path=results.folder, pattern="pairwise.perma")
+
+names(pw) <- substr(pw, 24, nchar(pw)-4)
+
+AHI <- readRDS(paste0(results.folder,pw[names(pw)=="ahi"]))
+T90 <- readRDS(paste0(results.folder,pw[names(pw)=="t90"]))
+ODI <- readRDS(paste0(results.folder,pw[names(pw)=="odi"]))
+
+list.pw <- list(AHI=AHI, T90=T90, ODI=ODI)
+
+
+for(m in c("AHI","T90","ODI")){
+  cat(sprintf("\n### %s {-} \n\n", m))
+    cat(knitr::kable(list.pw[[m]][["table"]], 
+               caption = paste0("Pairwise comparisons by group of", m),
+               row.names = F) %>% 
+    kable_styling())
+  cat("  \n")
+  cat("<br>")
+  cat("  \n")
+}
+```
+
+<br>
+
+***
+
+<br>
+
+### Permadisp 
+
+```{r, }
+#dispersion <- readRDS("/home/baldanzi/Sleep_apnea/Results/multivariate.dispersions.res.rds")
+
+#print(anova(dispersion))
+
+#boxplot(dispersion)
+
+#plot(dispersion)
+
+```
+
+<br>
+
+```{r, }
+#table.res = fread("/home/baldanzi/Sleep_apnea/Results/pairwise.permadisp_osa_bc.tsv")
+#table.res[p.value>=0.001,p.value:=round(p.value,3)]
+#table.res[q.value>=0.001,q.value:=round(q.value,3)]
+#table.res[,F.value:=round(F.value,2)]
+
+#datatable(table.res, rownames = FALSE,  options = list(
+ # rowCallback = JS(
+  #  "function(row, data) {",
+  #  "for (i = 1; i < data.length; i++) {",
+  #  "if ( data[i]<0.001 & data[i]>0){",
+  #  "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+   # "}",
+  #  "}",
+  #  "}")))
+```
+
+<br>
+
+***
+
+<br>
+
+
+# Species relative abundance
+
+In this analysis, we investigated the association of AHI, T90, and ODI with the relative abudance of each of the 1602 species.   
+
+In a initial step, associations were investigated using a model without and a model with BMI
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="80%", out.height="80%"}
+knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_sleepapnea.png")
+```
+
+## Main Model without BMI 
+
+<br>
+
+<div class = "blue">
+
+main model without BMI = age + sex + smoking + alcohol + plate + shannon
+
+</div>
+
+<br>
+
+```{r, echo=FALSE}
+
+results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+
+res.bm <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
+res.bm[, rho := round(rho,3)]
+res.bm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+
+res.BMI <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+res.BMI[, rho := round(rho,3)]
+res.BMI[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+
+mgs.fdr <- unique(res.BMI[q.value<.05,MGS])
+mgs.t90 <- res.BMI[exposure == "t90" & q.value<.05,MGS]
+mgs.odi <- res.BMI[exposure == "odi" & q.value<.05,MGS]
+
+res.fm <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
+res.fm[,rho:= round(rho,3)]
+res.fm[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+res.fm <- res.fm[MGS %in% mgs.fdr,]
+
+n <- length(unique(res.bm[q.value<0.05,MGS]))
+```
+
+**`r n`** species associated with at least one of the three OSA variables in the model without BMI.     
+
+
+<br>
+
+
+Number of species with a q-value<0.05 for each OSA variable in the main model without BMI
+
+<br>
+
+```{r,}
+t <- res.bm %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
+
+kable(t, format = "html", table.attr = "style='width:30%;'") %>%
+    kable_styling(position = "left")
+
+```
+
+&nbsp;    
+    
+***Full Results Table***
+
+<details>
+
+```{r,}
+sketch = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+      th(colspan = 3, 'rho'),
+      th(colspan = 3, 'q-value'),
+      th(colspan = 3, 'N'),
+    ),
+    tr(
+      lapply(rep(c('  AHI  ', '  T90  ', ' ODI '), 3), th)
+    )
+  )
+))
+
+t <- res.bm %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
+
+datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% 
+  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
+```
+
+</details>
+
+<br>
+
+***
+
+<br>
+
+## Main Model with BMI 
+
+<br>
+
+<div class = "blue">
+
+main model with BMI = age + sex + smoking + alcohol + plate + shannon + BMI
+
+</div>
+
+<br>
+
+```{r, echo=FALSE}
+n <- length(unique(res.BMI[q.value<0.05,MGS]))
+```
+
+**`r n`** species associated with at least one of the three OSA variables after adjusting for BMI.     
+
+<br>
+
+
+Number of species with a q-value<0.05 for each OSA variable in the main model with BMI adjustment
+
+```{r,}
+t <- res.BMI %>% filter(q.value<.05) %>% group_by(exposure) %>% count()
+
+kable(t, format = "html", table.attr = "style='width:30%;'") %>%
+    kable_styling(position = "left")
+
+```
+
+&nbsp;
+
+
+<details>
+
+**Full Results Table**
+
+```{r,}
+t <- res.BMI %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
+
+datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% 
+  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
+```
+
+
+</details>
+
+<br>
+
+
+***
+
+<br>
+
+## Extended model {.tabset .tabset-pills}
+
+    
+
+This model was use as a secondary analysis to account other potential confounders.
+
+<br>
+
+<div class = "blue">
+
+Covariates = main model with BMI + energy intake + fiber + country of birth + 
+season + education + physical activity 
+
+</div>
+
+```{r, }
+n <- length(unique(res.fm[MGS %in% mgs.fdr & p.value<0.05,MGS]))
+```
+
+<br>
+
+<div class = "blue">
+
+**`r n`** species continued associated with T90 or ODI in the extended model (p-value<.05). 
+
+</div>
+
+<br>
+
+
+### T90 {-}
+
+```{r, echo=FALSE}
+res.BMI <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+res.BMI[, rho := round(rho,3)]
+res.BMI[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+res.BMI <- res.BMI[exposure %in% c("odi","t90") & MGS %in% mgs.fdr,]
+
+res <- res.fm[MGS %in% mgs.fdr, .(MGS,exposure,rho,p.value,q.value,N)]
+
+names(res)[-c(1:2)] <- paste0(names(res)[-c(1:2)], "_ext.model")
+
+res <- merge(res.BMI[,.(MGS,exposure,rho,p.value,N)], res, by=c("MGS","exposure"), all.x=F, all.y=T)
+
+t.t90 <- res[MGS %in% mgs.t90 & exposure=="t90",]
+
+t.odi <- res[MGS %in% mgs.odi & exposure=="odi"]
+
+
+sketch3 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+       th(rowspan = 2, 'exposure'),
+      th(colspan = 3, 'Main Model with BMI'),
+      th(colspan = 4, 'Extended Model'),
+    ),
+    tr(
+      lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
+    )
+  )
+))
+
+
+table.fun <- function(x) {datatable(x, container=sketch3,rownames = FALSE, class = 'cell-border stripe', options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% formatStyle(c(1,5), `border-right` = "solid 2px")}
+
+table.fun(t.t90)
+```
+
+<br>
+
+***
+
+<br>
+
+### ODI {-}
+
+```{r,}
+table.fun(t.odi)
+```
+
+<br>
+
+***
+
+<br>
+
+
+## BMI-independent species {.tabset .tabset-pills}
+
+### AHI {-}
+
+No species associated with AHI independent of BMI 
+ 
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+***
+
+<br>
+
+### T90 {-}
+
+```{r, warning=FALSE, message=FALSE}
+  t <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
+  t[,rho:=round(rho,3)]
+  t[q.value>=0.001,q.value:=round(q.value,3)]
+  t[p.value>=0.001,p.value:=round(p.value,3)]
+  t <- t[MGS %in% mgs.fdr,.(MGS,exposure,rho,p.value,q.value)]
+  
+  prevalence <- round(apply(decostand(pheno[,mgs.fdr,with=F], "pa"), 2, function(x) sum(x)/nrow(pheno)),3)*100
+  prevalence <- data.table(MGS = names(prevalence), prevalence = prevalence)
+  
+  t <- merge(t,prevalence, by="MGS", all.x=T)
+  
+  a <- c("MGS","prevalence","rho", "p.value", "q.value")
+  
+  t2 <-  t[exposure =="t90" & MGS %in% mgs.t90, a ,with=F]
+  
+  datatable(t2,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>%  formatStyle(c(2,7), `border-right` = "solid 2px")
+```
+
+<br>
+
+***
+
+<br>
+
+### ODI {-}
+    
+```{r, warning=FALSE, message=FALSE}
+  t2 <-  t[exposure =="odi" & MGS %in% mgs.odi, a ,with=F]
+  
+  datatable(t2,rownames = FALSE, options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>%  formatStyle(c(2,7), `border-right` = "solid 2px")
+```
+  
+<br>
+
+***
+
+<br>
+
+### Taxonomy {-}
+
+```{r, warning=FALSE, message=FALSE}
+  t <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
+  
+  t <- t[MGS %in% mgs.fdr,.(MGS,genus,family,order,class,phylum)]
+  
+  datatable(t,rownames = FALSE, filter="top" , options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>%  formatStyle(c(1,2,5), `border-right` = "solid 2px")
+```
+
+<br>
+
+***
+
+<br>
+
+# Imputation of AHI 
+
+<br>
+
+In this step, we imputed the AHI value in those participants that had information on T90 and ODI but not on AHI. This corresponds to 360 participants for the main model.    
+     
+Imputation was performed with multiple imputation using the predictive mean matching in 10 chained equations and the five nearest neighbors. The uncertainty of imputations was accounted using the Rubin's rule (REFERENCE).
+
+<br>
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="80%", out.height="80%"}
+#knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_sleepapnea_imp.png")
+```
+
+<br>
+
+## Main model with BMI
+
+<br>
+
+```{r basic.model.imp, echo=FALSE}
+results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+
+res.bm.imp <- fread(paste0(results.folder,"cor_ahi_imput_mgs.tsv"))
+res.bm.imp[,MGS:= gsub("_",".",MGS)]
+names(res.bm.imp) <- gsub("_",".",names(res.bm.imp))
+res.bm.imp[,rho:=round(rho,3)]
+res.bm.imp[,c('q.value','p.value') := lapply(.SD,round.large), .SDcols = c("q.value","p.value")]
+
+res.BMI <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+res.BMI[, rho := round(rho,3)]
+res.BMI[,c("p.value","q.value") := lapply(.SD, round.large), .SDcols = c("p.value","q.value")]
+res.BMI[,MGS:=cutlast(MGS,9)]
+
+
+res.bm.imp <- rbind(res.bm.imp, res.BMI[exposure %in% c("odi","t90"), names(res.bm.imp),with=F])
+
+res.bm.imp[,MGS:=factor(MGS)]
+res.bm.imp[,exposure:=factor(exposure)]
+
+t <- res.bm.imp %>% pivot_wider(id_cols = MGS, names_from = exposure, values_from = c(rho,q.value,N))
+
+datatable(t,container=sketch,rownames = FALSE, filter="top", options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% 
+  formatStyle(c(1,4,7), `border-right` = "solid 2px") 
+```
+
+<br>
+
+***
+
+<br>
+
+### Imp. vs Non-imp.
+
+<br>
+
+<details>
+
+```{r bm.comparison.imp, echo=FALSE}
+res.bm.imp <- fread(paste0(results.folder,"cor_ahi_imput_mgs.tsv"))
+res.bm.imp[,MGS:= gsub("_",".",MGS)]
+names(res.bm.imp) <- gsub("_",".",names(res.bm.imp))
+res.bm.imp[,rho:=round(rho,3)]
+res.bm.imp[,c('q.value','p.value') := lapply(.SD,round.large), .SDcols = c("q.value","p.value")]
+res.bm.imp[exposure=="ahi", exposure:="ahi_imp"]
+
+res.BMI[,MGS:=cutlast(MGS,9)]
+
+res.bm.imp <- rbind(res.bm.imp, res.BMI[exposure %in% c("ahi"), names(res.bm.imp),with=F])
+
+  species.names <- grep("HG3A",names(pheno),value=T)
+  prevalence <- round(apply(decostand(pheno[,species.names,with=F], "pa"), 2, function(x) sum(x)/nrow(pheno)),3)*100
+  prevalence <- data.table(MGS = names(prevalence), prevalence = prevalence)
+  prevalence[,MGS := cutlast(MGS,9)]
+
+  res.bm.imp <- merge(res.bm.imp,prevalence,by="MGS",all.x=T)
+
+res.bm.imp[,MGS:=factor(MGS)]
+res.bm.imp[,exposure:=factor(exposure)]
+
+t <- res.bm.imp %>% pivot_wider(id_cols = c(MGS,prevalence), names_from = exposure, values_from = c(rho,q.value,N))
+
+sketch_imp = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+      th(rowspan = 2, 'prevalence'),
+      th(colspan = 2, 'rho'),
+      th(colspan = 2, 'q-value'),
+      th(colspan = 2, 'N'),
+    ),
+    tr(
+      lapply(rep(c('  AHI_imp.  ', '  AHI  '), 3), th)
+    )
+  )
+))
+
+datatable(t,container=sketch_imp,rownames = FALSE, filter="top", options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% 
+  formatStyle(c(2,4,6), `border-right` = "solid 2px") 
+
+```
+
+</details>
+
+<br>
+
+***
+
+<br>
+
+
+
+# SA Medication {.tabset .tabset-pills}
+   
+Sensitivity analysis: adjust for medication use.     
+(ppi,metformin,anti-hypertensive,cholesterol-lowering)
+
+
+```{r,}
+res.BMI <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
+res.BMI <- res.fm[MGS %in% mgs.fdr,]
+
+res.sa.med <- fread("/home/baldanzi/Sleep_apnea/Results/cor.med_all.var_mgs.tsv")
+res.sa.med <- res.sa.med[MGS %in% mgs.fdr,]
+
+a=c("MGS","exposure","rho","p.value","q.value","N")
+res.sa.med <- res.sa.med[,a,with=F]
+res.sa.med[,rho:=round(rho,3)]
+res.sa.med[,p.value:=round.large(p.value)]
+
+res.BMI <- res.BMI[,.(MGS,exposure,rho,p.value,N)]
+res.BMI[,rho:=round(rho,3)]
+res.BMI[,p.value:=round.large(p.value)]
+res.BMI <- res.BMI[exposure %in% c("odi","t90"),]
+
+names(res.sa.med)[-c(1:2)] <- paste0(names(res.sa.med)[-c(1:2)], "_SA")
+
+res.sa.med <- merge(res.BMI, res.sa.med, by=c("MGS","exposure"), all.x=F, all.y=T)
+```
+
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t.t90 <- res.sa.med[MGS %in% mgs.t90 & exposure=="t90",]
+
+t.odi <- res.sa.med[MGS %in% mgs.odi & exposure=="odi"]
+
+sketch3 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+      th(rowspan = 2, 'exposure'),
+      th(colspan = 3, 'Main Model with BMI'),
+      th(colspan = 4, 'S.A. Medication'),
+    ),
+    tr(
+      lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
+    )
+  )
+))
+```
+
+<br>
+
+## T90 {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+table.fun(t.t90)
+```
+
+***
+
+<br>
+
+## ODI {-}
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+table.fun(t.odi)
+```
+
+<br>
+
+***
+
+<br>
+
+
+# SA - antibiotic users {.tabset .tabset-pills}
+
+&nbsp;
+
+Re-run the main model with BMI analysis after excluding participants that had used any antibiotic in the last 6 months 
+
+<br>
+
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+res.sa.atb <- fread("/home/baldanzi/Sleep_apnea/Results/corsaatb_all.var_mgs.tsv")
+res.BMI <- fread("/home/baldanzi/Sleep_apnea/Results/cor.bmi_all.var_mgs.tsv")
+res.BMI <- res.BMI[MGS %in% mgs.fdr,]
+res.sa.atb <- res.sa.atb[MGS %in% mgs.fdr,]
+
+a=c("MGS","exposure","rho","p.value","q.value","N")
+res.sa.atb <- res.sa.atb[,a,with=F]
+res.sa.atb[,rho:=round(rho,3)]
+res.sa.atb[,p.value:=round.large(p.value)]
+
+a=c("MGS","exposure","rho","p.value","N")
+res.BMI <- res.BMI[,a,with=F]
+res.BMI[,rho:=round(rho,3)]
+res.BMI[,p.value:=round.large(p.value)]
+res.BMI <- res.BMI[exposure %in% c("odi","t90"),]
+
+
+names(res.sa.atb)[-c(1:2)] <- paste0(names(res.sa.atb)[-c(1:2)], "_SA")
+
+res.sa.atb <- merge(res.BMI,res.sa.atb, by=c("MGS","exposure"), all.x=F, all.y=T)
+
+t.t90 <- res.sa.atb[MGS %in% mgs.t90 & exposure=="t90",]
+
+t.odi <- res.sa.atb[MGS %in% mgs.odi & exposure=="odi",]
+
+
+sketch3 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+       th(rowspan = 2, 'exposure'),
+      th(colspan = 3, 'Main Model with BMI'),
+      th(colspan = 4, 'S.A. Antibiotic'),
+    ),
+    tr(
+      lapply(rep(c(' rho ', ' p-value ','N' , ' rho ', ' p-value ','q-value', 'N'), 1), th)
+    )
+  )
+))
+
+```
+
+<br>
+
+
+## T90 {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+table.fun(t.t90) 
+```
+
+<br>
+
+***
+
+<br>
+
+## ODI {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+table.fun(t.odi) 
+```
+
+<br>
+
+***
+
+<br>
+
+# Enrichment analysis 
+
+## GMM modules {.tabset}
+
+Enrichment analysis of GMM modules among the species associated to AHI, T90, ODI, or BMI
+
+### Positive correlations {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+t = fread('/home/baldanzi/Sleep_apnea/Results/ea_GMM_pos.tsv')
+t <- t[,.(pathway,Name,exposure, NES,q.value)]
+t <- t[exposure == "t90" & q.value <.05]
+setDT(t)
+t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+
+
+table.fun <- function(x) {datatable(x,filter="top", rownames = FALSE, class = 'cell-border stripe', options = list(
+  rowCallback = JS(
+    "function(row, data) {",
+    "for (i = 1; i < data.length; i++) {",
+    "if ( data[i]<0.001 & data[i]>0){",
+    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+    "}",
+    "}",
+    "}"))) %>% formatStyle(c(2,3), `border-right` = "solid 2px")}
+
+table.fun(t)
+
+#modules.ahi = t[sig_ahi==T , pathway]
+#modules.t90 = t[sig_t90==T , pathway]
+#modules.odi = t[sig_odi==T , pathway]
+
+```
+
+<br>
+
+***
+
+<br>
+
+### Negative correlations {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+#knitr::include_graphics("/home/baldanzi/Sleep_apnea/Results/Plots/Venn_GMM_neg.png")
+#t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_neg.rds')
+#setDT(t)
+#t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+#t[pval>=0.001,q.value:=round(pval,digits = 3)]
+
+#table.fun(t)
+
+#modules.ahi = c(modules.ahi, t[sig_ahi==T & sig_BMI==F, pathway])
+#modules.t90 = c(modules.t90,t[sig_t90==T & sig_BMI==F, pathway])
+#modules.odi = c(modules.odi, t[sig_odi==T & sig_BMI==F, pathway])
+
+``` 
+
+&nbsp;
+
+&nbsp;
+
+<br>
+
+***
+
+&nbsp;
+
+&nbsp;
+
+<br>
+
+### Module names  {-}
+
+<br>
+
+```{r,}
+gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
+
+load("/home/baldanzi/Datasets/MGS/original/MGS_HG3A.GMMs2MGS.RData") # object = MGS_HG3A.GMMs2MGS
+  size.modules <-  sapply(MGS_HG3A.GMMs2MGS,length)
+  size.modules <- data.frame(Module = names(size.modules), size = size.modules)
+  gmm.names <- merge(gmm.names,size.modules, by="Module")
+  
+datatable(gmm.names,rownames = FALSE)
+```
+
+<br>
+
+## {-}
+
+<br>
+
+### Sensitivity analysis
+
+Enrichment for GMM modules, after excluding individuals using metformin (N=141)
+
+<br>
+
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+#t = readRDS('/home/baldanzi/Sleep_apnea/Results/ea_GMM_table_pos_sa_metformin.rds')
+
+#setDT(t)
+#t[q.value>=0.001,q.value:=round(q.value,digits = 3)]
+#t[pval>=0.001,pval:=round(pval,digits = 3)]
+
+#t.ahi = t[exposure=="ahi" & pathway %in% modules.ahi] 
+#t.t90 = t[exposure=="t90" & pathway %in% modules.t90] 
+#t.odi = t[exposure=="odi" & pathway %in% modules.odi] 
+
+```
+
+#### AHI {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+#table.fun <- function(x) {
+#x[,exposure:=NULL]
+#datatable(x,rownames = FALSE, options = list(
+#  rowCallback = JS(
+#    "function(row, data) {",
+#    "for (i = 1; i < data.length; i++) {",
+#    "if ( data[i]<0.001 & data[i]>0){",
+#    "$('td:eq('+i+')', row).html(data[i].toExponential(1));",
+#    "}",
+#    "}",
+#    "}"))) %>%    formatStyle(c(2), `border-right` = "solid 2px")
+#}
+
+#table.fun(t.ahi)
+```
+
+<br>
+
+#### T90 {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+#table.fun(t.t90)
+
+```
+
+<br>
+
+
+#### ODI {-}
+```{r,echo =FALSE, message=FALSE, warning=FALSE, fig.align='center', out.width="70%", out.height="70%"}
+
+#table.fun(t.odi)
+
+```
+
+<br>
+
+
+***
+
+<br>
+
+
+## Metabolic subpathways 
+
+<br>
+
+<div class = "blue">
+
+- *XXXX MGS were correlated with either* **AHI** , **T90** *or* **ODI** *but not to BMI in the fully-adjusted model*   
+- *Data on MGS-metabolite correlations was available for 37 species*
+
+</div>
+
+<br>
+
+
+
+```{r, out.width='100%', out.height='100%', fig.align='center', fig.cap="Metabolic groups enriched among associations between MGS and plasma metabolites"}
+#knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.png")
+```
+
+&nbsp;
+
+***
+
+&nbsp;
+
+
+# Sleep apnea's signature MGS
+
+&nbsp;
+  
+  
+<div class = "blue">
+
+
+
+</div>
+
+   
+
+<div class = "blue">
+
+ **Line plots** - number of carriers 
+ 
+ </div>
+
+```{r, echo=FALSE, out.width='110%', out.height='110%', fig.align='center',}
+#knitr::include_graphics("/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/lineplots/final.plot.pdf")
+  
+```

@@ -3,10 +3,10 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 1
-#SBATCH -t 30:00
-#SBATCH -J Script1_datamanagement
+#SBATCH -t 15:00
+#SBATCH -J datamanagement
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
-#SBATCH --mail-type=ALL
+#SBATCH --mail-type=FAIL
 
 ml R_packages
 cd $wrf

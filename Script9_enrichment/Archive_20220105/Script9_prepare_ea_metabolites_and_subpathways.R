@@ -63,7 +63,7 @@ output = "/home/baldanzi/Sleep_apnea/Results/"
     eval(parse(text=paste0("pathways$", i , "=annotation[SUB_PATHWAY==i,CHEMICAL_NAME]")))
   }
   
-  saveRDS(pathways, '/home/baldanzi/Datasets/Mgs_metab_correlations/subpathwayslist.rds')
+  saveRDS(pathways, paste0(output,'subclass.list.rds'))
   
   # Metabolites annotation  
   metabolites <- annotation[,CHEMICAL_NAME]

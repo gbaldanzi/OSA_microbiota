@@ -1,0 +1,56 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 12:00:00
+#SBATCH -J analyses_aft_imputation_2
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+# Project - Sleep apnea and gut microbiota 
+
+# Imputation of AHI and correlation with gut species part 2 
+
+# This script will: 
+# 1. Prepare data set for imputation  in R 
+# 2. Impute the data in STATA
+# 3. Calculate the q_value (FDR adjusted p-value) in R 
+
+# Working directory 
+workdir='/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512'
+
+# Directory where STATA is 
+
+statadir='/proj/sens2019512/stata/'
+
+#Results folder 
+resultsfolder='/home/baldanzi/Sleep_apnea/Results/'
+
+# load R modules  
+ml R_packages 
+
+
+# Check if imputation and correlation produced the expected file 
+FILE=$resultsfolder'cor_ahi_imput_mgs.tsv'
+test -f $FILE && echo "$FILE exists."
+
+
+echo "FDR Adjustment basic model"
+echo " " 
+# FDR adjustment 
+Rscript $workdir/Script7_imp/p.adjust.basic.model.R
+
+# Imputation and correlation full model 
+
+$statadir/stata-mp -b  do $workdir/Script7_imp/imputation_ahi_fullmodel.do
+
+# Check if imputation and correlation produced the expected file 
+FILE=$resultsfolder'cor2_ahi_imput_mgs.tsv'
+test -f $FILE && echo "$FILE exists."
+
+
+echo "FDR Adjustment basic model"
+echo " "
+# FDR adjustment 
+Rscript $workdir/Script7_imp/p.adjust.full.model.R

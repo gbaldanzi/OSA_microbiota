@@ -1,46 +1,60 @@
-# Script 6 Main 
+# Project: Sleep apnea and gut microbiota
+# Gabriel Baldanzi 
 
-model1 <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
-model2 <- c(model1,"metformin","hypermed","dyslipmed","ppi","Fibrer",
-            "Energi_kcal" ,"leisurePA", "educat","placebirth","visit.month")
+# Script 6 Main - Correlation with species abundance
 
-  message("Model 1")
-  source("cor_model1/Script6_cor1main.R")
+# This set of scripts will investigate the association between the relative 
+# abundance of gut microbiota species and four phenotypes (AHI, T90, ODI, BMI)
+
+  # Loading packages 
+  library(data.table)
+  library(tidyr)
+  library(dplyr)
+
+  # Folders 
+  input = "/home/baldanzi/Datasets/sleep_SCAPIS/"
+  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+
+  # Importing data
+  pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
+
+  # Models
+  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+  main.model.BMI <- c(main.model, "BMI")
+  extended.model <- c(main.model.BMI,"Fibrer","Energi_kcal" ,"leisurePA", 
+                  "educat","placebirth","visit.month")
+  medication.model <- c(main.model.BMI, "metformin","hypermed", "dyslipmed", "ppi")
   
-  #source("cor_model1/Script6_venn1.R")
+  # Outcomes and exposures
+  outcomes  <-  grep("____",names(pheno),value=T)
+  exposures <- c("ahi","t90","odi")
   
-  source("cor_model1/Script6_table.res1.R")
+  # Functions 
+  source("Script0_functions/Spearman.correlation.function.R") # Correlation function 
+  source("Script0_functions/Script6.Functions.R")
+
+# Import data 
+
+  message("Main Model without BMI")
+  source("Script6_correlation/cor_main.model.R")
   
-  message("Model 2")
-  source("cor_model2/Script6_cor2_main.R")
+  message("Main Model with BMI")
+  source("Script6_correlation/cor_main.model.BMI.R")
   
-  #source("cor_model2/Script6_venn2.R")
+  message("Extended Model")
+  source("Script6_correlation/cor_extended.model.R")
   
-  source("cor_model2/Script6_table.res2.R")
+  message("Medication Model")
+  source("Script6_correlation/cor_medication.model.R")
   
+  message("Sensitivity Analysis - Atb")
+  source("Script6_correlation/cor_sa_atb.R")
   
-  source("Script6.venn.R")
+  message("Creating Venn Diagram")
+  source("Script6_correlation/Script6.venn.R")
   
-  message("Sensitivity Analysis 1")
-  source("cor_SA/Script6_corsa_main.R")
+  #message("Sensitivity Analysis 1")
+  #source("cor_sa_med.R")
   
-  source("cor_SA/Script6_venn_sa.R")
-  
-  source("cor_SA/Script6_table.res_sa.R")
-  
-  source("cor_SA/Script6_corSA_table_mgs.fdr.R")
-  
-  message("Sensitivity Analysis 2")
-  source("cor_SA2/Script6_corSA2_main.R")
-  
-  source("cor_SA2/Script6_vennSA2.R")
-  
-  source("cor_SA2/Script6_corSA2_table.R")
-  
-  
-  message("Sensitivity Analysis 3")
-  source("cor_SA3/Script6_corSA3_main.R")
-  
-  source("cor_SA3/Script6_corSA3_table.R")
-  
+
   

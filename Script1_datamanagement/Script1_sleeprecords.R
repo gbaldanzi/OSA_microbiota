@@ -3,7 +3,16 @@
 
 # Last update: 2021-09-30
 
-# Script for data management of sleeping records data
+# Sleep records were an add-on to the SCAPIS study in Uppsala when participants
+# were assessed for sleep apnea during one night's sleep with the ApneaLink air flow 
+# and oxygen saturation devide. These data were provided to us by Eva Lindberg at from 
+# the Respiratory-, allergy- and sleep research group
+
+# This script will perform minor adjustments to the sleep data. Importantly, it
+# creates two flag variables: valid.ahi and valid.t90
+
+## valid.ahi indicates participants to be included in analysis with the AHI variable
+## valid.t90 indicates participants to be included in analysis with the variables T90 and ODI
 
 # Data management ####
 
@@ -16,13 +25,6 @@ rm(list=ls())
 sleep <- fread('/home/baldanzi/Datasets/sleep_SCAPIS/original_data/Sleep_SCAPIS_Uppsala_Final.csv',
                na.strings = c("","NA",NA))
 sleep <- sleep[AttendSleepStudy==TRUE,]
-
-# Sleep duration only present in the older data set
-sleep.old <- fread('/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/Data_Sleep_SCAPIS_Uppsala.csv',
-                   na.strings = c("","NA",NA))
-sleep.old <- sleep.old[,.(id,sovtid)]
-sleep <- merge(sleep, sleep.old, by="id",all.x = T)
-
 
 setnames(sleep, "id", "SCAPISid") #renaming the id variable
 
@@ -55,37 +57,22 @@ which(sleep$Date>as.Date("2018-12-01")) #index of values that were typos
   sum(is.na(sleep$Date)) # date is missing for 145 obs 
   sum(is.na(sleep$Date[sleep$o2utv4h == 1])) # date is missing for ZERO obs in those with valid sat measurement 
   
-  # sleep duration during the examination 
-
-  to.min.fun = function(a){
-    
-    splitted = strsplit(as.character(a),':')
-    in.min = sapply(splitted,function(x){
-      as.numeric(x[1])*60 + as.numeric(x[2])
-    })
-    return(in.min)
-  }
-    
-  sum(is.na(sleep$sovtid))
-  sleep$sovtid <- sub("8.","8:",sleep$sovtid)
-  sleep[,sovtid:=times(paste0(sovtid,':00'))]
-  
-  sleep[,sleeptime:=to.min.fun(sovtid)]
 
 # Subsetting the data for valid flow and sat monitoring ####
-# Analysis using AHI should only include individuals with valid flow and sat monitoring 
-# Analysis using T90 should only include individuals with valid sat monitoring 
+  
+  # Analysis using AHI should only include individuals with valid flow and sat monitoring 
+  # Analysis using T90 should only include individuals with valid sat monitoring 
 
 #subsetting the dataset to only those with valid flow and sat monitoring 
-sleep[,valid.ahi:=ifelse(sleep$BothFlO2utv4h==1, "yes", "no")]
-sleep[,valid.t90:=ifelse(sleep$o2utv4h==1, "yes", "no")]
+  sleep[,valid.ahi:=ifelse(sleep$BothFlO2utv4h==1, "yes", "no")]
+  sleep[,valid.t90:=ifelse(sleep$o2utv4h==1, "yes", "no")]
 
 
 
 # 2 individuals with missing data for AHI among those with valid flow and sat monitoring
   sleep[is.na(ahi) & valid.ahi=="yes",c("SCAPISid", "fldeutv_min","Date", "ahi", "sat90")]
 
-# % of registration with sat≤90% missing for 1 individual 
+# T90 missing for 1 individual 
   sleep[is.na(sleep$sat90) & valid.t90=='yes',.(SCAPISid,sat90)]
 
 # Excluding 2 individuals with missing information on AHI
@@ -97,7 +84,7 @@ sleep[,valid.t90:=ifelse(sleep$o2utv4h==1, "yes", "no")]
 # Creating a variable OSA severity 
 sleep[valid.ahi=="yes",OSAcat:= rec(ahi, rec = "0:4.9=0; 5:14.9=1; 15:29.9=2 ; 30:max=3")]
 sleep[,OSAcat:= factor(OSAcat, levels = c(0,1,2,3), 
-                          labels = c("no OSA", "Mild","Moderate", "Severe"))]
+                          labels = c("No OSA", "Mild","Moderate", "Severe"))]
 
 # CPAP and Splint data 
 # in the original data, CPAP and Splint only have the values 1 and NA

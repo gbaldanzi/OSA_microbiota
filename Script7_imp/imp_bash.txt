@@ -1,0 +1,52 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 1:00:00
+#SBATCH -J analyses_aft_imputation_1
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=FAIL
+
+
+# Project - Sleep apnea and gut microbiota 
+
+# Imputation of AHI and correlation with gut species part 1 
+
+# This script will: 
+# 1. Prepare data set for imputation  in R 
+# 2. Impute the data in STATA
+# 3. Calculate the q_value (FDR adjusted p-value) in R 
+
+# Working directory 
+workdir='/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512'
+
+# Directory where STATA is 
+statadir='/proj/sens2019512/stata/'
+
+#Results folder 
+resultsfolder='/home/baldanzi/Sleep_apnea/Results/'
+
+# load R modules  
+ml R_packages 
+
+# Prepare data 
+Rscript $workdir/Script7_imp/pre.imputation.R
+
+# Imputation and correlation basic model 
+jid1=$(sbatch $workdir/Script7_imp/imp_bm_1.txt)
+jid2=$(sbatch $workdir/Script7_imp/imp_bm_2.txt)
+jid3=$(sbatch $workdir/Script7_imp/imp_bm_3.txt)
+jid4=$(sbatch $workdir/Script7_imp/imp_bm_4.txt)
+
+
+# Continue to the second part of the script 
+
+sbatch --dependency=afterok:${jid1}:${jid2}:${jid3}:${jid4} imp.bash_2.txt
+
+
+
+
+
+
+ 

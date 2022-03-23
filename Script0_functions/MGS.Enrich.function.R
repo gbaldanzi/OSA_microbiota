@@ -1,4 +1,6 @@
-# Script 7 - Functions 
+# Functions for enrichment analysis 
+
+# Gabriel Baldanzi 
 
 MGS.Enrich.Analysis <- function(data, 
                             p.value.name = "p.value",
@@ -33,7 +35,7 @@ MGS.Enrich.Analysis <- function(data,
     #names(mgs.pval)=temp[,2]
     
     set.seed(123)
-    res<- fgsea(pathways = paths, stats = rank(-mgs.pval), eps = 0, scoreType = "pos",maxSize=maxSize,nPermSimple = 100000)
+    res<- fgsea(pathways = paths, stats = rank(-mgs.pval), eps = 0, scoreType = "pos",maxSize=maxSize,nPermSimple = 10000)
     setnames(res,"padj","q.value")
     res[,exposure:=unique(dd$exposure)]
     rm(mgs.pval)
@@ -41,5 +43,12 @@ MGS.Enrich.Analysis <- function(data,
     rm(paths)
     return(res)
 }
+
+
+  cutlast <- function(char,n){
+  l <- nchar(char)
+  a <- l-n+1
+  return(substr(char,a,l))
+  }
 
   

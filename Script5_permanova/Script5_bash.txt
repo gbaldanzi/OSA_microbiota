@@ -4,9 +4,9 @@
 #SBATCH -p core
 #SBATCH -n 16
 #SBATCH -t 72:00:00
-#SBATCH -J perma_osa_bc
+#SBATCH -J perma_all.var
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
-#SBATCH --mail-type=ALL
+#SBATCH --mail-type=FAIL
 
 ml R_packages
 

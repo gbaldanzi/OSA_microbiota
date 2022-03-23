@@ -1,12 +1,12 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
-# Script created in 2021-12-09
+# Script created in 2022-02-23
 
 # Last update
 
 # Venn diagram
 
-# This code will produce a Venn Diagram from the correlations of AHI, BMI, 
+# This code will produce a Venn Diagram from the correlations of AHI, ODI, 
 # and T90 with MGSs in models 1 and 2
 
 # Model 1 #### 
@@ -15,62 +15,58 @@ rm(list = ls())
 # Loading packages 
 pacman::p_load(data.table,ggplot2,ggvenn, tidyr, cowplot)
 
-# input and output folders 
-input = "/home/baldanzi/Sleep_apnea/Results/"
+# results.folder and output folders 
+results.folder <- "/home/baldanzi/Sleep_apnea/Results/"
 output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
 # Importing results 
-res <- fread(paste0(input,"cor_all.var_mgs.tsv"))
+res <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
+res[q.value < 0.001, q.value := round(q.value,3)]
 
 res.list <- list(AHI = res[exposure=="ahi",],
                  T90 = res[exposure=="t90",],
-                 ODI = res[exposure=="odi",],
-                 BMI = res[exposure=="BMI",])
+                 ODI = res[exposure=="odi",])
 
 
 # filter MGS significant at the FDR p-value<0.05
-res.list <- lapply(res.list, function(x){x[q.value>=0.001, q.value:=round(q.value, digits = 3)]})
-
 mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
 
 # Create VennDiagram    
 venn.m1 <- ggvenn(mgs.fdr,
-                  fill_color = c("orange","cornflowerblue","grey83","green4"),
+                  fill_color = c("orange","cornflowerblue","grey83"),
                   stroke_color = "white",
                   stroke_size = .2, 
                   show_percentage = F, 
                   fill_alpha = .6, 
                   set_name_size = 4,
                   text_size = 3) +
-  ggtitle("Basic model") +
+  ggtitle("Not adjusted for BMI") +
   theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
 
 
-# Model 2 ####
+# Model with BMI ####
 
 # Importing results 
-res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+res[q.value < 0.001, q.value := round(q.value,3)]
 
 res.list <- list(AHI = res[exposure=="ahi",],
                  T90 = res[exposure=="t90",],
-                 ODI = res[exposure=="odi",],
-                 BMI = res[exposure=="BMI",])
+                 ODI = res[exposure=="odi",])
 
 # filter MGS significant at the FDR p-value<0.05
-res.list <- lapply(res.list, function(x){x[q.value>=0.001, q.value:=round(q.value, digits = 3)]})
-
 mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
 
 # Create VennDiagram    
 venn.m2 <- ggvenn(mgs.fdr,
-                  fill_color = c("orange","cornflowerblue","grey83","green4"),
+                  fill_color = c("orange","cornflowerblue","grey83"),
                   stroke_color = "white",
                   stroke_size = .2, 
                   show_percentage = F, 
                   fill_alpha = .6, 
                   set_name_size = 4,
                   text_size = 3) +
-  ggtitle("Fully adjusted model") +
+  ggtitle("BMI adjusted") +
   theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
 
   

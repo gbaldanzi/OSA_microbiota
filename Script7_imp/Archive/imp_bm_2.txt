@@ -1,0 +1,23 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 24:00:00
+#SBATCH -J imp_bm_2
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+# Working directory 
+workdir='/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512'
+
+#Results folder 
+resultsfolder='/home/baldanzi/Sleep_apnea/Results/'
+
+rm -f -r $resultsfolder"imp2"
+mkdir $resultsfolder"imp2"
+
+# Directory where STATA is 
+statadir='/proj/sens2019512/stata/'
+
+$statadir/stata-mp -b  do $workdir/Script7_imp/imputation_ahi_basicmodel_2.do 

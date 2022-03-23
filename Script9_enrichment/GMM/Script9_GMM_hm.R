@@ -2,9 +2,9 @@
 # Gabriel Baldanzi 
 # Script created in 2022-01-11
 
-# Heatmap on the Enrichment analysis of GMM modules (Fig.5)
+# Heatmap on the Enrichment analysis of GMM modules (Figure 4)
 
-# Last update: 2022-01-11
+# Last update: 2022-02-22
 
 library(RColorBrewer)
 library(ComplexHeatmap)
@@ -13,13 +13,13 @@ library(data.table)
 library(tidyverse)
 library(stringr)
 
-  # input and output folders 
-  input <-  "/home/baldanzi/Sleep_apnea/Results/"
-  output <-  "/home/baldanzi/Sleep_apnea/Results/"
+  # Folders 
+  results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
+  output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
-  #Importing
-  res.pos <- fread(paste0(input,"ea_GMM_pos.tsv"))
-  res.neg <- fread(paste0(input,"ea_GMM_neg.tsv"))
+  #Importing enrichment analysis results 
+  res.pos <- fread(paste0(results.folder,"ea_GMM_pos.tsv"))
+  res.neg <- fread(paste0(results.folder,"ea_GMM_neg.tsv"))
 
   # Import GMM names 
   gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
@@ -62,7 +62,7 @@ library(stringr)
   hm.neg <- t(as.matrix(hm.neg))
   
   
-  # q-values 
+  # q-values (creates the * in the heatmap)
   
   qvalues_pos <- res.pos %>% select(exposure, Name, q.value)%>% 
     filter(Name %in% modules.hm.pos) %>% 
@@ -146,9 +146,9 @@ library(stringr)
   
   
   
-  # Drawing ####
+  # Save the figure  ####
   
-  pdf(file = "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/gmm_heatmap.pdf", 
+  pdf(file = paste0(output.plot,"gmm_heatmap.pdf"), 
       width = 4, height = 4)
   set.seed(1)
   draw(h1, heatmap_legend_side = "right", merge_legend=T)

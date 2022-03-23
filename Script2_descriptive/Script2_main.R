@@ -3,32 +3,21 @@
 
 # Descriptive Statistics 
 
-# Last update: 2021-09-22
-
-message("")
-message("#Script 2 - main#")
-print(Sys.time())
-message("")
+# Last update: 2022-01-02
 
 # Loading packages
 library(tidyverse)
 library(data.table)
 library(Hmisc)
 library(compareGroups)
-library(ggpubr)
-library(flextable)
-library(vegan)
-library(RColorBrewer)
 
 
   # Import data
   pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
   
-  message("Run Descriptive - Sleep records")
-  source('Script2_descriptive/Script2_descriptive_sleeprecords.R')
+  #message("Run Descriptive - Sleep records")
+  #source('Script2_descriptive/Script2_descriptive_sleeprecords.R')
   
   message("Run Descriptive - Phenotypes")
   source('Script2_descriptive/Script2_descriptivestatistics.R')
   
-  #message("Run Descriptive - Taxonomy")
-  #source('Script2_descriptive/Script2_taxonomy.R')
