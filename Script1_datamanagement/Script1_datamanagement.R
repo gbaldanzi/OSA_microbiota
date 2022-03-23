@@ -77,7 +77,7 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   atb <- atb[Site=="Site5",]
   atb_SCAPISid <- atb[Time_J01>-180,SUBJID]
   
-  # Flagging individuals that used atb in the last 3 months. 
+  # Flagging individuals that used atb in the last 6 months. 
   pheno[!Subject %in% atb_SCAPISid, atb6m:='no']  
   pheno[Subject %in% atb_SCAPISid, atb6m:='yes']
   
@@ -191,7 +191,7 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   pheno$apneasurgery_self = ifelse(pheno$cqhe061=="SURGERY", "yes", "no")
 
 
-  # Medication data based on metabolomics measurement
+  # Medication data based on metabolomics measurement ####
   a = c("SCAPISid","MET_100002725","MET_100002808","MET_100002405")
   #b = c("SCAPIS_RID", "MET_100002725","MET_100002808","MET_100002405")
   medication = metabolon[,a,with=F]

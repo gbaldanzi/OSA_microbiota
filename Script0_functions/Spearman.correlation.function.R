@@ -20,7 +20,7 @@ spearman.function = function(x1, x2, covari=NULL, data){
   factor.covari = c(factor.covari,
                     names(dataset[covari])[sapply(dataset[covari],is.character)])
   #Exclude rows with incomplete observation
-  if(any(is.na(dataset[,x1]))){stop("NA in x1")}
+  # if(any(is.na(dataset[,x1]))){stop("NA in x1")} Had to adapt the function to work with metabolites
   if(any(is.na(dataset[,x2]))){stop("NA in x2")}
   
   notexclude <-  complete.cases(dataset[,covari])
@@ -39,8 +39,12 @@ spearman.function = function(x1, x2, covari=NULL, data){
   
   for(i in 1:length(x1)){
     
-    res=pcor.test(temp.dataset[,x1[i]],temp.dataset[,x2],temp.dataset[,cov],
+    cc = complete.cases( temp.dataset[, c(x1[i], x2, cov)] )
+    res=pcor.test(temp.dataset[cc, x1[i]],
+                  temp.dataset[cc, x2],
+                  temp.dataset[cc, cov],
                   method = "spearman")
+    
     temp <- data.frame(x=x1[i],exposure=x2,
                                 rho=res$estimate,
                                 p.value=res$p.value,
@@ -52,11 +56,14 @@ spearman.function = function(x1, x2, covari=NULL, data){
     result <- rbind(result,temp)
   }
   
+  
   if(length(x1)>1){
     result$q.value = p.adjust(result[,4], method="BH")
+    if(x2 %in% c("ahi","t90","odi")){  #No need for rounding with the metabolites data. 
     result$q.value[result$q.value>=0.001] <- round(result$q.value[result$q.value>=0.001],3)
+    }
     result <-  result[order(result$q.value),]
-  }
+  } 
   
   return(result)
 }
