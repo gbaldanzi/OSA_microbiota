@@ -18,7 +18,7 @@ rm(list=ls())
 
 library(RColorBrewer)
 library(ComplexHeatmap)
-library(circlize)
+suppressPackageStartupMessages(library(circlize))
 library(data.table)
 library(tidyverse)
 library(scales)
@@ -26,7 +26,7 @@ library(scales)
 
   # Import the signature species 
   results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
-  output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots"
+  output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots/"
   wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
 
 # Function to select the last characters of a string 
@@ -492,9 +492,13 @@ library(scales)
   barplot.NES <- as.numeric(res.gmm[match(row.order,Name),NES])
   names(barplot.NES) <- res.gmm[match(row.order,Name),Name]
   
-  bar = HeatmapAnnotation(NES = anno_barplot(barplot.NES),
+  bar = HeatmapAnnotation("NES (T90)" = anno_barplot(barplot.NES,
+                                             gp = gpar(fill = "gray60", 
+                                                       col="white", 
+                                                       lwd = .05),
+                                             axis_param = list(gp=gpar(fontsize=7))),
                           annotation_name_side = "left",
-                          annotation_name_gp = gpar(fontsize=7),
+                          annotation_name_gp = gpar(fontsize=8),
                           annotation_name_rot = 90,
                           name = "NES (T90)")
                           #show_annotation_name = FALSE)
@@ -514,7 +518,7 @@ library(scales)
   draw(h1, heatmap_legend_side = "right", show_heatmap_legend=F, ht_gap = unit(c(3, 6), "mm"))
   draw(pd, x = unit(.98, "npc"), y = unit(.5, "npc"), just = c("right"))
   draw(bar, x= unit(.349, "npc"), y= unit(.826, "npc"), width = unit(.163, "npc"), height = unit(.18, "npc"),
-       angle=270)
+       angle=270, gp = gpar(lwd=.01, col="black"))
   dev.off()
 
   # Save the plot in png 
