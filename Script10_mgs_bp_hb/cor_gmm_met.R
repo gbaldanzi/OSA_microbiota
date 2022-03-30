@@ -12,7 +12,6 @@
   # Load correlation function 
   source("Script0_functions/Spearman.correlation.function.R")
 
-  
   results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
 
   # Import data set with GMM abundances 

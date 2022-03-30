@@ -101,8 +101,9 @@ library(scales)
   
   # Import results on the association with SBP/DBP/HbA1c 
   res.mgs.bp <- fread(paste0(results.folder, 'cor.sig.mgs.gmm_bphb.tsv'))
-  res.mgs.bp.bmi <- fread(paste0(results.folder, 'cor.bmi.sig.mgs.gmm_bphb.tsv'))
   res.mgs.bp.ahi <- fread(paste0(results.folder, 'cor.ahi.sig.mgs.gmm_bphb.tsv'))
+  res.mgs.bp.bmi <- fread(paste0(results.folder, 'cor.bmi.sig.mgs.gmm_bphb.tsv'))
+  
   
   
   # Import enrichment of GMM ####
@@ -263,13 +264,13 @@ library(scales)
   # Association with SBP/DBP/HbA1c ####
     res.mgs.bp[,outcomes := factor(outcomes, levels = c("SBP_Mean", "DBP_Mean", "Hba1cFormattedResult"),
                                    labels = c("SBP","DBP","HbA1c"))]
+    res.mgs.bp.ahi[,outcomes := factor(outcomes, levels = c("SBP_Mean", "DBP_Mean", "Hba1cFormattedResult"),
+                                       labels = c("SBP_AHI","DBP_AHI","HbA1c_AHI"))]
     res.mgs.bp.bmi[,outcomes := factor(outcomes, levels = c("SBP_Mean", "DBP_Mean", "Hba1cFormattedResult"),
                                        labels = c("SBP_BMI","DBP_BMI","HbA1c_BMI"))]
     
-    res.mgs.bp.ahi[,outcomes := factor(outcomes, levels = c("SBP_Mean", "DBP_Mean", "Hba1cFormattedResult"),
-                                       labels = c("SBP_AHI","DBP_AHI","HbA1c_AHI"))]
     
-    res.mgs.bp <- rbind(res.mgs.bp, res.mgs.bp.bmi, res.mgs.bp.ahi)
+    res.mgs.bp <- rbind(res.mgs.bp, res.mgs.bp.ahi, res.mgs.bp.bmi)
     
     res.mgs.bp <- merge(res.mgs.bp, gmm.names[,.(modules,Name)], by.x = "MGS_features", by.y="modules", all.x=T)
     res.mgs.bp[!is.na(Name), MGS_features := Name]
@@ -362,7 +363,7 @@ library(scales)
                                             labels_gp = gpar(col = "black", fontsize = 8)))
   
   ha2 =  HeatmapAnnotation(foo = anno_block(gp = gpar(fill = "white", col = 0),
-                                            labels = c("basic adj.", "BMI adj.", "OSA adj."),
+                                            labels = c("basic adj.", "OSA adj.", "OSA+BMI adj."),
                                             labels_gp = gpar(col = "black", fontsize = 8)))
   
 
@@ -381,11 +382,11 @@ library(scales)
                column_names_gp = gpar(fontsize = 9),
                
                
-               row_split = factor(c(rep("GMM", length(osa.gmm)),
-                                    rep("Positive associated species",length(pos.mgs)),
-                                    rep("Negative associated species",length(neg.mgs))), 
-                                  levels = c("GMM","Positive associated species", 
-                                             "Negative associated species")),
+               row_split = factor(c(rep("Gut metabolic modules", length(osa.gmm)),
+                                    rep("Positively associated species",length(pos.mgs)),
+                                    rep("Negatively associated species",length(neg.mgs))), 
+                                  levels = c("Gut metabolic modules","Positively associated species", 
+                                             "Negatively associated species")),
                cluster_row_slices = F,
                cluster_rows = T,   
                row_title_gp = gpar(fontsize=10, fill="white",border="black"),
@@ -460,10 +461,10 @@ library(scales)
             
             column_title = "Health outcomes",
             column_title_gp = gpar(fontsize = 10,fontface='bold'),
-            column_split = factor(c(rep("BMI", 3),
-                                    rep("noBMI",3),
-                                    rep("AHI",3)), 
-                                  levels = c("BMI","noBMI","AHI")),
+            column_split = factor(c(rep("A", 3),
+                                    rep("B",3),
+                                    rep("C",3)), 
+                                  levels = c("A","B","C")),
             column_gap = unit(3, "mm"),
             cluster_column_slices = F,
             
@@ -494,7 +495,8 @@ library(scales)
   bar = HeatmapAnnotation(NES = anno_barplot(barplot.NES),
                           annotation_name_side = "left",
                           annotation_name_gp = gpar(fontsize=7),
-                          annotation_name_rot = 90)
+                          annotation_name_rot = 90,
+                          name = "NES (T90)")
                           #show_annotation_name = FALSE)
   
 

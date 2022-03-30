@@ -7,7 +7,7 @@
 rm(list=ls())
 
 # Loading packages 
-pacman::p_load(data.table,ggplot2, tidyr, fgsea)
+pacman::p_load(data.table,ggplot2, tidyr, fgsea,stringr)
 
   # Functions 
   source("Script0_functions/MGS.Enrich.function.R")

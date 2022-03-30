@@ -80,11 +80,58 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   fwrite(res, file=paste0(results.folder, "cor.sig.mgs.gmm_bphb.tsv"))
   
 
-  # Model adjusted for BMI too
   
-  covariates.bmi = c(covariates, "BMI")
   
-  # Correlation with SBP and DBP ####
+  # OSA adjusted  ####
+  
+  ahi.model = c(covariates, "ahi","t90")
+  
+  # Correlation with SBP and DBP 
+  
+  outcomes = c("SBP_Mean", "DBP_Mean")
+  
+  temp.data = pheno[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
+  
+  res.bp <- lapply(outcomes,spearman.function, 
+                   x1=c(osa.mgs,osa.gmm),
+                   covari = ahi.model,
+                   data = temp.data[hypermed=="no",])
+  
+  res.bp <- do.call(rbind,res.bp)
+  
+  # Correlation with HbA1c 
+  
+  outcomes = c("Hba1cFormattedResult")
+  
+  temp.data = pheno[!is.na(Hba1cFormattedResult),]
+  
+  res.hb <- lapply(outcomes,spearman.function, 
+                   x1=c(osa.mgs,osa.gmm),
+                   covari = ahi.model,
+                   data = temp.data[metformin=="no",])
+  
+  res.hb <- do.call(rbind, res.hb)
+  
+  res <- rbind(res.bp, res.hb)
+  
+  # Multiple testing adjustment 
+  
+  setDT(res)
+  res[x=="SBP_Mean", q.value := p.adjust(p.value,method = "BH")]
+  res[x=="DBP_Mean", q.value := p.adjust(p.value,method = "BH")]
+  res[x=="Hba1cFormattedResult", q.value := p.adjust(p.value,method = "BH")]
+  
+  setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
+  
+  # Save results
+  fwrite(res, file=paste0(results.folder, "cor.ahi.sig.mgs.gmm_bphb.tsv"))
+  
+  
+  # BMI adjusted ####
+  
+  covariates.bmi = c(covariates, "BMI", "ahi", "t90")
+  
+  # Correlation with SBP and DBP
   
   outcomes = c("SBP_Mean", "DBP_Mean")
   
@@ -124,52 +171,5 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   
   # Save results ####
   fwrite(res, file=paste0(results.folder, "cor.bmi.sig.mgs.gmm_bphb.tsv"))
-
-  
-  
-  # AHI adjusted  ####
-  # Model adjusted for BMI too
-  
-  ahi.model = c(covariates, "BMI", "ahi","t90")
-  
-  # Correlation with SBP and DBP 
-  
-  outcomes = c("SBP_Mean", "DBP_Mean")
-  
-  temp.data = pheno[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
-  
-  res.bp <- lapply(outcomes,spearman.function, 
-                   x1=c(osa.mgs,osa.gmm),
-                   covari = ahi.model,
-                   data = temp.data[hypermed=="no",])
-  
-  res.bp <- do.call(rbind,res.bp)
-  
-  # Correlation with HbA1c 
-  
-  outcomes = c("Hba1cFormattedResult")
-  
-  temp.data = pheno[!is.na(Hba1cFormattedResult),]
-  
-  res.hb <- lapply(outcomes,spearman.function, 
-                   x1=c(osa.mgs,osa.gmm),
-                   covari = ahi.model,
-                   data = temp.data[metformin=="no",])
-  
-  res.hb <- do.call(rbind, res.hb)
-  
-  res <- rbind(res.bp, res.hb)
-  
-  # Multiple testing adjustment 
-  
-  setDT(res)
-  res[x=="SBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="DBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="Hba1cFormattedResult", q.value := p.adjust(p.value,method = "BH")]
-  
-  setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
-  
-  # Save results ####
-  fwrite(res, file=paste0(results.folder, "cor.ahi.sig.mgs.gmm_bphb.tsv"))
   
   
