@@ -14,7 +14,7 @@ library(data.table)
   
 
 #Spearman correlation function ####
-source('Script0_functions/Spearman.correlation.function_new.R')
+source('Script0_functions/Spearman.correlation.function.R')
 
 # Models ####
 
