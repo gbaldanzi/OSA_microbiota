@@ -15,7 +15,7 @@
   results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
 
   # Import data set with GMM abundances 
-  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work'
+  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
   phenofull <- readRDS(paste0(input,"phenotype_upp_malm.rds"))
   osa.gmm <- grep("MF0",names(phenofull),value=T)
   
