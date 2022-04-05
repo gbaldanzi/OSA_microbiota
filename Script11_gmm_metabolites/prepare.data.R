@@ -215,6 +215,8 @@ library(vegan)
     
     Drug_MET_ID <- annotation[grep("Drug", SUB_PATHWAY) , MET_ID]
     
+    Drug_MET_ID <- Drug_MET_ID[-which(Drug_MET_ID=='MET_100020837')]
+    
     metabolites[, (Drug_MET_ID) := lapply(.SD, function(x) {
       ifelse(x>min(x,na.rm=T), 1, 0) }), .SDcols = Drug_MET_ID
     ]

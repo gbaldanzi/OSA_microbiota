@@ -2,7 +2,8 @@
 # Gabriel Baldanzi 
 
 # Correlation between Alpha diversity (Shannon index) and the variables AHI, T90 and ODI 
-# Update: 2022-02-02
+
+library(data.table)
 
 # Defining output folders 
   input <-  "/home/baldanzi/Datasets/sleep_SCAPIS/"
@@ -13,7 +14,7 @@
   
 
 #Spearman correlation function ####
-source('Script0_functions/Spearman.correlation.function.R')
+source('Script0_functions/Spearman.correlation.function_new.R')
 
 # Models ####
 
@@ -23,8 +24,6 @@ source('Script0_functions/Spearman.correlation.function.R')
   extended.model <- c(main.model,"Fibrer","Energi_kcal" ,"leisurePA", 
                   "educat","placebirth","visit.month")
    
-  medication.model <- c(main.model, "metformin","hypermed", "dyslipmed", "ppi")
-
 # Run correlation analysis 
   
   exposures = c("ahi","t90","odi")
@@ -38,10 +37,7 @@ source('Script0_functions/Spearman.correlation.function.R')
     res.temp2 <- lapply(exposures,spearman.function,
                         x1="shannon",covari=extended.model,data = pheno)
     
-    res.temp3 <- lapply(exposures,spearman.function,
-                        x1="shannon",covari=medication.model,data = pheno)
-    
-    res.alpha <- do.call(rbind,c(res.temp1,res.temp2,res.temp3))
+    res.alpha <- do.call(rbind,c(res.temp1,res.temp2))
   
 # Save results 
   

@@ -26,7 +26,7 @@
   medication.model <- c(main.model.BMI, "metformin","hypermed", "dyslipmed", "ppi")
   
   # Outcomes and exposures
-  outcomes  <-  grep("____",names(pheno),value=T)
+  outcomes  <-  grep("HG3A",names(pheno),value=T)
   exposures <- c("ahi","t90","odi")
   
   # Functions 

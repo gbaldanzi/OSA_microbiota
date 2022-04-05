@@ -15,26 +15,34 @@ spearman.function = function(x1, x2, covari=NULL, data){
   } else {  dataset <- data }
   
   if(any(class(dataset) %in% "data.table")){setDF(dataset)}
-  
-  # Create dummy variables
-  dataset2 <- as.data.frame(model.matrix(~ ., dataset[,c(x2,covari)]))
-  dataset <- merge(dataset2, dataset[,x1], by=0, all.x=T, all.y=F)
-  
-  # Assert there is no missing in x2
+  numeric.covari = names(dataset[covari])[sapply(dataset[covari],is.numeric)]
+  factor.covari =  names(dataset[covari])[sapply(dataset[covari],is.factor)]
+  factor.covari = c(factor.covari,
+                    names(dataset[covari])[sapply(dataset[covari],is.character)])
+  #Exclude rows with incomplete observation
+  # if(any(is.na(dataset[,x1]))){stop("NA in x1")} Had to adapt the function to work with metabolites
   if(any(is.na(dataset[,x2]))){stop("NA in x2")}
   
-  # Final covariates names
-  cov <- colnames(dataset)[which(!colnames(dataset) %in% c(x1, x2, "(Intercept)","Row.names"))]
+  notexclude <-  complete.cases(dataset[,covari])
+  temp.dataset=dataset[notexclude,]
   
-  
+  if(length(factor.covari)>0){  #Dummies variables 
+    temp.dataset = dummy_cols(temp.dataset, select_columns = factor.covari,
+                           remove_most_frequent_dummy = T, 
+                           remove_selected_columns = T)
+    factor.covari = names(temp.dataset)[!names(temp.dataset) %in% names(dataset)]
+    #covariates for final model 
+    cov=c(numeric.covari,factor.covari)
+  }
+  #Partial Sperman correlation 
   result=data.frame()
   
   for(i in 1:length(x1)){
     
-    cc = complete.cases(dataset[, c(x1[i], x2, cov)] )
-    res=pcor.test(x=dataset[cc, x1[i]],
-                  y=dataset[cc, x2],
-                  z=dataset[cc, cov],
+    cc = complete.cases( temp.dataset[, c(x1[i], x2, cov)] )
+    res=pcor.test(temp.dataset[cc, x1[i]],
+                  temp.dataset[cc, x2],
+                  temp.dataset[cc, cov],
                   method = "spearman")
     
     temp <- data.frame(x=x1[i],exposure=x2,
