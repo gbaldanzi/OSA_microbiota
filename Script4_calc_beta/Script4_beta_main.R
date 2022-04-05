@@ -43,7 +43,7 @@
   # Save the BC matrix 
   BC.rownames <- rownames(BC)
     
-  setDT(BC)
+  setDT(data.frame(BC))
   
   BC[,rownames := BC.rownames]
   
