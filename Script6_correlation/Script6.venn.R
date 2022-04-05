@@ -12,7 +12,7 @@
 
   # results.folder and output folders 
   results.folder <- "/home/baldanzi/Sleep_apnea/Results/"
-  output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
+  output.plot = "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/figures"
 
   # Model not including BMI 
   res <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
@@ -41,19 +41,19 @@
 
   # Model including BMI ####
 
-# Importing results 
-res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
-res[q.value < 0.001, q.value := round(q.value,3)]
+  # Importing results 
+  res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+  res[q.value < 0.001, q.value := round(q.value,3)]
 
-res.list <- list(AHI = res[exposure=="ahi",],
+  res.list <- list(AHI = res[exposure=="ahi",],
                  T90 = res[exposure=="t90",],
                  ODI = res[exposure=="odi",])
 
-# filter MGS significant at the FDR p-value<0.05
-mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
+  # filter MGS significant at the FDR p-value<0.05
+  mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
 
-# Create VennDiagram    
-venn.m2 <- ggvenn(mgs.fdr,
+  # Create VennDiagram    
+  venn.m2 <- ggvenn(mgs.fdr,
                   fill_color = c("orange","cornflowerblue","grey83"),
                   stroke_color = "white",
                   stroke_size = .2, 
@@ -66,10 +66,10 @@ venn.m2 <- ggvenn(mgs.fdr,
 
   
   # Merge Venn diagrams
-  venn <- plot_grid(venn.m1, venn.m2, labels = c("A","B"), label_size = 12, nrow=1,
+  venn <- plot_grid(venn.m1, venn.m2, labels = c("a","b"), label_size = 12, nrow=1,
                     label_y = .7)
 
-  ggsave("Venn_sleepapnea.png",plot = venn,device = "png", path=output.plot)
-  ggsave("Venn_sleepapnea.pdf",plot = venn,device = "pdf", path='/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
+  ggsave("Fig2.pdf",plot = venn,device = "pdf", path=output.plot)
+  ggsave("Fig2.pdf",plot = venn,device = "pdf", path='/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512')
   
   
