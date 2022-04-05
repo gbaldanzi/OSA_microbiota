@@ -24,7 +24,7 @@
   # MGS as relative abundances
   BC <-  as.matrix(vegdist(MGSmatrix,method="bray"))
   
-  # rownames(BC) <- colnames(BC) <- rownames(MGSmatrix)
+  rownames(BC) <- colnames(BC) <- rownames(MGSmatrix)
   
   #write.csv(BC,file = paste0(input, 'BCmatrix.csv'), row.names = T)
   

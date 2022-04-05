@@ -21,7 +21,7 @@
   
   
   # Covariates 
-  covariates <- c("age", "Sex", "shannon", "plate", "Site", "placebirth")
+  covariates <- c("age", "Sex", "shannon", "site_plate", "placebirth")
   
   
   # Correlation 

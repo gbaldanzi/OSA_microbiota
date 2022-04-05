@@ -43,7 +43,10 @@ library(vegan)
     a = c("Subject", "plate", "received", "read.pairs.per.sample", "dna.yield")
     pheno = merge(pheno, cmvar[,a,with=F], by="Subject", all.x=T, all.y=F)
     
-    pheno[,plate := as.factor(plate)]
+    # Plate by site 
+    pheno[,site_plate := paste(Site,plate,sep="_")]
+    
+    pheno[,site_plate := as.factor(site_plate)]
     pheno[,received := as.factor(received)]
     pheno <- pheno[,-c("SCAPISid")]
     
@@ -225,7 +228,7 @@ library(vegan)
     # To keep the Shannon index calculations in the same as performed in the 
     # Gusty Atlas, we will remove the species present in less than 100 individual
     
-    species.names <- grep("___",names(pheno), value=T)
+    species.names <- grep("HG3A",names(pheno), value=T)
     
     non.rare.species <- lapply(species.names, function(x) {
       a <- nrow(pheno[metabolon_data == T & pheno[[x]]!=0,])
