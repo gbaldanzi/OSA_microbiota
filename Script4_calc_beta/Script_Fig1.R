@@ -24,6 +24,8 @@ library(cowplot)
   pcoa.bray.ahi <- readRDS(paste0(input,"pcoa_BC_AHI.rds"))
   pcoa.bray.t90 <- readRDS(paste0(input,"pcoa_BC_T90.ODI.rds"))
   
+  # Improve visualization by rotating 180°
+  pcoa.bray.t90$vectors[,1] <- pcoa.bray.t90$vectors[,1]*(-1)
   
   # PCOA.plot function ####
   pcoa.plot <- function(data,groups,pcoa) {
@@ -47,20 +49,19 @@ library(cowplot)
       
       .limits <- range(centroids$Axis.1)
       .limits[1] <- .limits[1]-.01
-      .limits[2] <- .limits[2]+.01
+      .limits[2] <- .limits[2]+.02
       
       p1=ggplot(centroids, aes(x=Axis.1,y=Axis.2, color=cat)) +
           geom_point(size=2) +
           geom_errorbar(aes(ymin=Axis.2-se.Axis.2,ymax=Axis.2+se.Axis.2),width=0.001) +
           geom_errorbarh(aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
-          scale_color_manual(labels =paste0(names(Ns), " (n = ",Ns,")") , 
-          values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
          scale_color_manual(labels =paste0(names(Ns), " (n = ",formatC(Ns,format = "d",big.mark = ","),")") , 
            values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
           ggtitle("XXX severity groups") +
           xlab(paste0("PCo1 \n (",round(100*pcoa$values$Relative_eig[1],1),"%)")) +
           ylab(paste0("PCo2 \n (",round(100*pcoa$values$Relative_eig[2],1),"%)")) +
-          xlim(.limits) + ylim(.limits) +
+          scale_x_continuous(breaks = seq(-0.06,0.09,by=.03), limits = .limits ) + 
+          scale_y_continuous(breaks = seq(-0.06,0.09,by=.03), limits = .limits ) +
           theme_light()+
           theme(axis.text.x = element_text(angle = 0),
                 axis.title = element_text(size=7) ,
@@ -89,6 +90,6 @@ library(cowplot)
   
   pcoa.plot.merged <- plot_grid(NULL,NULL,NULL,p.ahi,p.t90,p.odi,NULL,NULL,NULL,labels = c("","","","a","b","c"), label_size = 12, nrow=3,
                                 label_y = 0.97, ncol=3, rel_heights = c(.5,1,.4))
-  ggsave("PCoA_sleepapnea.pdf", plot = pcoa.plot.merged, device = "pdf", 
+  ggsave("Fig1.pdf", plot = pcoa.plot.merged, device = "pdf", 
          path = '/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/')
   

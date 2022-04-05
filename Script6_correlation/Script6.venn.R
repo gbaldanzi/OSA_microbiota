@@ -1,38 +1,33 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
-# Script created in 2022-02-23
 
-# Last update
+# Venn diagram - Fig 2
 
-# Venn diagram
+# This code will produce a Venn Diagram from the FDR-significant correlations of AHI, ODI, 
+# and T90 with MGSs in the main model including and not including BMI
 
-# This code will produce a Venn Diagram from the correlations of AHI, ODI, 
-# and T90 with MGSs in models 1 and 2
+  rm(list = ls())
+  # Loading packages 
+  pacman::p_load(data.table,ggplot2,ggvenn, tidyr, cowplot)
 
-# Model 1 #### 
+  # results.folder and output folders 
+  results.folder <- "/home/baldanzi/Sleep_apnea/Results/"
+  output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
 
-rm(list = ls())
-# Loading packages 
-pacman::p_load(data.table,ggplot2,ggvenn, tidyr, cowplot)
+  # Model not including BMI 
+  res <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
+  res[q.value < 0.001, q.value := round(q.value,3)]
 
-# results.folder and output folders 
-results.folder <- "/home/baldanzi/Sleep_apnea/Results/"
-output.plot = "/home/baldanzi/Sleep_apnea/Results/Plots/"
-
-# Importing results 
-res <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))
-res[q.value < 0.001, q.value := round(q.value,3)]
-
-res.list <- list(AHI = res[exposure=="ahi",],
+  res.list <- list(AHI = res[exposure=="ahi",],
                  T90 = res[exposure=="t90",],
                  ODI = res[exposure=="odi",])
 
 
-# filter MGS significant at the FDR p-value<0.05
-mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
+  # filter MGS significant at the FDR p-value<0.05
+  mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
 
-# Create VennDiagram    
-venn.m1 <- ggvenn(mgs.fdr,
+  # Create VennDiagram    
+  venn.m1 <- ggvenn(mgs.fdr,
                   fill_color = c("orange","cornflowerblue","grey83"),
                   stroke_color = "white",
                   stroke_size = .2, 
@@ -44,7 +39,7 @@ venn.m1 <- ggvenn(mgs.fdr,
   theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
 
 
-# Model with BMI ####
+  # Model including BMI ####
 
 # Importing results 
 res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
