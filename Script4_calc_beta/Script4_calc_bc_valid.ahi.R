@@ -16,11 +16,11 @@
 # MGS as relative abundances
   BC <-  as.matrix(vegdist(MGSmatrix,method="bray"))
   
-  rownames(BC) <- colnames(BC) <- pheno[valid.ahi=='yes',SCAPISid]
+  rownames(BC) <- colnames(BC) <- rownames(MGSmatrix)
   
-  fwrite(BC,file = paste0(input, 'OSA.BCmatrix.csv') ,sep=",")
+  write.csv(BC,file = paste0(input, 'OSA.BCmatrix.csv'), row.names = T)
 
 
   # Principal coordinates analysis based on BC 
   pcoa.bray <- pcoa(BC)
-  save(pcoa.bray, file = paste0(input,'pc_BC'))
+  saveRDS(pcoa.bray, file = paste0(input,'pcoa_BC.rds'))

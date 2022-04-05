@@ -24,7 +24,7 @@
   
   dat.plot$t90cat <- factor(dat.plot$t90cat, 
                             levels = levels(dat.plot$t90cat) , 
-                            labels = c("T90=0", "t1", "t2", "t3"))
+                            labels = c("T90 = 0", "t1", "t2", "t3"))
   
   
   # Second: creating the scatter plot ####
@@ -40,7 +40,7 @@
     geom_point(data=centroids, size=2)+
     geom_errorbar(data=centroids,aes(ymin=Axis.2-se.Axis.2,ymax=Axis.2+se.Axis.2),width=0.001)+
     geom_errorbarh(data=centroids,aes(xmin=Axis.1-se.Axis.1,xmax=Axis.1+se.Axis.1),height=0.0003) +
-    scale_color_manual(labels = paste0(names(Ns), " (n = ",Ns,")"),
+    scale_color_manual(labels = paste0(names(Ns), " (n = ",formatC(Ns,format = "d", big.mark = ","),")"),
                        values=c("gray84","lightskyblue1","lightskyblue3","blue3")) +
     ggtitle("T90 severity groups") +
     xlab(paste0("PCo1 \n (",round(100*pcoa.bray.t90$values$Relative_eig[1],1),"%)")) +
