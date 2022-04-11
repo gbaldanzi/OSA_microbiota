@@ -505,6 +505,7 @@ library(scales)
   
 
   message("Saving plots")
+  dev.off()
   # Draw ####
   pdf(file = paste0(output.plot, "mgs_subpathway_ea_heatmap_gutsy.pdf"), 
     width = 10, height = 10)

@@ -39,7 +39,7 @@
               row.names=F, append=F)
   rm(table.s3)
 
-# Table S4. Pairwise comparisons of beta-diversity across Sleep apnea severity categories
+# Table S4. Pairwise comparisons of beta-diversity across Sleep apnea severity categories ####
 
   list.perma.res <- list.files(path=input, pattern = "pairwise.perma.results")
   
