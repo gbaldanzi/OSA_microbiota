@@ -19,7 +19,7 @@ spearman.function = function(x1, x2, covari=NULL, data){
   # Create dummy variables
   dataset2 <- as.data.frame(model.matrix(~ ., dataset[,c(x2,covari)]))
   
-  if(length(x1==1)) {dataset2[[x1]] <- dataset[match(row.names(dataset2),rownames(dataset)),x1]}
+  if(length(x1)==1){dataset2[[x1]] <- dataset[match(row.names(dataset2),rownames(dataset)),x1]}
   
   if(length(x1)>1){
     dataset2 <- merge(dataset2, dataset[,x1], by=0, all.x=T)
@@ -27,7 +27,7 @@ spearman.function = function(x1, x2, covari=NULL, data){
   
 
   # Final covariates names
-  cov <- colnames(dataset2)[which(!colnames(dataset2) %in% c(x1, x2, "(Intercept)"))]
+  cov <- colnames(dataset2)[which(!colnames(dataset2) %in% c(x1, x2, "(Intercept)","Row.names"))]
   
   
   result=data.frame()

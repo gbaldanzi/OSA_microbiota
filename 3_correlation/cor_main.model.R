@@ -1,7 +1,6 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Last update: 2022-02-22
 
 # Correlations 
   res.main.model <- lapply(exposures,spearman.function, 

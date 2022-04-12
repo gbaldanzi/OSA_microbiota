@@ -12,12 +12,12 @@
   library(dplyr)
 
   # Folders 
-  input = "/home/baldanzi/Datasets/sleep_SCAPIS/"
-  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
-
-  # Importing data
-  pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
-
+  results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
+  
+  # Import data
+  pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
+  
   # Models
   main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
   main.model.BMI <- c(main.model, "BMI")
@@ -30,31 +30,24 @@
   exposures <- c("ahi","t90","odi")
   
   # Functions 
-  source("Script0_functions/Spearman.correlation.function.R") # Correlation function 
-  source("Script0_functions/Script6.Functions.R")
+  source("0_functions/Spearman.correlation.function.R") # Correlation function 
+  #source("0_functions/Script6.Functions.R")
 
-# Import data 
 
   message("Main Model without BMI")
-  source("Script6_correlation/cor_main.model.R")
+  source("3_correlation/cor_main.model.R")
   
   message("Main Model with BMI")
-  source("Script6_correlation/cor_main.model.BMI.R")
+  source("3_correlation/cor_main.model.BMI.R")
   
   message("Extended Model")
-  source("Script6_correlation/cor_extended.model.R")
+  source("3_correlation/cor_extended.model.R")
   
   message("Medication Model")
-  source("Script6_correlation/cor_medication.model.R")
+  source("3_correlation/cor_medication.model.R")
   
   message("Sensitivity Analysis - Atb")
-  source("Script6_correlation/cor_sa_atb.R")
+  source("3_correlation/cor_sa_atb.R")
   
   message("Creating Venn Diagram")
-  source("Script6_correlation/Script6.venn.R")
-  
-  #message("Sensitivity Analysis 1")
-  #source("cor_sa_med.R")
-  
-
-  
+  source("3_correlation/Script6.venn.R")

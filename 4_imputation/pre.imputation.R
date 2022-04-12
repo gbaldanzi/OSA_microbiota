@@ -3,9 +3,9 @@
 
 # Script to prepare data to be used in STATA
 
-# STATA will be used to perform analysis with the inputed data set 
+# STATA will be used to perform analysis with the imputed data set 
 
-# Because AHI have a lower sample size than ODI and T90, we are inputing 
+# Because AHI have a lower sample size than ODI and T90, we are imputing 
 # missing AHI values 
 
 rm(list=ls())
@@ -14,21 +14,21 @@ library(data.table)
 library(vegan)
 library(fastDummies)
 
-# Defining output folders 
-input <-  "/home/baldanzi/Datasets/sleep_SCAPIS/"
+  # Folders 
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
 
-# Importing data
-pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
+  # Import data
+  pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
 
   # Create dummy variables for factor variables 
 
   #Covariates 
-  basic.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon","BMI")
+  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon","BMI")
   
   
-  numeric.covari = names(pheno[,basic.model,with=F])[sapply(pheno[,basic.model,with=F],is.numeric)]
-  factor.covari =  names(pheno[,basic.model,with=F])[sapply(pheno[,basic.model,with=F],is.factor)]
-  factor.covari = c(factor.covari, names(pheno[,basic.model,with=F])[sapply(pheno[,basic.model,with=F],is.character)])
+  numeric.covari = names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.numeric)]
+  factor.covari =  names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.factor)]
+  factor.covari = c(factor.covari, names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.character)])
   
   factor.covari = names(pheno[,factor.covari,with=F])[sapply(pheno[,factor.covari,with=F],function(x) ifelse(length(unique(x[!is.na(x)]))>2,T,F))]
   
@@ -53,7 +53,7 @@ cutlast <- function(char,n){
 }
 
 
-mgs.names.index <- grep("____",names(pheno))
+mgs.names.index <- grep("HG3A",names(pheno))
 names(pheno)[mgs.names.index] <- cutlast(names(pheno)[mgs.names.index],9)
 
 # Exporting in STATA friendly format 
@@ -73,4 +73,4 @@ pheno[,educat:=factor(educat, labels=c("cat0", "cat1", "cat2", "cat3"))]
 
 
 require(foreign)
-write.dta(pheno[,variables.export,with=F], paste0(input,"pheno.dta"))
+write.dta(pheno[,variables.export,with=F], paste0(work,"pheno.dta"))

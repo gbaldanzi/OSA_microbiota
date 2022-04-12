@@ -4,15 +4,19 @@
 # Venn diagram - Fig 2
 
 # This code will produce a Venn Diagram from the FDR-significant correlations of AHI, ODI, 
-# and T90 with MGSs in the main model including and not including BMI
+# and T90 with species using the main model including and not including BMI
 
   rm(list = ls())
   # Loading packages 
-  pacman::p_load(data.table,ggplot2,ggvenn, tidyr, cowplot)
+  library(data.table)
+  library(ggplot2)
+  library(ggvenn)
+  library(tidyr)
+  library(cowplot)
 
   # results.folder and output folders 
-  results.folder <- "/home/baldanzi/Sleep_apnea/Results/"
-  output.plot = "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/figures"
+  results.folder <- "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/"
+  output.plot = "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/figures/"
 
   # Model not including BMI 
   res <- fread(paste0(results.folder,"cor_all.var_mgs.tsv"))

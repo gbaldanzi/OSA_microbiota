@@ -7,11 +7,11 @@
 
 // The data was initially prepared and exported from R 
 
-cd "/home/baldanzi/Sleep_apnea/Results/"
+cd "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/"
 
 capture log close
 
-log using imputation_ahi_basicmodel.txt, replace
+log using imputation_ahi_mainmodel.txt, replace
 
 di c(current_date)
 di c(current_time)
@@ -23,14 +23,14 @@ cap postclose myfile
 
 postfile myfile str20 MGS double rho p_value N using "cor_ahi_imput_mgs.dta", replace
 
-use "/home/baldanzi/Datasets/sleep_SCAPIS/pheno.dta", clear
+use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno.dta", clear
 
 foreach mgs of varlist HG3A*{
 
 	 
 	di "`mgs'"
 
-	use "/home/baldanzi/Datasets/sleep_SCAPIS/pheno.dta", clear 
+	use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno.dta", clear 
 
 	drop if Alkohol == . | smokestatus == . // drop obs with missing information on basic model vars
 
@@ -68,12 +68,12 @@ foreach mgs of varlist HG3A*{
 		qui mi passive: egen rank_`var' = rank(`var')
 	}
 	
-	local basic_model Sex rank_age rank_Alkohol smokestatus_* plate_* rank_shannon rank_BMI
+	local main_model Sex rank_age rank_Alkohol smokestatus_* plate_* rank_shannon rank_BMI
 
-	qui mi estimate,saving(model1,replace): regress X_rank_imp `basic_model'
+	qui mi estimate,saving(model1,replace): regress X_rank_imp `main_model'
 	mi predict Xxb_imp using model1
 	mi passive: gen Xres_imp=X_rank_imp-Xxb_imp
-	qui mi estimate,saving(model2,replace): regress Y_rank_imp `basic_model'
+	qui mi estimate,saving(model2,replace): regress Y_rank_imp `main_model'
 	mi predict Yxb_imp using model2
 	mi passive: gen Yres_imp=Y_rank_imp-Yxb_imp
 	
@@ -100,7 +100,7 @@ use cor_ahi_imput_mgs.dta, clear
 
 gen exposure = "ahi" 
 
-export delimited using "/home/baldanzi/Sleep_apnea/Results/cor_ahi_imput_mgs.tsv", delim(tab) replace datafmt
+export delimited using "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/cor_ahi_imput_mgs.tsv", delim(tab) replace datafmt
 
 di c(current_date)
 di c(current_time)
