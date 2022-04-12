@@ -1,19 +1,20 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# This script wil create the Heatmap on the Enrichment analysis of 
-# subpathways among the metabolites 
-# correlated to the species associated with T90 and/or ODI in the full model 
+# This script will create the Heatmap (Fig 3) containing the enrichment
+# analysis results and the associations with health outcomes 
 
-# The enrichment analysis results are imported from the Gutsy Atlas 
+# On the "x-axis", we display the metabolite groups and systolic blood pressure,
+# diastolic blood pressure and Hb1Ac
+
+# On the "y-axis", we display the species and the microbial pathways. 
+
+# The species enrichment analysis results are imported from the Gutsy Atlas 
 # reference: Dekkers, K. F. et al. An online atlas of human plasma metabolite 
 # signatures of gut microbiome composition. 2021.12.23.21268179 
 # https://www.medrxiv.org/content/10.1101/2021.12.23.21268179v1 (2021) 
 # doi:10.1101/2021.12.23.21268179.
 
-# Last update: 2022-03-18
-
-rm(list=ls())
 
 
 library(RColorBrewer)
@@ -506,31 +507,18 @@ library(scales)
 
   message("Saving plots")
   dev.off()
-  # Draw ####
-  pdf(file = paste0(output.plot, "mgs_subpathway_ea_heatmap_gutsy.pdf"), 
-    width = 10, height = 10)
-  set.seed(10)
-  draw(h1, heatmap_legend_side = "right", merge_legend=F)
-  dev.off()
   
+  # Draw ####
   pdf(file = paste0(wrf, "mgs_subpathway_ea_heatmap_gutsy.pdf"), 
       width = 11, height = 9)
   set.seed(10)
   draw(h1, heatmap_legend_side = "right", show_heatmap_legend=F, ht_gap = unit(c(3, 6), "mm"))
   draw(pd, x = unit(.98, "npc"), y = unit(.5, "npc"), just = c("right"))
-  draw(bar, x= unit(.349, "npc"), y= unit(.826, "npc"), width = unit(.163, "npc"), height = unit(.18, "npc"),
+  draw(bar, x= unit(.347, "npc"), y= unit(.826, "npc"), width = unit(.163, "npc"), height = unit(.18, "npc"),
        angle=270, gp = gpar(lwd=.01, col="black"))
   dev.off()
+  
 
-  # Save the plot in png 
-  #png(filename =  "/proj/nobackup/sens2019512/wharf/baldanzi/baldanzi-sens2019512/mgs_subpathway_ea_heatmap_gutsy.png", 
-  #width = 9, height = 8, units = 'in', res = 1500 )
-  #set.seed(1)
-  #draw(h1, 
-  #   column_title_gp = gpar(fontsize = 12, fontface="bold"),
-  #   heatmap_legend_side = "top", merge_legend=F)
-
-  #dev.off()
   message("Plots saved")
   
   message("Save row order")

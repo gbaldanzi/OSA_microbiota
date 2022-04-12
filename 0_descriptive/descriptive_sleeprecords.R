@@ -5,11 +5,9 @@
 
 # Script to create descriptive plots of the sleep monitoring data 
 
-  # Folder containing the dataset
+  # Folders 
   input <- "/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/"
-
-  # Folder to output the plots
-  output.plot="/home/baldanzi/Sleep_apnea/Descriptive/"
+  output.plot <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/descriptive'
 
   # Import data
   sleep <-  readRDS(paste0(input,"sleep.rds"))

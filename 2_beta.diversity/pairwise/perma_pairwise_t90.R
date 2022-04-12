@@ -8,7 +8,7 @@
 # relation to the beta-diversity (Bray Curtis Dissimilarity) 
 
 # Preparation 
-source('Script5_permanova/pairwise/pre_pairwise.R')
+source('2_beta.diversity/pairwise/pre_pairwise.R')
 
   # Importing data
     dades <- copy(pheno[valid.t90=="yes",])

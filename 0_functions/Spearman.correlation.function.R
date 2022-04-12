@@ -18,23 +18,26 @@ spearman.function = function(x1, x2, covari=NULL, data){
   
   # Create dummy variables
   dataset2 <- as.data.frame(model.matrix(~ ., dataset[,c(x2,covari)]))
-  dataset <- merge(dataset2, dataset[,x1], by=0, all.x=T, all.y=F)
   
-  # Assert there is no missing in x2
-  if(any(is.na(dataset[,x2]))){stop("NA in x2")}
+  if(length(x1==1)) {dataset2[[x1]] <- dataset[match(row.names(dataset2),rownames(dataset)),x1]}
   
+  if(length(x1)>1){
+    dataset2 <- merge(dataset2, dataset[,x1], by=0, all.x=T)
+  }
+  
+
   # Final covariates names
-  cov <- colnames(dataset)[which(!colnames(dataset) %in% c(x1, x2, "(Intercept)","Row.names"))]
+  cov <- colnames(dataset2)[which(!colnames(dataset2) %in% c(x1, x2, "(Intercept)"))]
   
   
   result=data.frame()
   
   for(i in 1:length(x1)){
     
-    cc = complete.cases(dataset[, c(x1[i], x2, cov)] )
-    res=pcor.test(x=dataset[cc, x1[i]],
-                  y=dataset[cc, x2],
-                  z=dataset[cc, cov],
+    cc = complete.cases(dataset2[, c(x1[i], x2, cov)] )
+    res=pcor.test(x=dataset2[cc, x1[i]],
+                  y=dataset2[cc, x2],
+                  z=dataset2[cc, cov],
                   method = "spearman")
     
     temp <- data.frame(x=x1[i],exposure=x2,

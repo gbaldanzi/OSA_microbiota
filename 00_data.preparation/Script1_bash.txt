@@ -3,7 +3,7 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 1
-#SBATCH -t 15:00
+#SBATCH -t 20:00
 #SBATCH -J datamanagement
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=FAIL
@@ -11,16 +11,6 @@
 ml R_packages
 cd $wrf
 
-# Management of the sleep records 
-echo Sleep_records
-Rscript Script1_datamanagement/Script1_sleeprecords.R
-
-
-# Management of the phenotype data and merge with sleep records 
-echo Datamanagement
-Rscript Script1_datamanagement/Script1_datamanagement.R
-
-
-# Calculate Shannon Index for the all the individuals 
-echo calc_alpha.div.R
-Rscript Script1_datamanagement/Script1_calc_alpha.div.R
+Rscript 00_data.preparation/00_sleeprecords.R
+Rscript 00_data.preparation/00_datamerging.R
+Rscript 00_data.preparation/00_datapreparation.R

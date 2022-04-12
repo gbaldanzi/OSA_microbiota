@@ -58,33 +58,16 @@ which(sleep$Date>as.Date("2018-12-01")) #index of values that were typos
   sum(is.na(sleep$Date[sleep$o2utv4h == 1])) # date is missing for ZERO obs in those with valid sat measurement 
   
 
-# Subsetting the data for valid flow and sat monitoring ####
-  
   # Analysis using AHI should only include individuals with valid flow and sat monitoring 
   # Analysis using T90 should only include individuals with valid sat monitoring 
 
-#subsetting the dataset to only those with valid flow and sat monitoring 
-  sleep[,valid.ahi:=ifelse(sleep$BothFlO2utv4h==1, "yes", "no")]
-  sleep[,valid.t90:=ifelse(sleep$o2utv4h==1, "yes", "no")]
-
-
 
 # 2 individuals with missing data for AHI among those with valid flow and sat monitoring
-  sleep[is.na(ahi) & valid.ahi=="yes",c("SCAPISid", "fldeutv_min","Date", "ahi", "sat90")]
+  sleep[is.na(ahi) & sleep$BothFlO2utv4h==1,c("SCAPISid", "fldeutv_min","Date", "ahi", "sat90")]
 
 # T90 missing for 1 individual 
-  sleep[is.na(sleep$sat90) & valid.t90=='yes',.(SCAPISid,sat90)]
+  sleep[is.na(sleep$sat90) & sleep$o2utv4h==1,.(SCAPISid,sat90)]
 
-# Excluding 2 individuals with missing information on AHI
-  sleep[valid.ahi=='yes' & is.na(ahi),valid.ahi:='no']
-
-# Excluding 2 individuals with missing information on T90
-  sleep[valid.t90=='yes' & is.na(sat90),valid.t90:='no']
-
-# Creating a variable OSA severity 
-sleep[valid.ahi=="yes",OSAcat:= rec(ahi, rec = "0:4.9=0; 5:14.9=1; 15:29.9=2 ; 30:max=3")]
-sleep[,OSAcat:= factor(OSAcat, levels = c(0,1,2,3), 
-                          labels = c("No OSA", "Mild","Moderate", "Severe"))]
 
 # CPAP and Splint data 
 # in the original data, CPAP and Splint only have the values 1 and NA

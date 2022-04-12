@@ -6,12 +6,12 @@
 library(data.table)
 
   # Defining folders 
-  input <-  "/home/baldanzi/Datasets/sleep_SCAPIS/"
-  results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
-
-  # Importing data
-  pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
+  results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
   
+  # Import data
+  pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
+
 
   #Spearman correlation function ####
   source('0_functions/Spearman.correlation.function.R')

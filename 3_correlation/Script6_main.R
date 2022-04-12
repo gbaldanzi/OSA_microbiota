@@ -1,7 +1,7 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Script 6 Main - Correlation with species abundance
+# Correlation with species abundance
 
 # This set of scripts will investigate the association between the relative 
 # abundance of gut microbiota species and four phenotypes (AHI, T90, ODI, BMI)

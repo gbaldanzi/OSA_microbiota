@@ -13,11 +13,12 @@ library(data.table)
 library(Hmisc)
 library(compareGroups)
 
-# Folder where the table will be outputed 
-descriptive.folder="/home/baldanzi/Sleep_apnea/Descriptive/"
+  # Folders 
+  descriptive.folder <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/descriptive'
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work'
 
-# Import data
-pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  # Import data
+  pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
 
 
 # Table 1 only includes those participants with valid AHI 

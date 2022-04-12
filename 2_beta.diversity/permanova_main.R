@@ -9,11 +9,12 @@
   library(parallel)
 
   # Folders
-  input = "/home/baldanzi/Datasets/sleep_SCAPIS/"
-  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+  results.folder = '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
   
   # Import data
-  pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
+  pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
+  
 
   # Models
   main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","BMI")
@@ -24,7 +25,7 @@
   source('0_functions/permanova.fun.R')
   
   # Importing BC matrix 
-  BC = fread(paste0(input,'BCmatrix.tsv'))
+  BC = fread(paste0(work,'BCmatrix.tsv'))
   BCrownames <- BC$rownames
   BC$rownames <- NULL
   

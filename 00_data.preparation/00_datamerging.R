@@ -18,10 +18,10 @@ rm(list=ls())
 
 
   # input = folder containing the data sets to be merged
-  input="/home/baldanzi/Datasets/"
+  input <- "/home/baldanzi/Datasets/"
   
   # output = folder to save the final dataset
-  output = "/home/baldanzi/Datasets/sleep_SCAPIS/"
+  output <-  "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/data_processed/"
 
 
 # Loading packages
@@ -84,13 +84,6 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   
   # Recoding variables ####
 
-  # Month of anthropometric collection date - variable to account for seasonality
-  pheno[,visit.month:=format(as.POSIXct(pheno$AnthropometryCollectionDate),"%B")]
-  pheno[,visit.month:=factor(visit.month,c(month.name,"June.July"))]
-  
-      # Merging June to July due to the low number of July participants 
-      pheno[visit.month %in% c("June","July"),visit.month:="June.July"]
-      
   #Age
   pheno[,age:=AgeAtVisitOne]
 
@@ -125,40 +118,6 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   pheno$diabd = rec(pheno$Diabetes, rec = "NORMOGLYCEMIA=0; ELEV_HBA1C,IFG=1; KNOWN_DM,NEW_DM=2")
   pheno$diabd = factor(pheno$diabd, levels = c(0,1,2), 
                        labels = c("normoglycemic", "impaired glucose tolerance", "type 2 diabetes" ))
-
-  
-  # Fiber adjusted for energy intake ####
-  # Removing over- and under- reported based on the 3SD of the natural log of Energy intake
-
-  # remove extremes outlieers 
-  pheno[Energi_kcal==0, Energi_kcal:=NA]
-  pheno[,log.energi:= log(pheno$Energi_kcal)] # Calculating the log energy intake
-
-  # Estimate sd and mean of energy intake
-  male.sd <-  sd(pheno[Sex=="male",log.energi],na.rm=T)
-  male.mean <- mean(pheno[Sex=="male",log.energi],na.rm=T)
-  female.sd <- sd(pheno[Sex=="female",log.energi],na.rm=T)
-  female.mean <- mean(pheno[Sex=="female",log.energi],na.rm=T)
-
-  # Using 3 sd to categorize over- and under-reporters
-  pheno[!is.na(Energi_kcal),energi.reporter:="ok"]
-
-  ll <- female.mean-(3*female.sd)
-  ul <- female.mean+(3*female.sd)
-  pheno[Sex=="female" & log.energi<ll, energi.reporter:="under"]
-  pheno[Sex=="female" & log.energi>ul, energi.reporter:="over"]
-
-  ll <- male.mean-(3*male.sd)
-  ul <- male.mean+(3*male.sd)
-  pheno[Sex=="male" & log.energi<ll, energi.reporter:="under"]
-  pheno[Sex=="male" & log.energi>ul, energi.reporter:="over"]
-
-  # Removing under- or over- reporter
-  pheno[,energi.original:=Energi_kcal]
-  pheno[energi.reporter!="ok",Energi_kcal:=NA]
-   
-  pheno[,fiber.kcal:=(Fibrer/Energi_kcal)*1000]
-
 
   # Self-reported hypertension variable
   pheno$hypertension = factor(pheno$cqhe034, levels = c("NO", "YES"), labels = c("no", "yes"))
@@ -270,30 +229,6 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   
   pheno <- merge(pheno, sleep, by='SCAPISid', all.x=T, all.y=F)
   
-  # Exclude CPAP users 
-  pheno[cqhe061=='CPAP', c("valid.ahi","valid.t90"):="no"]
-  pheno[cpap=='yes', c("valid.ahi","valid.t90"):="no"]
-  
-  pheno[valid.ahi=='no', ahi:=NA]
-  pheno[valid.ahi=='no', OSAcat:=NA]
-  pheno[valid.t90=='no', t90:=NA]
-  pheno[valid.t90=='no', odi:=NA]
-  
-  pheno[is.na(odi), valid.t90:='no']
-  
-  # T90 categories 
-  pheno[t90!=0, t90cat :=  cut(t90,breaks = quantile(t90,
-                                                     probs = seq(0,1,by=1/3),
-                                                     na.rm=T), include.lowest = T)]
-  pheno[,t90cat:=factor(t90cat, levels = c("0", levels(t90cat)))]
-  pheno[t90==0, t90cat := '0' ]
-  
-  # ODI categories 
-  pheno[,odicat := as.factor( cut(pheno$odi,breaks = quantile(odi, probs = seq(0,1,by=.25), na.rm=T), 
-                                  include.lowest = T) )]
-  pheno[,odicat := factor(odicat, levels = levels(odicat), labels = c("q1", "q2", "q3", "q4"))]
-
-  
   # GMM abundance ####
   GMM.uppsala <- import('/proj/sens2019512/SCAPIS_org/SCAPIS/final_release_CMv1/Uppsala/upugut03.GMMComp.percent.xlsx')
 
@@ -317,4 +252,4 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   
   
   # Save pheno data ####
-  saveRDS(pheno, file=paste0(output,"pheno_sleep_MGS.rds"))
+  saveRDS(pheno, file=paste0(output,"pheno_sleep_mgs.rds"))
