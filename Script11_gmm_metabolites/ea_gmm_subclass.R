@@ -4,7 +4,6 @@
 # This script will run the enrichment analysis for metabolites groups (Sub-pathways) 
 # in the metabolites associations with T90-assocaited GMM. 
 
-# Last update: 2022-03-17
 
   library(data.table)
   library(fgsea)

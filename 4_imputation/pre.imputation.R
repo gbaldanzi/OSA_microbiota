@@ -8,11 +8,11 @@
 # Because AHI have a lower sample size than ODI and T90, we are imputing 
 # missing AHI values 
 
-rm(list=ls())
+  rm(list=ls())
 
-library(data.table)
-library(vegan)
-library(fastDummies)
+  library(data.table)
+  library(vegan)
+  library(fastDummies)
 
   # Folders 
   work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
@@ -56,21 +56,20 @@ cutlast <- function(char,n){
 mgs.names.index <- grep("HG3A",names(pheno))
 names(pheno)[mgs.names.index] <- cutlast(names(pheno)[mgs.names.index],9)
 
-# Exporting in STATA friendly format 
+  # Exporting in STATA friendly format 
 
 
-
-variables.export <- c("SCAPISid", "ahi", "odi", "t90", "valid.ahi",
+  variables.export <- c("SCAPISid", "ahi", "odi", "t90", "valid.ahi",
                       "visit.month",
-                      basic.model, dummy.names,
+                      main.model, dummy.names,
                       grep("HG3A",names(pheno),value=T))
 
-pheno <- pheno[valid.t90=="yes",]
+  pheno <- pheno[valid.t90=="yes",]
 
-pheno[,leisurePA:=factor(leisurePA, labels=c("PA1","PA2","PA3","PA4"))]
+  pheno[,leisurePA:=factor(leisurePA, labels=c("PA1","PA2","PA3","PA4"))]
 
-pheno[,educat:=factor(educat, labels=c("cat0", "cat1", "cat2", "cat3"))]
+  pheno[,educat:=factor(educat, labels=c("cat0", "cat1", "cat2", "cat3"))]
 
 
-require(foreign)
-write.dta(pheno[,variables.export,with=F], paste0(work,"pheno.dta"))
+  require(foreign)
+  write.dta(pheno[,variables.export,with=F], paste0(work,"pheno.dta"))

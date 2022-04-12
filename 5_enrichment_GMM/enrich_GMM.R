@@ -1,28 +1,32 @@
-# Script 9 - Enrichment analysis using main model correlation coefficients 
+# Script 9 - Enrichment analysis using main model(with BMI) correlation coefficients 
 
 # Gabriel Baldanzi 
 
-# Last update: 2022-02-24
-
 rm(list=ls())
 
-# Loading packages 
-pacman::p_load(data.table,ggplot2, tidyr, fgsea,stringr)
-
+  # Loading packages 
+  library(data.table)
+  library(tidyr)
+  library(fgsea)
+  library(stringr)
+  
+  
   # Functions 
-  source("Script0_functions/MGS.Enrich.function.R")
+  source("0_functions/MGS.Enrich.function.R")
 
-# input and output folders 
-  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
-  input = "/home/baldanzi/Datasets/MGS/original/"
+  # Folders 
+  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/data_processed/'
+  results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
+
   
   # Import pathways/modules names 
-  gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
+  gmm.names <- fread(paste0(input,'GMM_reference.csv'))
   
   gmm.names[,Name:=str_to_title(Name)]
   gmm.names[,Name:=gsub("Ii","II",Name)]
   
-  # Import results from basic model 
+  # Import results from main model (with BMI)
   res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
   
   res[,mgs:=cutlast(MGS,9)]

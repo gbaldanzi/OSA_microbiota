@@ -16,7 +16,7 @@ MGS.Enrich.Analysis <- function(data,
     paths <- enrich.var.list
     if(any(class(dd) %in% "data.table")){setDF(dd)}
   
-    if(isFALSE(direction %in% c("both", "positive", "negative"))){stop("Direction must be character 'both','positive' or 'negative'")}
+    if(isFALSE(direction %in% c("positive", "negative"))){stop("Direction must be character 'positive' or 'negative'")}
   
     # Naming the pvalue variable for the fgsea analysis 
     mgs.pval = dd[[p.value.name]]
