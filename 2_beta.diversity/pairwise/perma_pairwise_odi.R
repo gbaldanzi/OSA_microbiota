@@ -14,14 +14,9 @@ source('2_beta.diversity/pairwise/pre_pairwise.R')
   # Importing data
   dades <- copy(pheno[valid.t90=="yes",])
 
-
-  # Importing BC matrix 
-  BC = fread(paste0(input,'T90.BCmatrix.csv'), header=T, sep = ',')
-  BC = as.matrix(BC)
-  row.names(BC) = colnames(BC)
-
- 
-# Making sure that BC and dataset have the same order of observations 
+# Making sure that BC and dataset have the same observations and same order
+  BC <- BC[dades$SCAPISid,dades$SCAPISid]
+  
   dades <-  dades[match(rownames(BC),dades$SCAPISid),]
   
 

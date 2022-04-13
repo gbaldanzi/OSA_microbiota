@@ -15,7 +15,7 @@ library(compareGroups)
 
   # Folders 
   descriptive.folder <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/descriptive'
-  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work'
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
 
   # Import data
   pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))

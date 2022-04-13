@@ -13,5 +13,5 @@ cd $wrf
 
 # Pairwise analysis for bray-cutis dissimilarity between categories of AHI severity 
 
-Rscript 'Script5_permanova/pairwise/perma_pairwise_ahi.R'
+Rscript 2_beta.diversity/pairwise/perma_pairwise_ahi.R
 

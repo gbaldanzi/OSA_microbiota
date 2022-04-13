@@ -4,19 +4,19 @@
 # This script will run the correlation between the GMM enriched among the T90 associations
 # and the plasma metabolites. Next, it will run an enrichment analysis in the metabolites
 
-# Last update: 2022-03-17
-
-  # load packages
   library(data.table)
 
   # Load correlation function 
-  source("Script0_functions/Spearman.correlation.function.R")
+  source("0_functions/Spearman.correlation.function.R")
 
-  results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
+  # Folders
+  results.folder <-  "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/"
+  input <- "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/data_processed/"
 
-  # Import data set with GMM abundances 
-  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
+  # Import data set with GMM abundances for SCAPIS-Uppsala and SCAPIS-Malmo participants 
   phenofull <- readRDS(paste0(input,"phenotype_upp_malm.rds"))
+  
+  # GMMs (Pathways enriched among the positive T90-species correlations)
   osa.gmm <- grep("MF0",names(phenofull),value=T)
   
   
@@ -25,12 +25,13 @@
   
   
   # Correlation 
-  exposures <- osa.gmm
-  outcomes <- grep("MET_",names(phenofull),value = T)
+  exposures <- osa.gmm # GMMs abundance
+  outcomes <- grep("MET_",names(phenofull),value = T) # Metabolites 
   
-  res <- lapply(exposures,spearman.function, 
-                           x1=outcomes,
-                           covari = covariates,
+  res <- lapply(exposures,
+                FUN = spearman.function, 
+                x1=outcomes,
+                covari = covariates,
                 data = phenofull[metabolon_data==T,])
   
   res <- do.call(rbind,res)

@@ -3,76 +3,105 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 1
-#SBATCH -t 1:00:00
-#SBATCH -J Run_pipeline_sleep_apnea
+#SBATCH -t 4:00:00
+#SBATCH -J pipeline_sleep_apnea
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
 ml R_packages
-cd $wrf
+cd /castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512
 
-# Management of the sleep records # Worked
-echo Sleep_records
-Rscript Script1_datamanagement/Script1_sleeprecords.R
+# Data preparation 
+Rscript 00_data.preparation/sleeprecords.R
+Rscript 00_data.preparation/datamerging.R
+Rscript 00_data.preparation/datapreparation.R 
 
+echo Data_descriptive 
 
-# Management of the phenotype data and merge with sleep records # Worked 
+# Data descriptive 
+Rscript 0_descriptive/descriptive.R
 
-echo " "
-echo Data_management
-echo " "
+echo Shannon
+echo " " 
 
-Rscript Script1_datamanagement/Script1_datamanagement_liberalTEIfilter_temp.R
-
-
-# Calculate Shannon Index for all the individuals # Worked 
-echo calc_alpha.div.R
-Rscript Script1_datamanagement/Script1_calc_alpha.div.R
-
-# Script3 Calculate Bray-Curtis Dissimilarity 
-
-jid1=$(sbatch Script3_bash.txt|cut -c21-) 
-
-# Run PERMANOVA on BC Dissimilarity (dependency on previous sbatch job)
-echo PERMANOVA_script
-
-sbatch --dependency=afterok:$jid1 Script5_permanova/Script5osa_bash.txt
+# Correlation between OSA parameters and Shannon diversity with the main model and the extended model 
+Rscript 1_cor_shannon/cor_osa_shannon.R
 
 
-# Descriptive Statistics 
+echo Beta.diversity 
+echo " " 
 
-echo " "
-echo Descriptive_statistics 
-echo " "
+# Calculates beta-diversity (Bray-Curtis dissimilarity) and run PERMANOVA analysis to investigate the 
+# association between beta-diversity and the OSA parameters 
 
-Rscript Script2_descriptive/Script2_main.R
+jid1=$(sbatch 2_beta.diversity/bash_calculate_bc.txt|cut -c21-) 
 
-
-# Correlation between phenotypes and alpha-diversity (Shannon index). # Worked 
-
-echo " Correlation Sleep apnea and Shannon diversity "
-Rscript Script4_cor_alpha/Script4_cor_main.R
+sbatch --dependency=afterok:$jid1 2_beta.diversity/bash_permanova.txt
 
 
-# Correlation between phenotypes and MGS
-echo " Correlation phenotypes and MGS "
+echo Pairwise_beta.diversity
+echo " " 
 
-Rscript Script6_main.R
 
-# Bar plots 
+# Pairwise permanova for AHI 
+sbatch --dependency=afterok:$jid1 2_beta.diversity/pairwise/AHI_perma.pairwise.txt 
 
-Rscript Script8_barplot_res_mgs.R
 
-# Enrichment Analysis 
+# Pairwise permanova for ODI
+sbatch --dependency=afterok:$jid1 2_beta.diversity/pairwise/ODI_perma.pairwise.txt 
 
-echo "Enrichment analysis"
 
-jid2=$(sbatch Script9_enrichment/Script9_bash_subpathways.txt|cut -c21-)
-sbatch --dependency=afterok:$jid2 Script9_enrichment/Script9_bash_GMM.txt
+# Pairwise permanova for T90
+sbatch --dependency=afterok:$jid1 2_beta.diversity/pairwise/T90_perma.pairwise.txt 
 
-# Add analysis for GMM modules 
 
-echo "END!"  
+
+# Correlation between OSA parameters and the species relative abundance
+Rscript 3_correlation/root_script.R
+
+
+echo Imputation_analysis 
+
+# Imputation analysis. This script will impute AHI values and then run the correlation of AHI with species abudance 
+#sbatch 4_imputation/imp_bash.txt
+
+echo Enrichment_GMM
+echo " " 
+
+# Enrichment for GMM among the species associations with AHI/T90/ODI
+Rscript 5_enrichment_GMM/enrich_GMM.R
+
+echo Correlation_GMM_Metabolites
+echo " " 
+
+# This chunk will run the association between GMM abundance and metabolites. Next, it will run enrichment 
+# analysis for metabolites groups among the GMM-metablites associations 
+
+Rscript 6_cor_gmm_metabolites/prepare.data.R
+
+echo Correlation_analysis 
+echo " " 
+
+jid3=$(sbatch 6_cor_gmm_metabolites/Correlation_gmm_metabolites.txt|cut -c21-) 
+
+echo Enrichment_analysis
+echo " " 
+
+sbatch --dependency=afterok:$jid3 6_cor_gmm_metabolites/Enrichment_gmm_subclass.txt
+
+
+
+# Correlation with health outcomes 
+# This script will investigate the Spearman's correlation between the studies main gut microbiota findings and 
+# systolic blood pressure, diastolic blood pressure and glycated hemoglobin (HbA1C)
+
+echo "Correlation with Health Outcomes"
+echo " " 
+
+Rscript 7_cor_health.outcomes/cor_mgs.gmm_bphb.R
+
+
+echo "THE END"  
 
 
 

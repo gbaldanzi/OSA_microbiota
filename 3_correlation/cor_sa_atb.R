@@ -9,7 +9,7 @@
 # In this script, we will only include the mgs that were FDR significant in the full model 
 
   # Import data 
-  pheno <- readRDS(paste0(input,"pheno.MGS.Upp.rds"))
+  pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
 
   # Remove participants that have used antibiotic in the last 6 months
   pheno <- pheno[atb6m=="no",]

@@ -1,32 +1,31 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Created: 2022-03-14
 
-# This script will preprate the data to the investigation on  the association between 
-# those species that were associated with T90/ODI and SBP/DPB/Hb1Ac. 
+# This script will prepare the data to the Spearman's correlation between 
+# GMM abundance and plasma metabolites. 
 
 # This analysis will include participants from both Uppsala and Malmo 
 
 rm(list = ls())
 
-# load packages 
-library(data.table)
-library(Hmisc)
-library(sjmisc)
-library(dplyr)
-library(tidyr)
-library(vegan)
+  # load packages 
+  library(data.table)
+  library(Hmisc)
+  library(sjmisc)
+  library(dplyr)
+  library(tidyr)
+  library(vegan)
+
+  # Folders 
+  input <- "/home/baldanzi/Datasets/"
+  output <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/data_processed/'
 
   # Uploading phenotype data 
-  input="/home/baldanzi/Datasets/"
-  output='/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
   pheno=fread(paste0(input,"sleep_SCAPIS/SCAPIS-DATA-PETITION-170-20210315.csv"), header = T, na.strings=c("", "NA"))
   
   # Uploading MGS/gut microbiota data 
-  
-
-  data.MGS = fread(paste0(input,'MGS/clean/MGS_relative_abundance_4839_upp_4980_malmo.tsv'))
+    data.MGS = fread(paste0(input,'MGS/clean/MGS_relative_abundance_4839_upp_4980_malmo.tsv'))
   
   
     # Fixing MGS names to latest annotation 
@@ -105,7 +104,7 @@ library(vegan)
     pheno$Site <-  factor(pheno$Site)
     
     
-    # Fiber adjusted for energy intake ####
+    # Diet ####
     # Removing over- and under- reported based on the 3SD of the natural log of Energy intake
     
     # remove extremes outliers 
@@ -131,11 +130,10 @@ library(vegan)
     pheno[Sex=="male" & log.energi<ll, energi.reporter:="under"]
     pheno[Sex=="male" & log.energi>ul, energi.reporter:="over"]
     
-    # Removing under- or over- reporter
+    # Assign NA to diet variables for under- or over- reporter
     pheno[,energi.original:=Energi_kcal]
     pheno[energi.reporter!="ok",Energi_kcal:=NA]
-    
-    pheno[,fiber.kcal:=(Fibrer/Energi_kcal)*1000]
+    pheno[energi.reporter!="ok",Fibrer:=NA]
     
     
     # Self-reported hypertension variable
@@ -176,11 +174,10 @@ library(vegan)
     # GMM results 
     
     #Importing enrichment analysis results 
-    results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
-    res.pos <- fread(paste0(results.folder,"ea_GMM_pos.tsv"))
-    res.neg <- fread(paste0(results.folder,"ea_GMM_neg.tsv"))
+    results.folder <-  "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/"
+    res.ea.gmm <- fread(paste0(results.folder,"ea_GMM.tsv"))
     
-    osa.gmm <- unique(res.pos[q.value<.05,pathway], res.neg[q.value<.05,pathway])
+    osa.gmm <- unique(res.ea.gmm[q.value<.05,pathway])
     
     # Import GMM abundance ####
     library(rio)
@@ -241,22 +238,6 @@ library(vegan)
     
     pheno[, shannon:= diversity(pheno[,non.rare.species,with=F])]
     
-    # Merge with sleep data 
-    
-    sleep <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/sleep.rds")
-    
-    pheno <- merge(pheno, sleep, by='SCAPISid', all.x=T, all.y=F)
-    
-    # Exclude CPAP users 
-    pheno[cqhe061=='CPAP', c("valid.ahi","valid.t90"):="no"]
-    pheno[cpap=='yes', c("valid.ahi","valid.t90"):="no"]
-    
-    pheno[valid.ahi=='no', ahi:=NA]
-    pheno[valid.ahi=='no', OSAcat:=NA]
-    pheno[valid.t90=='no', t90:=NA]
-    pheno[valid.t90=='no', odi:=NA]
-    
-    pheno[is.na(odi), valid.t90:='no']
     
     # Saving results ####
     saveRDS(pheno, file = paste0(output,"phenotype_upp_malm.rds"))
@@ -280,6 +261,7 @@ library(vegan)
     {
       eval(parse(text=paste0("pathways$", i , "=annotation[SUB_PATHWAY==i,MET_ID]")))
     }
+    
     
     saveRDS(pathways, paste0(output,'subclass.list.rds'))
   

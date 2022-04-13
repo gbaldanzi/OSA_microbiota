@@ -1,32 +1,34 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Created: 2022-03-23
 
-# This script will investigate the association between those species that were associated with T90/ODI
-# and SBP/DPB/Hb1Ac in SCAPIS-Uppsala participants
+# This script will investigate the association between those species that were 
+# associated with T90/ODI and SBP/DPB/Hb1Ac in SCAPIS-Uppsala participants
 
-results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+# It will also investigate the association between the GMM enriched in the T90-species 
+# associations and SBP/DPB/Hb1Ac in SCAPIS-Uppsala participants
 
-  # load packages
   library(data.table)
-  library(rio)
+
+  # Folders 
+  results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
+  work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
+  
 
   # load functions
-  source("Script0_functions/Spearman.correlation.function.R")
+  source("0_functions/Spearman.correlation.function.R")
 
-
-  # import data ####
-  pheno <- readRDS("/home/baldanzi/Datasets/sleep_SCAPIS/pheno.MGS.Upp.rds")
+  # Import data
+  pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
   
-  # import the significant species 
+
+  # Import the significant species 
   osa.mgs <- readRDS(paste0(results.folder,'mgs.m1.rds'))
   
-  # import pathway enrichment analysis results ####
-  res.pos <- fread(paste0(results.folder,"ea_GMM_pos.tsv"))
-  res.neg <- fread(paste0(results.folder,"ea_GMM_neg.tsv"))
-  
-  osa.gmm <- unique(res.pos[q.value<.05,pathway], res.neg[q.value<.05,pathway])
+  # Import pathway enrichment analysis results ####
+  res.ea.gmm <- fread(paste0(results.folder,"ea_GMM.tsv"))
+
+  osa.gmm <- unique(res.ea.gmm[q.value<.05,pathway])
   
   
   # Covariates 
@@ -50,9 +52,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   
 
   # Correlation with HbA1c ####
-  # unique(pheno[,Hba1cDetectionLimit])
-  # [1] "WITHIN_LIMIT" NA 
-  
+
   outcomes = c("Hba1cFormattedResult")
   
   temp.data = pheno[!is.na(Hba1cFormattedResult),]
@@ -127,7 +127,7 @@ results.folder = "/home/baldanzi/Sleep_apnea/Results/"
   fwrite(res, file=paste0(results.folder, "cor.ahi.sig.mgs.gmm_bphb.tsv"))
   
   
-  # BMI adjusted ####
+  # OSA+BMI adjusted ####
   
   covariates.bmi = c(covariates, "BMI", "ahi", "t90")
   

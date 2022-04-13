@@ -21,9 +21,12 @@
     x[x<0.001] <- formatC(x[x<0.001],digits = 2, format = "e")
     return(x)
   }
+  
+  # Folders
+  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results'
 
 # Table S3. Association between OSA and alpha-diveristy (Shannon index) ####
-  input <- "/home/baldanzi/Sleep_apnea/Results/"
+  
   
   table.s3 <- fread(paste0(input,"cor_all.var_alpha.tsv"))
   table.s3[,"p-value":=round.large(p.value)]
@@ -267,12 +270,7 @@
   message("Table for the GMM enrichment analysis results")
   
   
-  res.pos <- fread(paste0(input,"ea_GMM_pos.tsv"))
-  res.neg <- fread(paste0(input,"ea_GMM_neg.tsv"))
-  res.pos[,correlation:="positive"]
-  res.neg[,correlation:="negative"]
-  
-  res <- rbind(res.pos,res.neg)
+  res <- fread(paste0(input,"ea_GMM.tsv"))
   
   res[,exposure:=toupper(exposure)]
   

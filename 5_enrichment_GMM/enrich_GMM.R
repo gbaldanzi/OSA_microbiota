@@ -38,6 +38,7 @@ rm(list=ls())
 
   # List of modules ####
   load(paste0(input,'MGS_HG3A.GMMs2MGS.RData')) # object = MGS_HG3A.GMMs2MGS
+  
   list.modules <-  MGS_HG3A.GMMs2MGS
   
   for(m in names(list.modules)){
@@ -53,20 +54,19 @@ rm(list=ls())
     
       res.pos[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  
                        p.value.name="p.value",
-                       cor.var.name = "rho",
                        MGS.var.name = "mgs",
-                       enrich.var.list = list.modules,
-                       direction = "positive", 
-                       maxSize = Inf)
-          names(res.pos)[i] <- names(res.list)[i]
-    }
-
+                       direction = "positive",
+                       enrich.var.list = list.modules)
+      
+      }
+      
+    res.pos <- do.call(rbind,res.pos)
     
       # Save results from enrichment analysis in the positive correlations  
     
-        res.pos <- do.call(rbind,res.pos)
-        res.pos <- merge(res.pos,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
-        fwrite(res.pos, file = paste0(results.folder,"ea_GMM_pos.tsv"))
+        
+       # res.pos <- merge(res.pos,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
+        #fwrite(res.pos, file = paste0(results.folder,"ea_GMM_pos.tsv"))
       
       # Negative correlations ####
 
@@ -84,16 +84,17 @@ rm(list=ls())
           
         res.neg[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  
                            p.value.name="p.value",
-                           cor.var.name = "rho",
                            MGS.var.name = "mgs",
                            enrich.var.list = list.modules,
-                           direction = "negative", 
-                           maxSize = 700)
-        names(res.neg)[i] <- names(res.list)[i]
+                           direction = "negative")
         }
         
-        # Save results from enrichment analysis with negative correlations 
         res.neg <- do.call(rbind, res.neg)
-        res.neg <- merge(res.neg,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
-        fwrite(res.neg, file = paste0(results.folder,"ea_GMM_neg.tsv"))
+        
+        # Save results 
+        res <- rbind(res.pos,res.neg)
+        
+        res <- merge(res,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
+        
+        fwrite(res, file = paste0(results.folder,"ea_GMM.tsv"))
         

@@ -108,7 +108,7 @@ library(scales)
   
   
   # Import enrichment of GMM ####
-  res.gmm = fread(paste0(results.folder,"ea_GMM_pos_new.tsv"))
+  res.gmm = fread(paste0(results.folder,"ea_GMM.tsv"))
   res.gmm <- res.gmm[exposure=="t90" & q.value<.05,]
   res.gmm <- merge(res.gmm,gmm.names,by.x="pathway",by.y="modules",all.x=T,all.y=F)
   

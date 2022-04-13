@@ -13,5 +13,5 @@ cd $wrf
 
 # Pairwise analysis for bray-cutis dissimilarity between categories of T90 severity 
 
-Rscript 'Script5_permanova/pairwise/perma_pairwise_t90.R'
+Rscript 2_beta.diversity/pairwise/perma_pairwise_t90.R
 

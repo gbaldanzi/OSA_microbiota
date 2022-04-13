@@ -2,13 +2,12 @@
 
 #SBATCH -A sens2019512
 #SBATCH -p core
-#SBATCH -n 1
+#SBATCH -n 16
 #SBATCH -t 4:00:00
-#SBATCH -J Correlation_gmm_metabolites
+#SBATCH -J enrichment_gmm_subclass
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=FAIL
 
 ml R_packages
-cd $wrf
 
-Rscript Script11_gmm_metabolites/cor_gmm_met.R
+Rscript 6_cor_gmm_metabolites/ea_gmm_subclass.R

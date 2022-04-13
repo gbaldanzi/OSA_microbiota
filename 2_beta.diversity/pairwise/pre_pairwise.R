@@ -23,3 +23,11 @@
   #Covariates 
   main.model<-   c("age", "Sex", "Alkohol","smokestatus","plate", "BMI")
   
+  # Importing BC matrix 
+  BC = fread(paste0(work,'BCmatrix.tsv'))
+  BC_rownames <- BC$rownames
+  BC$rownames <- NULL
+  
+  BC <-  as.matrix(BC)
+  colnames(BC) <- rownames(BC) <- BC_rownames
+  

@@ -2,8 +2,7 @@
 # Gabriel Baldanzi 
 
 # This script will run the enrichment analysis for metabolites groups (Sub-pathways) 
-# in the metabolites associations with T90-assocaited GMM. 
-
+# in the metabolites associations with T90-associated GMM. 
 
   library(data.table)
   library(fgsea)
@@ -12,7 +11,7 @@
   library(rio)
 
   results.folder = "/home/baldanzi/Sleep_apnea/Results/"
-  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
+  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/data_processed/'
   
   set.seed(10)
   cores <- 16

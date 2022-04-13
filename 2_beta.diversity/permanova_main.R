@@ -26,7 +26,7 @@
   
   # Importing BC matrix 
   BC = fread(paste0(work,'BCmatrix.tsv'))
-  BCrownames <- BC$rownames
+  BC_rownames <- BC$rownames
   BC$rownames <- NULL
   
   BC <-  as.matrix(BC)
@@ -37,19 +37,20 @@
   
   # By AHI severity groups ####
   expo = "OSAcat"
+  pheno.ahi <- pheno[valid.ahi=="yes",]
   
   # Runing PERMANOVA in parallel 
   
   # Main model 
   res1 <- Permanova.parallel.FUN(y = BC, exposure=expo, 
-                                data = pheno[valid.ahi=="yes",], 
-                                model = basic.model, nod=16)
+                                data = pheno.ahi , 
+                                model = main.model, nod=16)
   
   fwrite(res1, file = paste0(results.folder,"permanova_main.model_ahi.tsv"))
   
   # Extended model
   res2 <- Permanova.parallel.FUN(y = BC, exposure=expo, 
-                                data = pheno[valid.ahi=="yes",], 
+                                data = pheno.ahi, 
                                 model = extended.model, nod=16)
   
   fwrite(res2, file = paste0(results.folder,"permanova_extended.model_ahi.tsv"))
@@ -58,19 +59,20 @@
   
   # By AHI severity groups ####
   expo = "t90cat"
+  pheno.t90 <- pheno[valid.t90=="yes",]
   
   # Runing PERMANOVA in parallel 
   
   # Main model 
   res3 <- Permanova.parallel.FUN(y = BC, exposure=expo, 
-                                data = pheno[valid.t90=="yes",], 
-                                model = basic.model, nod=16)
+                                data = pheno.t90, 
+                                model = main.model, nod=16)
   
   fwrite(res3, file = paste0(results.folder,"permanova_main.model_t90.tsv"))
   
   # Extended model
   res4 <- Permanova.parallel.FUN(y = BC, exposure=expo, 
-                                data = pheno[valid.t90=="yes",], 
+                                data = pheno.t90, 
                                 model = extended.model, nod=16)
   
   fwrite(res4, file = paste0(results.folder,"permanova_extended.model_t90.tsv"))
@@ -84,14 +86,14 @@
   
   # Main model 
   res5 <- Permanova.parallel.FUN(y = BC, exposure=expo, 
-                                data = pheno[valid.t90=="yes",], 
-                                model = basic.model, nod=16)
+                                data = pheno.t90, 
+                                model = main.model, nod=16)
   
   fwrite(res5, file = paste0(results.folder,"permanova_main.model_odi.tsv"))
   
   # Extended model
   res6 <- Permanova.parallel.FUN(y = BC, exposure=expo, 
-                                data = pheno[valid.t90=="yes",], 
+                                data = pheno.t90, 
                                 model = extended.model, nod=16)
   
   fwrite(res6, file = paste0(results.folder,"permanova_extended.model_odi.tsv"))
