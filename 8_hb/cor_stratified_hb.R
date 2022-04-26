@@ -85,7 +85,7 @@
   db <- (res$rho_low - res$rho_high)^2
   se <-(res$se_low^2)+(res$se_high^2)
   td <- db/se
-  pv <- 1- pchisq(td, df = 1)
+  pv <- pchisq(td, df = 1, lower.tail = F)
   
   return(pv)
   
