@@ -261,7 +261,7 @@
   
   # change names for the final table
   res.lungdisease <- res.lungdisease[,.(MGS,exposure,rho,p.value,N)]
-  setnames(res.lungdisease,c("rho","p.value","N"), c("antibiotic_correlation","antibiotic_p-value","antibiotic_N"))
+  setnames(res.lungdisease,c("rho","p.value","N"), c("lung_correlation","lung_p-value","lung_N"))
   
   
   
@@ -275,7 +275,9 @@
   var.table <- c("Metagenomic species", "exposure", "extend.model_correlation", 
                  "extend.model_p-value","extend.model_N","medication_correlation",
                  "medication_p-value","medication_N", "antibiotic_correlation","antibiotic_p-value",
-                 "antibiotic_N","species","genus", "family", "order","class","phylum","superkingdom")
+                 "antibiotic_N","lung_correlation","lung_p-value",
+                 "lung_N",
+                 "species","genus", "family", "order","class","phylum","superkingdom")
   
   table.res <- res[,var.table,with=F]
   
