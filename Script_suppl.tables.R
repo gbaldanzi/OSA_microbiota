@@ -199,7 +199,7 @@
                                          "extend.model_N"))
   
   
-  # Medical model results 
+  # Medication model results 
   res.med <- fread(paste0(input,"cor.med_all.var_mgs.tsv"))
   
   res1 <- res.med[MGS %in% mgs.t90 & exposure %in% c("t90")]
@@ -242,6 +242,28 @@
   setnames(res.atb,c("rho","p.value","N"), c("antibiotic_correlation","antibiotic_p-value","antibiotic_N"))
   
   
+  # Lung disease results 
+  res.lungdisease <- fread(paste0(input,"corsalungdisease_all.var_mgs.tsv"))
+  
+  res1 <- res.lungdisease[MGS %in% mgs.t90 & exposure %in% c("t90")]
+  res2 <- res.lungdisease[MGS %in% mgs.odi & exposure %in% c("odi")]
+  res.lungdisease <- rbind(res1,res2)
+  
+  res.lungdisease <- merge(res.lungdisease,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  
+  res.lungdisease[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res.lungdisease[,exposure:=toupper(exposure)]
+  
+  # rounding 
+  res.lungdisease[,rho:=round(rho,3)]
+  res.lungdisease[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
+  
+  # change names for the final table
+  res.lungdisease <- res.lungdisease[,.(MGS,exposure,rho,p.value,N)]
+  setnames(res.lungdisease,c("rho","p.value","N"), c("antibiotic_correlation","antibiotic_p-value","antibiotic_N"))
+  
+  
   
   # Merge all sensitivity analysis results 
   res <- merge(res,res.med, by =c("MGS","exposure"))
@@ -262,6 +284,7 @@
   rm(table.res)
   rm(res.atb)
   rm(res.med)
+  rm(res.lungdisease)
   rm(res)
   
   

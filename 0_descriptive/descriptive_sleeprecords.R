@@ -7,7 +7,7 @@
 
   # Folders 
   input <- "/home/baldanzi/Datasets/sleep_SCAPIS/sleep_recording/"
-  output.plot <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/descriptive'
+  output.plot <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/descriptive/'
 
   # Import data
   sleep <-  readRDS(paste0(input,"sleep.rds"))

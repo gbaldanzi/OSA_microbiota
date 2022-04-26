@@ -10,7 +10,7 @@
   library(BiocParallel)
   library(rio)
 
-  results.folder = "/home/baldanzi/Sleep_apnea/Results/"
+  results.folder = "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/"
   input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/data_processed/'
   
   set.seed(10)

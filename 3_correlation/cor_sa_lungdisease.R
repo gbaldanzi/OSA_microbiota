@@ -1,10 +1,9 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Created: 2021-10-21
-
-# This script was created to carry out the sensitivity analysis comparing the results 
-# after exclusion of participants who have used antibiotic 
+# This script carries out the sensitivity analysis comparing the results 
+# after exclusion of participants who have self-reported CPOD, emphysema or chronic 
+# bronchitis 
 
 # In this script, we will only include the mgs that were FDR significant in the main model 
 
@@ -12,7 +11,7 @@
   pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
 
   # Remove participants that have used antibiotic in the last 6 months
-  pheno <- pheno[atb6m=="no",]
+  pheno <- pheno[lungdisease=="no",]
   
   # Import signatures species 
   
@@ -27,13 +26,13 @@
                           data = pheno)
   
   res  <- do.call(rbind,res)
-  res$model= "sa_atb6m"
+  res$model= "sa_lung"
   
   setDT(res)
   setnames(res,"x","MGS")
   
   
   #Save results
-  fwrite(res, file = paste0(results.folder,"corsaatb_all.var_mgs.tsv"))
+  fwrite(res, file = paste0(results.folder,"corsalung_all.var_mgs.tsv"))
 
 

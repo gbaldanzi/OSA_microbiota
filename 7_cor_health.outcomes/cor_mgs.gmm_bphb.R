@@ -2,8 +2,8 @@
 # Gabriel Baldanzi 
 
 
-# This script will investigate the association between those species that were 
-# associated with T90/ODI and SBP/DPB/Hb1Ac in SCAPIS-Uppsala participants
+# This script will investigate the correlation between those species that were 
+# associated with T90/ODI and the health outcomes SBP/DPB/Hb1Ac in SCAPIS-Uppsala participants
 
 # It will also investigate the association between the GMM enriched in the T90-species 
 # associations and SBP/DPB/Hb1Ac in SCAPIS-Uppsala participants
@@ -34,8 +34,12 @@
   # Covariates 
   covariates <- c("age", "Sex", "Alkohol","smokestatus",
                   "Fibrer","Energi_kcal" ,"leisurePA", "placebirth",
-                  "plate","shannon")
+                  "plate","shannon","t90","ahi")
   
+  # In the analysis with SBPD and DBP, we excluded participants that self-reported
+  # medication use for hypertension 
+  # In the analysis with HbA1c, we excluded participants with self-reported 
+  # medication use for diabetes 
   
   # Correlation of significant species with SBP and DBP ####
   
@@ -44,57 +48,8 @@
   temp.data = pheno[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
   
   res.bp <- lapply(outcomes,spearman.function, 
-                           x1=c(osa.mgs,osa.gmm),
-                           covari = covariates,
-                           data = temp.data[hypermed=="no",])
-  
-  res.bp <- do.call(rbind,res.bp)
-  
-
-  # Correlation with HbA1c ####
-
-  outcomes = c("Hba1cFormattedResult")
-  
-  temp.data = pheno[!is.na(Hba1cFormattedResult),]
-  
-  res.hb <- lapply(outcomes,spearman.function, 
                    x1=c(osa.mgs,osa.gmm),
                    covari = covariates,
-                   data = temp.data[metformin=="no",])
-  
-  res.hb <- do.call(rbind, res.hb)
-  
-  res <- rbind(res.bp, res.hb)
-  
- 
-  # Multiple testing adjustment 
-  
-  setDT(res)
-  res[x=="SBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="DBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="Hba1cFormattedResult", q.value := p.adjust(p.value,method = "BH")]
-  
-  setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
-  
-  # Save results ####
-  fwrite(res, file=paste0(results.folder, "cor.sig.mgs.gmm_bphb.tsv"))
-  
-
-  
-  
-  # OSA adjusted  ####
-  
-  ahi.model = c(covariates, "ahi","t90")
-  
-  # Correlation with SBP and DBP 
-  
-  outcomes = c("SBP_Mean", "DBP_Mean")
-  
-  temp.data = pheno[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
-  
-  res.bp <- lapply(outcomes,spearman.function, 
-                   x1=c(osa.mgs,osa.gmm),
-                   covari = ahi.model,
                    data = temp.data[hypermed=="no",])
   
   res.bp <- do.call(rbind,res.bp)
@@ -107,29 +62,27 @@
   
   res.hb <- lapply(outcomes,spearman.function, 
                    x1=c(osa.mgs,osa.gmm),
-                   covari = ahi.model,
-                   data = temp.data[metformin=="no",])
+                   covari = covariates,
+                   data = temp.data[diabmed=="no",])
   
   res.hb <- do.call(rbind, res.hb)
   
-  res <- rbind(res.bp, res.hb)
+  res.osa <- rbind(res.bp, res.hb)
   
   # Multiple testing adjustment 
   
-  setDT(res)
-  res[x=="SBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="DBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="Hba1cFormattedResult", q.value := p.adjust(p.value,method = "BH")]
+  setDT(res.osa)
+  res.osa[x=="SBP_Mean", q.value := p.adjust(p.value,method = "BH")]
+  res.osa[x=="DBP_Mean", q.value := p.adjust(p.value,method = "BH")]
+  res.osa[x=="Hba1cFormattedResult", q.value := p.adjust(p.value,method = "BH")]
   
-  setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
+  res.osa[,model:="OSA model"]
   
-  # Save results
-  fwrite(res, file=paste0(results.folder, "cor.ahi.sig.mgs.gmm_bphb.tsv"))
   
   
   # OSA+BMI adjusted ####
   
-  covariates.bmi = c(covariates, "BMI", "ahi", "t90")
+  covariates.bmi = c(covariates, "BMI")
   
   # Correlation with SBP and DBP
   
@@ -153,23 +106,30 @@
   res.hb <- lapply(outcomes,spearman.function, 
                    x1=c(osa.mgs,osa.gmm),
                    covari = covariates.bmi,
-                   data = temp.data[metformin=="no",])
+                   data = temp.data[diabmed=="no",])
   
   res.hb <- do.call(rbind, res.hb)
   
-  res <- rbind(res.bp, res.hb)
+  res.osa.bmi <- rbind(res.bp, res.hb)
   
   
   # Multiple testing adjustment 
   
-  setDT(res)
-  res[x=="SBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="DBP_Mean", q.value := p.adjust(p.value,method = "BH")]
-  res[x=="Hba1cFormattedResult", q.value := p.adjust(p.value,method = "BH")]
+  setDT(res.osa.bmi)
+  res.osa.bmi[x=="SBP_Mean", q.value := p.adjust(p.value,method = "BH")]
+  res.osa.bmi[x=="DBP_Mean", q.value := p.adjust(p.value,method = "BH")]
+  res.osa.bmi[x=="Hba1cFormattedResult", q.value := p.adjust(p.value,method = "BH")]
+  
+  res.osa.bmi[,model:="OSA and BMI adjusted"]
+  
+  
+  
+  # Save results 
+  
+  res <- rbind(res.osa, res.osa.bmi)
   
   setnames(res, c("x","exposure"), c("MGS_features", "outcomes"))
   
-  # Save results ####
-  fwrite(res, file=paste0(results.folder, "cor.bmi.sig.mgs.gmm_bphb.tsv"))
+  fwrite(res, file=paste0(results.folder, "cor_mgs.gmm_bphb.tsv"))
   
   

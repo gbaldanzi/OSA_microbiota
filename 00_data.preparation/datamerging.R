@@ -43,7 +43,7 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
   # Fixing MGS names to latest annotation 
   taxonomy = fread(paste0(input,"MGS/taxonomy"))
   
-  mgs.names.index <- grep("____",names(data.MGS))
+  mgs.names.index <- grep("HG3A",names(data.MGS))
   names(data.MGS)[mgs.names.index] <- taxonomy$maintax_mgs
   
   
@@ -148,6 +148,10 @@ pacman::p_load(tidyverse, grid, chron, rio, Hmisc, sjmisc, summarytools, data.ta
 
   # Self-reported Sleep apnea treatment Surgery 
   pheno$apneasurgery_self = ifelse(pheno$cqhe061=="SURGERY", "yes", "no")
+  
+  # Self-reported Lung disease
+  pheno$lungdisease = factor(pheno$cqhe043, levels = c("NO", "YES"), labels = c("no", "yes"))
+  pheno$lungdisease[pheno$cqhe054=="Kol"] <- "yes"
 
 
   # Medication data based on metabolomics measurement ####

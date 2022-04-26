@@ -16,6 +16,8 @@
 # doi:10.1101/2021.12.23.21268179.
 
 
+rm(list=ls())
+
 
 library(RColorBrewer)
 library(ComplexHeatmap)
@@ -26,7 +28,7 @@ library(scales)
 
 
   # Import the signature species 
-  results.folder <-  "/home/baldanzi/Sleep_apnea/Results/"
+  results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
   output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots/"
   wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
 
@@ -101,16 +103,12 @@ library(scales)
   osa.gmm <- unique(ea.gmm.met$modules)
   
   # Import results on the association with SBP/DBP/HbA1c 
-  res.mgs.bp <- fread(paste0(results.folder, 'cor.sig.mgs.gmm_bphb.tsv'))
-  res.mgs.bp.ahi <- fread(paste0(results.folder, 'cor.ahi.sig.mgs.gmm_bphb.tsv'))
-  res.mgs.bp.bmi <- fread(paste0(results.folder, 'cor.bmi.sig.mgs.gmm_bphb.tsv'))
-  
+  res.mgs.bp <- fread(paste0(results.folder, 'cor_mgs.gmm_bphb.tsv'))
   
   
   # Import enrichment of GMM ####
   res.gmm = fread(paste0(results.folder,"ea_GMM.tsv"))
   res.gmm <- res.gmm[exposure=="t90" & q.value<.05,]
-  res.gmm <- merge(res.gmm,gmm.names,by.x="pathway",by.y="modules",all.x=T,all.y=F)
   
   # Positive and negative associations metabolites-species associations 
   
@@ -263,15 +261,18 @@ library(scales)
     rownames(t90.odi.q) <- mgs.t90.odi.q
     
   # Association with SBP/DBP/HbA1c ####
-    res.mgs.bp[,outcomes := factor(outcomes, levels = c("SBP_Mean", "DBP_Mean", "Hba1cFormattedResult"),
-                                   labels = c("SBP","DBP","HbA1c"))]
+    
+    res.mgs.bp.ahi <- res.mgs.bp[model=="OSA model",]
+    res.mgs.bp.bmi <- res.mgs.bp[model=="OSA and BMI adjusted",]
+    
     res.mgs.bp.ahi[,outcomes := factor(outcomes, levels = c("SBP_Mean", "DBP_Mean", "Hba1cFormattedResult"),
                                        labels = c("SBP_AHI","DBP_AHI","HbA1c_AHI"))]
+    
     res.mgs.bp.bmi[,outcomes := factor(outcomes, levels = c("SBP_Mean", "DBP_Mean", "Hba1cFormattedResult"),
                                        labels = c("SBP_BMI","DBP_BMI","HbA1c_BMI"))]
     
     
-    res.mgs.bp <- rbind(res.mgs.bp, res.mgs.bp.ahi, res.mgs.bp.bmi)
+    res.mgs.bp <- rbind(res.mgs.bp.ahi, res.mgs.bp.bmi)
     
     res.mgs.bp <- merge(res.mgs.bp, gmm.names[,.(modules,Name)], by.x = "MGS_features", by.y="modules", all.x=T)
     res.mgs.bp[!is.na(Name), MGS_features := Name]
@@ -364,7 +365,7 @@ library(scales)
                                             labels_gp = gpar(col = "black", fontsize = 8)))
   
   ha2 =  HeatmapAnnotation(foo = anno_block(gp = gpar(fill = "white", col = 0),
-                                            labels = c("basic adj.", "OSA adj.", "OSA+BMI adj."),
+                                            labels = c("OSA adj.", "OSA+BMI adj."),
                                             labels_gp = gpar(col = "black", fontsize = 8)))
   
 
@@ -463,13 +464,12 @@ library(scales)
             column_title = "Health outcomes",
             column_title_gp = gpar(fontsize = 10,fontface='bold'),
             column_split = factor(c(rep("A", 3),
-                                    rep("B",3),
-                                    rep("C",3)), 
-                                  levels = c("A","B","C")),
+                                    rep("B",3)), 
+                                  levels = c("A","B")),
             column_gap = unit(3, "mm"),
             cluster_column_slices = F,
             
-            column_labels = rep(c("SBP", "DBP", "Hb1Ac"),3),
+            column_labels = rep(c("SBP", "DBP", "Hb1Ac"),2),
             
             top_annotation = ha2,
             
@@ -514,7 +514,7 @@ library(scales)
   set.seed(10)
   draw(h1, heatmap_legend_side = "right", show_heatmap_legend=F, ht_gap = unit(c(3, 6), "mm"))
   draw(pd, x = unit(.98, "npc"), y = unit(.5, "npc"), just = c("right"))
-  draw(bar, x= unit(.347, "npc"), y= unit(.826, "npc"), width = unit(.163, "npc"), height = unit(.18, "npc"),
+  draw(bar, x= unit(.371, "npc"), y= unit(.826, "npc"), width = unit(.163, "npc"), height = unit(.18, "npc"),
        angle=270, gp = gpar(lwd=.01, col="black"))
   dev.off()
   

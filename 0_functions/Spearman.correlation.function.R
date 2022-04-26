@@ -1,7 +1,7 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Function: Spearman correlation 
+# Function for partial Spearman correlation 
 
 spearman.function = function(x1, x2, covari=NULL, data){
   require(ppcor)
@@ -29,7 +29,7 @@ spearman.function = function(x1, x2, covari=NULL, data){
   # Final covariates names
   cov <- colnames(dataset2)[which(!colnames(dataset2) %in% c(x1, x2, "(Intercept)","Row.names"))]
   
-  
+  # Run Spearman correlations in a loop
   result=data.frame()
   
   for(i in 1:length(x1)){

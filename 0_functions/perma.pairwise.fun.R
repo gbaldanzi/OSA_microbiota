@@ -1,4 +1,5 @@
-# PERMANOVA function pairwise comparisons of beta-diversity 
+# Function for Permutation Multivariate Analysis of Variance (PERMANOVA) for 
+# pairwise comparisons of beta-diversity 
 
 
 # The PERMANOVA function 
@@ -110,7 +111,7 @@ pairwise.perma.fun <- function(outcome = "BC", group_var = "OSAcat", covari = ma
 
 
 
-# Function to produce a final table with main results, with FDR adjustment 
+# Function to produce a final table with main results
 
 clean.res <- function(list){
   
@@ -121,7 +122,6 @@ clean.res <- function(list){
   })
   
   t <- do.call(rbind,res)
-    #t$q.value <- p.adjust(t$p.value , method = "BH")
   t$R2 <- round(t$R2*100,2)
   names(t) <- c("Comparison","R2 (%)","p-value")
   return(t)

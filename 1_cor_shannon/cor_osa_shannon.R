@@ -5,7 +5,7 @@
 
 library(data.table)
 
-  # Defining folders 
+  # Folders 
   results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
   work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
   
@@ -16,9 +16,8 @@ library(data.table)
   #Spearman correlation function ####
   source('0_functions/Spearman.correlation.function.R')
 
-  # Models ####
-
-  #Covariates 
+  
+  # Covariates 
   main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","BMI")
   
   extended.model <- c(main.model,"Fibrer","Energi_kcal" ,"leisurePA", 

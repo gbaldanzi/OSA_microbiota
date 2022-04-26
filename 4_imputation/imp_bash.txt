@@ -3,7 +3,7 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 1
-#SBATCH -t 12:00:00
+#SBATCH -t 48:00:00
 #SBATCH -J analyses_aft_imputation_
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=FAIL
@@ -35,7 +35,7 @@ Rscript 4_imputation/pre.imputation.R
 $statadir/stata-mp -b  do 4_imputation/imputation_ahi_main.model.do  
 
 # Multiple testing adjustment 
-Rscript 4_imputation/p.adjjust.R
+Rscript 4_imputation/p.adjust.R
 
 
 

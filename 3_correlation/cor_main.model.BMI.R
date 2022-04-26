@@ -5,9 +5,6 @@
 
 # Correlations 
   
-  outcomes  <-  grep("___",names(pheno),value=T)
-  exposures <- c("ahi","t90","odi")
-  
   res.main.model <- lapply(exposures,spearman.function, 
                 x1=outcomes,
                 covari = main.model.BMI,

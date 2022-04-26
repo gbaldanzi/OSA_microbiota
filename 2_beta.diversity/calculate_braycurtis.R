@@ -1,6 +1,7 @@
-# Calculate Beta-diversity (Bray-curtis dissimilarity)
+# Calculate Beta-diversity (Bray-Curtis dissimilarity)
 
-# This script produces Bray-curtis dissimilary matrix and perform PCoA
+# This script produces Bray-Curtis dissimilary matrix from the species abundance and 
+# performs the Principal Coordinate Analysis (PCoA)
 
   library(data.table)
   library(vegan)

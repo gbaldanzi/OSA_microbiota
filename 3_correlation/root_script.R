@@ -49,5 +49,5 @@
   message("Sensitivity Analysis - Atb")
   source("3_correlation/cor_sa_atb.R")
   
-  message("Creating Venn Diagram")
-  source("3_correlation/Script6.venn.R")
+  message("Sensitivity Analysis - Lund Disease")
+  source("3_correlation/cor_sa_lungdisease.R")

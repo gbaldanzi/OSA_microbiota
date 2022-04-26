@@ -1,7 +1,13 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Script for preparing the data.  
+# Script for preparing the data. 
+
+# This script will prepare the data for the analysis on the association between 
+# obstructive sleep apnea and gut microbiota features. 
+
+# Prepare here means creating new variables and exclude the diet variables for under- and 
+# over-reporters of diet intake. 
 
   # Packages
   library(tidyverse)
@@ -119,8 +125,8 @@
   data_sum <- data.frame(prevalence = apply(data_pa, 2, sum)/nrow(data_pa))
   data_sum$MGS = rownames(data_sum)
   
-  a = data_sum$MGS[data_sum$prevalence <= 1/100] # 1,602 species have a prevalence greater than 1%
-  pheno <- pheno[ , -a, with=F] 
+  low.prevalence.species = data_sum$MGS[data_sum$prevalence <= 1/100] # 1,602 species have a prevalence greater than 1%
+  pheno <- pheno[ , -low.prevalence.species, with=F] 
   
   # Calculate Shannon diversity 
   species.names_1perc = grep("HG3A",names(pheno),value=T) # vector with MGS names 

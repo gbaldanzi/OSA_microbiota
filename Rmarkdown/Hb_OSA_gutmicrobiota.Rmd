@@ -1,0 +1,359 @@
+---
+title: "HB, OSA and gut microbiota"
+author: "Gabriel Baldanzi"
+date: "4/20/2022"
+output: 
+  html_document:
+    toc: true 
+    fig_width: 5
+    fig_height: 5
+    number_sections: TRUE
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 4
+    theme: united
+    hightlist: espresso
+    css: style.css
+---
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1500px !important;
+      width: 1500px !important;
+    }
+
+    .book .book-body .page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 10px 10px 10px;
+    }
+
+    body {
+      max-width: 1500px !important;
+    }
+    code.r { /* Code block */
+    font-size: 14pt;
+    }
+    pre {
+  font-size: 12px
+    }
+    .tocify-header {
+    text-indent: initial;
+}
+    .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 2em;
+    }
+table.display td { white-space: nowrap; }
+    ```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+options(width = 20)
+library(tidyverse)
+library(data.table)
+library(kableExtra)
+library(DT)
+library(knitr)
+library(cowplot)
+library(ppcor)
+
+results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
+work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
+
+# load functions
+source("0_functions/Spearman.correlation.function.R")
+
+# Import data
+pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
+```
+
+# Hemoglobin by OSA groups 
+
+<br>
+
+## Boxplots
+
+```{r HB_by_OSAgroups,}
+fit1 <- summary(aov(formula = HBFormattedResult ~ OSAcat + age + Sex, data = pheno))
+
+p1 <- ggplot(pheno[!is.na(OSAcat),], aes(x=OSAcat,y=HBFormattedResult)) + ylab("Hb") +
+  geom_boxplot() + ggtitle("AHI categories",
+                           subtitle = paste("ANOVA p-value =",
+                                            formatC(fit1[[1]][["Pr(>F)"]][1], 2, format='e'))) +
+  facet_grid(. ~ Sex)
+
+fit2 <- summary(aov(formula = HBFormattedResult ~ t90cat + age + Sex, data = pheno))
+                           
+p2 <- ggplot(pheno[!is.na(t90cat),], aes(x=t90cat,y=HBFormattedResult)) + ylab("Hb") +
+      geom_boxplot() + ggtitle("T90 categories",
+                                subtitle = paste("ANOVA p-value =",
+                                                 formatC(fit2[[1]][["Pr(>F)"]][1], 2, format='e'))) +
+  facet_grid(. ~ Sex)
+
+fit3 <- summary(aov(formula = HBFormattedResult ~ odicat + age + Sex, data = pheno))
+
+p3 <- ggplot(pheno[!is.na(odicat),], aes(x=odicat,y=HBFormattedResult)) + ylab("Hb") +
+  geom_boxplot() + ggtitle("ODI categories",
+                           subtitle = paste("ANOVA p-value =",
+                                            formatC(fit3[[1]][["Pr(>F)"]][1], 2, format='e'))) +
+  facet_grid(. ~ Sex)
+
+p1
+p2
+p3
+```
+
+*p-values adjusted for age and sex
+
+<br>
+
+***
+
+<br>
+
+## Scatter plots
+
+<br>
+
+```{r,}
+pheno$sex <- as.numeric(pheno$Sex)
+dades <- pheno[complete.cases(pheno[,.(ahi,age,sex,Sex,HBFormattedResult)]),]
+dades.m <- dades[Sex=="male"]
+dades.f <- dades[Sex=="female"]
+estimate.m <- pcor.test(dades.m$ahi, dades.m$HBFormattedResult, dades.m[,c("age")],method = "spearman")[[1]]
+estimate.f <- pcor.test(dades.f$ahi, dades.f$HBFormattedResult, dades.f[,c("age")],method = "spearman")[[1]]
+
+
+p1 <- ggplot(dades, aes(y=HBFormattedResult, x=ahi, color=Sex)) +
+  geom_point() + ylab("HB") + xlab("AHI") + 
+  ggtitle("AHI", subtitle = paste("male:rho =",round(estimate.m,3),'\nfemale:rho =',
+                                  round(estimate.f,3))) +
+  geom_smooth(method = "lm")
+
+dades <- pheno[complete.cases(pheno[,.(t90,age,sex,Sex,HBFormattedResult)]),]
+dades.m <- dades[Sex=="male"]
+dades.f <- dades[Sex=="female"]
+estimate.m <- pcor.test(dades.m$t90, dades.m$HBFormattedResult, dades.m[,c("age")],method = "spearman")[[1]]
+estimate.f <- pcor.test(dades.f$t90, dades.f$HBFormattedResult, dades.f[,c("age")],method = "spearman")[[1]]
+
+p2 <- ggplot(dades, aes(y=HBFormattedResult, x=t90, color=Sex)) +
+  geom_point() + ylab("HB") + xlab("T90") + 
+  ggtitle("T90", subtitle = paste("male:rho =",round(estimate.m,3),'\nfemale:rho =',
+                                  round(estimate.f,3))) +
+  geom_smooth(method = "lm")
+
+dades <- pheno[complete.cases(pheno[,.(odi,age,sex,Sex,HBFormattedResult)]),]
+dades.m <- dades[Sex=="male"]
+dades.f <- dades[Sex=="female"]
+estimate.m <- pcor.test(dades.m$odi, dades.m$HBFormattedResult, dades.m[,c("age")],method = "spearman")[[1]]
+estimate.f <- pcor.test(dades.f$odi, dades.f$HBFormattedResult, dades.f[,c("age")],method = "spearman")[[1]]
+                     
+p3 <- ggplot(dades, aes(y=HBFormattedResult, x=odi, color=Sex)) +
+  geom_point() + ylab("HB") + xlab("ODI") + 
+  ggtitle("ODI", subtitle = paste("male:rho =",round(estimate.m,3),'\nfemale:rho =',
+                                  round(estimate.f,3))) +
+  geom_smooth(method = "lm")
+
+p1
+p2
+p3
+```
+
+Correlations adjusted for age 
+
+<br>
+
+***
+
+<br>
+
+## Tables by groups {.tabset .tabset-pills}
+
+
+### AHI groups {-}
+
+```{r,}
+t <- pheno %>% filter( is.na(OSAcat) == FALSE) %>%
+  group_by(OSAcat) %>% summarise(mean = round(mean(HBFormattedResult,na.rm=T),1),
+                                         median = round(median(HBFormattedResult, na.rm=T),1))
+
+datatable(t,rownames = FALSE)
+```
+
+<br>
+
+***
+
+<br>
+
+### T90 groups {-}
+
+```{r,}
+t <- pheno %>% filter( is.na(t90cat) == FALSE) %>%
+  group_by(t90cat) %>% summarise(mean = round(mean(HBFormattedResult,na.rm=T),1),
+                                         median = round(median(HBFormattedResult, na.rm=T),1))
+
+datatable(t,rownames = FALSE)
+```
+
+<br>
+
+***
+
+<br>
+
+### ODI groups {-}
+
+```{r,}
+t <- pheno %>% filter( is.na(odicat) == FALSE) %>%
+  group_by(odicat) %>% summarise(mean = round(mean(HBFormattedResult,na.rm=T),1),
+                                         median = round(median(HBFormattedResult, na.rm=T),1))
+
+datatable(t,rownames = FALSE)
+```
+
+<br>
+
+***
+
+<br>
+
+
+# Groups by Hemoglobin level 
+
+<br>
+
+Two groups by the sex-specific median hemoglobin value    
+Median HB for male = `r median(pheno[Sex=="male",HBFormattedResult],na.rm=T)`    
+Median HB for female = `r median(pheno[Sex=="female",HBFormattedResult],na.rm=T)`
+
+
+```{r, }
+
+median.m <- median(pheno[Sex=="male",HBFormattedResult],na.rm=T)
+median.f <- median(pheno[Sex=="female",HBFormattedResult],na.rm=T)
+
+pheno[Sex == "male" & HBFormattedResult < median.m, Hbgroups := "low"]
+pheno[Sex == "female" & HBFormattedResult < median.f, Hbgroups := "low"]
+pheno[Sex == "male" & HBFormattedResult >= median.m, Hbgroups := "high"]
+pheno[Sex == "female" & HBFormattedResult >= median.f, Hbgroups := "high"]
+pheno[,Hbgroups := factor(Hbgroups, levels = c("low","high"))]
+
+ggplot(pheno[!is.na(Hbgroups),], aes(x=Hbgroups,y=HBFormattedResult)) + geom_boxplot() + ylab("HB") + facet_grid(. ~ Sex)
+
+```
+
+<br>
+
+## AHI, T90, and ODI values by HB groups
+
+<br>
+
+```{r,}
+p1 <- ggplot(pheno[!is.na(Hbgroups),], aes(x=Hbgroups, y=ahi)) + geom_boxplot() + ylab("AHI")
+p2 <- ggplot(pheno[!is.na(Hbgroups),], aes(x=Hbgroups, y=t90)) + geom_boxplot() + ylab("T90")
+p3 <- ggplot(pheno[!is.na(Hbgroups),], aes(x=Hbgroups, y=odi)) + geom_boxplot() + ylab("ODI")
+
+
+p1
+p2
+p3
+```
+
+<br>
+
+***
+
+<br>
+
+# Main findings stratified by hemoglobin
+
+<br>
+
+Association with T90 
+
+<br>
+
+rho = Spearman's correlation coefficient 
+
+
+```{r, }
+main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+main.model.BMI <- c(main.model, "BMI")
+
+
+outcomes  <-  readRDS(paste0(results.folder,'mgs.m1.rds'))
+exposures <- c("t90")
+
+
+
+res <- lapply(exposures,spearman.function, 
+               x1=outcomes,
+               covari = main.model.BMI,
+               data = pheno)
+
+res <- do.call(rbind,res)
+
+setDT(res)
+setnames(res,"x","MGS")
+
+
+res1 <- lapply(exposures,spearman.function, 
+                         x1=outcomes,
+                         covari = main.model.BMI,
+                         data = pheno[Hbgroups=="low"])
+
+res1 <- do.call(rbind,res1)
+
+setDT(res1)
+setnames(res1,"x","MGS")
+res1 <- res1[match(res$MGS,res1$MGS),]
+
+
+
+res2 <- lapply(exposures,spearman.function, 
+               x1=outcomes,
+               covari = main.model.BMI,
+               data = pheno[Hbgroups=="high"])
+
+res2 <- do.call(rbind,res2)
+
+setDT(res2)
+setnames(res2,"x","MGS")
+res2 <- res2[match(res$MGS,res2$MGS),]
+
+
+table.res <- data.frame(MGS=res$MGS,
+                        rho = round(res$rho,3),
+                        p.value = formatC(res$p.value,2,format = "e"),
+                        N = res$N,
+                        rho_HB1 = round(res1$rho,3),
+                        p.value_HB1 = formatC(res1$p.value,2,format = "e"),
+                        N_HB1 = res1$N,
+                        rho_HB2 = round(res2$rho,3),
+                        p.value_HB2 = formatC(res2$p.value,2,format = "e"),
+                        N_HB2 = res2$N)
+
+sketch = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'MGS'),
+      th(colspan = 3, 'Both groups'),
+      th(colspan = 3, 'Lower HB group'),
+      th(colspan = 3, 'Higher HB group'),
+    ),
+    tr(
+      lapply(rep(c('   rho   ', '   p-value   ', '    N   '), 3), th)
+    )
+  )
+))
+
+
+datatable(table.res[order(-table.res$rho),], rownames = F, container=sketch)
