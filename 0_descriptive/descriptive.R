@@ -11,6 +11,7 @@
 library(tidyverse)
 library(data.table)
 library(Hmisc)
+library(sjmisc)
 library(compareGroups)
 
   # Folders 
@@ -33,7 +34,7 @@ library(compareGroups)
     select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, educat,
                                            leisurePA, placebirth, diabd, hypertension, dyslipidemia, metformin, 
                                            hypermed, dyslipmed, ppi, Fibrer, Energi_kcal, ahi, odi,t90, shannon,
-                                          t90cat, odicat, valid.t90, valid.ahi)
+                                          t90cat, odicat, HBFormattedResult,valid.t90, valid.ahi)
 
 
   dat1[OSAcat == "no OSA", OSAcat:= "No OSA"]
@@ -58,10 +59,11 @@ library(compareGroups)
              "Birth place", "Type 2 diabetes", "Hypertension", "Dyslipidemia",
              "Metformin",
              "Anti-hypertensive med.", "Hyperlipidemia med.", "PPI","Fiber (g/day)","Energy intake (kcal/day)",
-             "AHI (events/h)","ODI (events/h)", "T90 (%)", "Shannon Index", "T90 groups", "ODI groups")
+             "AHI (events/h)","ODI (events/h)", "T90 (%)", "Shannon Index", "T90 groups", "ODI groups", 
+             "Hemoglobin (g/L)")
 
   j=1
-  for(i in names(mylabel)){
+  for(i in names(datatable1)){
     label(datatable1[[i]]) <- mylabel[j]
     j=j+1
   }
@@ -69,12 +71,14 @@ library(compareGroups)
   # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
   t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                     leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ odi+ t90+ shannon, 
+                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+HBFormattedResult + 
+                    ahi+ odi+ t90+ shannon, 
                   data= datatable1, 
                   include.miss = FALSE, chisq.test.perm = TRUE, 
                   method = c(age = 2, Alkohol = 2, BMI = 2, 
                              ahi = 2 , odi = 2, t90 = 2, 
-                             shannon = 2, Fibrer = 2, Energi_kcal = 2))
+                             shannon = 2, Fibrer = 2, Energi_kcal = 2,
+                             HBFormattedResult = 2))
   
   t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
                      digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
@@ -93,12 +97,14 @@ library(compareGroups)
   # T90 groups 
   t = compareGroups(t90cat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                       leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ odi+ t90+ shannon, 
+                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal + HBFormattedResult +
+                      ahi+ odi+ t90+ shannon, 
                     data = datatable1[datatable1$valid.t90=="yes",], 
                     include.miss = FALSE, chisq.test.perm = TRUE, 
                     method = c(age = 2, Alkohol = 2, BMI = 2, 
                                ahi = 2 , odi = 2, t90 = 2, 
-                               shannon = 2, Fibrer = 2, Energi_kcal = 2))
+                               shannon = 2, Fibrer = 2, Energi_kcal = 2, 
+                               HBFormattedResult = 2))
   
   t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
                      digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
@@ -117,12 +123,14 @@ library(compareGroups)
   # ODI groups 
   t = compareGroups(odicat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                       leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+ahi+ odi+ t90+ shannon, 
+                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal + HBFormattedResult+
+                      ahi+ odi+ t90+ shannon, 
                     data = datatable1[datatable1$valid.t90=="yes",], 
                     include.miss = FALSE, chisq.test.perm = TRUE, 
                     method = c(age = 2, Alkohol = 2, BMI = 2, 
                                ahi = 2 , odi = 2, t90 = 2, 
-                               shannon = 2, Fibrer = 2, Energi_kcal = 2))
+                               shannon = 2, Fibrer = 2, Energi_kcal = 2,
+                               HBFormattedResult = 2))
   
   t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
                      digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 

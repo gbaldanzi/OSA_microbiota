@@ -3,12 +3,12 @@
 # Function to run Spearman's correlation and estimate the SE via bootstrap
 
 
-cor.boot <- function (x, y, z, data, nrep = 1000, conf.level=0.95) {
+cor.boot <- function (x, y, z, data, nrep = 1000, conf.level=0.95, ncor=16) {
   
   tab <- data
   setDF(tab)
   
-  tab <- data.frame(model.matrix(~.,data = data[,c(x,y,z)]))
+  tab <- data.frame(model.matrix(~.,data = tab[,c(x,y,z)]))
   
   tab <- tab[complete.cases(tab), -grep("Intercept",names(tab)) ]
 
@@ -21,8 +21,9 @@ cor.boot <- function (x, y, z, data, nrep = 1000, conf.level=0.95) {
            method = "spearman")$estimate
     }
     
-    simul <- boot::boot(tab, cor.fun, R = nrep)
-    
+
+    simul <- boot::boot(tab, cor.fun, R = nrep, parallel = "multicore", ncpus = ncor)
+
     
     se <- sd(simul$t)
     
@@ -39,6 +40,7 @@ cor.boot <- function (x, y, z, data, nrep = 1000, conf.level=0.95) {
                          rho = fit$estimate,
                          se = se, conf.int = conf.int , 
                          p.value = fit$p.value,
+                         N = fit$n,
                          covariates = paste(z,collapse = "+"))
     
     return(result)

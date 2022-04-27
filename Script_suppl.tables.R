@@ -4,6 +4,9 @@
 
 # Supplementary tables 
 
+  options(java.parameters = c("-XX:+UseConcMarkSweepGC", "-Xmx20000m"))  # Requires 20MG of memory
+  gc()
+
   library(xlsx)
   library(tidyverse)
   library(vegan)
@@ -13,6 +16,7 @@
   rm(list=ls())
   t0 <- Sys.time()
   print(t0)
+  
   if(file.exists('Supp.tables.xlsx')){file.remove('Supp.tables.xlsx')}
 
   # Function for rounding small values into scientific format 
@@ -23,7 +27,7 @@
   }
   
   # Folders
-  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results'
+  input <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
 
 # Table S3. Association between OSA and alpha-diveristy (Shannon index) ####
   
@@ -243,7 +247,7 @@
   
   
   # Lung disease results 
-  res.lungdisease <- fread(paste0(input,"corsalungdisease_all.var_mgs.tsv"))
+  res.lungdisease <- fread(paste0(input,"corsalung_all.var_mgs.tsv"))
   
   res1 <- res.lungdisease[MGS %in% mgs.t90 & exposure %in% c("t90")]
   res2 <- res.lungdisease[MGS %in% mgs.odi & exposure %in% c("odi")]
@@ -268,6 +272,7 @@
   # Merge all sensitivity analysis results 
   res <- merge(res,res.med, by =c("MGS","exposure"))
   res <- merge(res,res.atb, by = c("MGS","exposure"))
+  res <- merge(res,res.lungdisease, by = c("MGS","exposure"))
   
   
   # selecting variables for the final table
@@ -288,10 +293,48 @@
   rm(res.med)
   rm(res.lungdisease)
   rm(res)
+  rm(res.bmi)
   
   
   
-  # Suppl Table 9 - GMM enrichment analysis ####
+  
+  
+  # Suppl Table 9 - Hemoglobin stratified analysis ####
+  message("HB stratified analysis")
+  print(Sys.time()-t0)
+  
+  res <- fread(paste0(input,"cor_hb_stratified.tsv"))
+  
+  res <- merge(res,taxonomy, by.x="outcome", by.y="maintax_mgs", all.x=T, all.y=F)
+  
+  res[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res[,exposure:=toupper(exposure)]
+  
+  res[,grep("rho",names(res),value=T) := round(.SD,3) , .SDcols = grep("rho",names(res),value=T)]
+  res[,grep(".value",names(res),value=T) := lapply(.SD,round.large) , 
+      .SDcols = grep(".value",names(res),value=T)]
+  
+  
+  setnames(res,c("MGS","rho_low","rho_high", "se_low", "se_high", "p.value_low",
+                 "p.value_high", "N_low","N_high", "heterog_p.value"),
+           c("Metagenomic species","HBlow_correlation", "HBhigh_correlation",
+             "HBlow_se", "HBhigh_se", 
+             "HBlow_p-value", "HBhigh_p-value", "HBlow_N","HBhigh_N",
+             "Heterogeneity_p-value"))
+  
+  var.table <- c("Metagenomic species","exposure", "HBlow_correlation", "HBhigh_correlation",
+                 "HBlow_se", "HBhigh_se", 
+                 "HBlow_p-value", "HBhigh_p-value", "HBlow_N","HBhigh_N",
+                 "Heterogeneity_p-value")
+  
+  table.res <- res[,var.table,with=F]
+  
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S9", col.names=T,
+              row.names=F, append=T)
+  
+  
+  # Suppl Table 10 - GMM enrichment analysis ####
   message("Table for the GMM enrichment analysis results")
   
   
@@ -300,14 +343,14 @@
   res[,exposure:=toupper(exposure)]
   
   
-  res <- res[,.(exposure,correlation,pathway,Name,HL1,HL2,pval,q.value,NES,size)]
+  res <- res[,.(exposure,direction,pathway,Name,HL1,HL2,pval,q.value,NES,size)]
   
   res[,c("pval","q.value","NES"):=lapply(.SD,round.large), .SDcols=c("pval","q.value","NES")]
   
   setnames(res,c("pathway","pval","q.value"),c("Gut metabolic module","p-value","q-value"))
   
   setDF(res)
-  write.xlsx2(res, "Supp.tables_GMM.xlsx", sheetName="Table S9", col.names=T,
+  write.xlsx2(res, "Supp.tables_GMM.xlsx", sheetName="Table S10", col.names=T,
               row.names=F, append=F)
 
   
@@ -315,7 +358,7 @@
   message(paste("File name = Supp.tables_GMM.xlsx, saved at",getwd()))
   
   
-  # Suppl Table 10 - GMM-metabolites Spearman correlation ####
+  # Suppl Table 11 - GMM-metabolites Spearman correlation ####
   
   cor_gmm_metabolites <- fread(paste0(input,"cor_gmm_metabolites.tsv"))
   
@@ -342,11 +385,11 @@
            c("Gut metabolic module", "Metabolite","Metabolite group","Spearman's correlation",
              "p-value","q-value" ))
   
-  write.table(res, "Supp.tables_S10.tsv", sep = "\t", row.names = F)
+  write.table(res, "Supp.tables_S11.tsv", sep = "\t", row.names = F)
   
-  message(paste("File name = Supp.tables_S10.tsv, saved at",getwd()))
+  message(paste("File name = Supp.tables_S11.tsv, saved at",getwd()))
   
-  # Suppl Table 11 - GMM-metabolites enrichment ####
+  # Suppl Table 12 - GMM-metabolites enrichment ####
   
   ea_gmm_subclass <- fread(paste0(input,"ea_gmm_subclass.tsv"))
   
@@ -374,23 +417,18 @@
   setnames(res,c("modules","subclass","estimate","p.value","q.value"),
            c("Gut metabolic module","Metabolites group","NES","p-value","q-value"))
 
-  write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S11", col.names=T,
+  write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S12", col.names=T,
               row.names=F, append=F)
   
-  # Suppl Table 12 - health outcomes ####
+  # Suppl Table 13 - health outcomes ####
   
-  res.mgs.bp <- fread(paste0(input, 'cor.sig.mgs.gmm_bphb.tsv'))
-  res.mgs.bp[,model:="basic model"]
-  res.mgs.bp.ahi <- fread(paste0(input, 'cor.ahi.sig.mgs.gmm_bphb.tsv'))
-  res.mgs.bp.ahi[,model:="OSA adjusted"]
-  res.mgs.bp.bmi <- fread(paste0(input, 'cor.bmi.sig.mgs.gmm_bphb.tsv'))
-  res.mgs.bp.bmi[,model:="OSA and BMI adjusted"]
+  res.mgs.bp <- fread(paste0(input, 'cor_mgs.gmm_bphb.tsv'))
+  res.mgs.bp[model == "OSA model", model := "OSA adjusted"]
+
   
-  res <- rbind(res.mgs.bp, res.mgs.bp.ahi, res.mgs.bp.bmi)
-  
-  res1 <- merge(res[!grep("MF",MGS_features),], taxonomy, by.x="MGS_features", by.y="maintax_mgs",
+  res1 <- merge(res.mgs.bp[!grep("MF",MGS_features),], taxonomy, by.x="MGS_features", by.y="maintax_mgs",
                all.x=T, all.y=F)
-  res2 <- merge(res[grep("MF",MGS_features),], gmm.names[,.(Module,Name)], by.x = "MGS_features", by.y="Module",
+  res2 <- merge(res.mgs.bp[grep("MF",MGS_features),], gmm.names[,.(Module,Name)], by.x = "MGS_features", by.y="Module",
                all.x=T, all.y=F)
   
   res1[, microbiota := paste0(MainTax," (",mgs,")")]
@@ -412,7 +450,7 @@
     
   
   
-  write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S12", col.names=T,
+  write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S13", col.names=T,
               row.names=F, append=T)
   
   message(paste("File name = Supp.tables_part2.xlsx, saved at",getwd()))

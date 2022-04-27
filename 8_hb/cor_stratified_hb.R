@@ -47,11 +47,13 @@
   
   # T90 analysis
   ## Low HB
+  message("T90 analysis - low HB")
   res.t90.hb.low <- lapply(mgs.t90, cor.boot, x = "t90", z=main.model, data=pheno[Hbgroup =="low",])
   res.t90.hb.low <- do.call(rbind, res.t90.hb.low)
   res.t90.hb.low$Hbgroup <- "low"
   
   ## High HB
+  message("T90 analysis - high HB")
   res.t90.hb.high <- lapply(mgs.t90, cor.boot, x = "t90", z=main.model, data=pheno[Hbgroup =="high",])
   res.t90.hb.high <- do.call(rbind, res.t90.hb.high)
   res.t90.hb.high$Hbgroup <- "high"
@@ -59,16 +61,18 @@
   res.t90 <- rbind(res.t90.hb.high, res.t90.hb.low)
   
   res.t90 <- pivot_wider(res.t90, id_cols = c(outcome,exposure), names_from = Hbgroup, 
-                           values_from = c(rho,se,conf.int, p.value, covariates))
+                           values_from = c(rho,se,conf.int, p.value,N, covariates))
   
   
   # ODI analysis 
   ## Low HB
+  message("ODI analysis - low HB")
   res.odi.hb.low <- lapply(mgs.odi, cor.boot, x = "odi", z=main.model, data=pheno[Hbgroup =="low",])
   res.odi.hb.low <- do.call(rbind, res.odi.hb.low)
   res.odi.hb.low$Hbgroup <- "low"
   
   ## High HB
+  message("ODI analysis - high HB")
   res.odi.hb.high <- lapply(mgs.odi, cor.boot, x = "odi", z=main.model, data=pheno[Hbgroup =="high",])
   res.odi.hb.high <- do.call(rbind, res.odi.hb.high)
   res.odi.hb.high$Hbgroup <- "high"
@@ -76,16 +80,16 @@
   res.odi <- rbind(res.odi.hb.high, res.odi.hb.low)
   
   res.odi <- pivot_wider(res.odi, id_cols = c(outcome,exposure), names_from = Hbgroup, 
-                         values_from = c(rho,se,conf.int, p.value, covariates))
+                         values_from = c(rho,se,conf.int, p.value,N, covariates))
   
   # Heterogeneinity test ####
   
   heterog.test.fun <- function(res){
-    
-  db <- (res$rho_low - res$rho_high)^2
-  se <-(res$se_low^2)+(res$se_high^2)
-  td <- db/se
-  pv <- pchisq(td, df = 1, lower.tail = F)
+  
+  diff <-   res$rho_low - res$rho_high
+  se <- sqrt((res$se_low^2)+(res$se_high^2))
+  z.score <- abs(diff/se)
+  pv <- pnorm(z.score, lower.tail = F)*2
   
   return(pv)
   
