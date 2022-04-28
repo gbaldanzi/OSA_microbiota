@@ -11,7 +11,7 @@
   pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
 
   # Remove participants that have used antibiotic in the last 6 months
-  pheno <- pheno[lungdisease=="no",]
+  pheno <- pheno[-which(lungdisease=="yes"),]
   
   # Import signatures species 
   

@@ -31,8 +31,6 @@
   
   # Functions 
   source("0_functions/Spearman.correlation.function.R") # Correlation function 
-  #source("0_functions/Script6.Functions.R")
-
 
   message("Main Model without BMI")
   source("3_correlation/cor_main.model.R")
