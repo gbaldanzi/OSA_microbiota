@@ -30,11 +30,10 @@ library(compareGroups)
   #cpap_self, splint_self, apneasurgery_self,
   #ahi, odi, sat90, cpap, splint 
   
-  dat1 = pheno %>% 
-    select(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, educat,
+  dat1 <-  pheno[,.(SCAPISid, OSAcat , age, Sex, smokestatus, Alkohol, BMI, educat,
                                            leisurePA, placebirth, diabd, hypertension, dyslipidemia, metformin, 
                                            hypermed, dyslipmed, ppi, Fibrer, Energi_kcal, ahi, odi,t90, shannon,
-                                          t90cat, odicat, HBFormattedResult,valid.t90, valid.ahi)
+                                          t90cat, odicat, HBFormattedResult, ESS, valid.t90, valid.ahi)]
 
 
   dat1[OSAcat == "no OSA", OSAcat:= "No OSA"]
@@ -60,7 +59,7 @@ library(compareGroups)
              "Metformin",
              "Anti-hypertensive med.", "Hyperlipidemia med.", "PPI","Fiber (g/day)","Energy intake (kcal/day)",
              "AHI (events/h)","ODI (events/h)", "T90 (%)", "Shannon Index", "T90 groups", "ODI groups", 
-             "Hemoglobin (g/L)")
+             "Hemoglobin (g/L)", "ESS")
 
   j=1
   for(i in names(datatable1)){
@@ -71,21 +70,21 @@ library(compareGroups)
   # Create table of population characteristics by OSA group (no OSA, Mild, Moderate, or Severe OSA)
   t = compareGroups(OSAcat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                     leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+HBFormattedResult + 
+                    hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal+HBFormattedResult + ESS + 
                     ahi+ odi+ t90+ shannon, 
                   data= datatable1, 
                   include.miss = FALSE, chisq.test.perm = TRUE, 
                   method = c(age = 2, Alkohol = 2, BMI = 2, 
                              ahi = 2 , odi = 2, t90 = 2, 
                              shannon = 2, Fibrer = 2, Energi_kcal = 2,
-                             HBFormattedResult = 2))
+                             HBFormattedResult = 2, ESS = 2))
   
   t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
                      digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
                                 leisurePA = 1, placebirth = 1, diabd = 1, ahi = 1, 
                                 odi = 1, t90 = 1, shannon = 1, diabd = 1, hypertension = 1, 
                                 Fibrer = 1, Energi_kcal = 0, ppi = 1, hypermed = 1, 
-                                dyslipmed = 1))
+                                dyslipmed = 1, ESS=0))
   
   export2xls(t1, file = paste0(descriptive.folder,'Table1.xlsx'))
   
@@ -97,21 +96,21 @@ library(compareGroups)
   # T90 groups 
   t = compareGroups(t90cat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                       leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal + HBFormattedResult +
+                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal + HBFormattedResult +  ESS +
                       ahi+ odi+ t90+ shannon, 
                     data = datatable1[datatable1$valid.t90=="yes",], 
                     include.miss = FALSE, chisq.test.perm = TRUE, 
                     method = c(age = 2, Alkohol = 2, BMI = 2, 
                                ahi = 2 , odi = 2, t90 = 2, 
                                shannon = 2, Fibrer = 2, Energi_kcal = 2, 
-                               HBFormattedResult = 2))
+                               HBFormattedResult = 2, ESS = 2))
   
   t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
                      digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
                                 leisurePA = 1, placebirth = 1, diabd = 1, ahi = 1, 
                                 odi = 1, t90 = 1, shannon = 1, diabd = 1, hypertension = 1, 
                                 Fibrer = 1, Energi_kcal = 0, ppi = 1, hypermed = 1, 
-                                dyslipmed = 1))
+                                dyslipmed = 1, ESS=0))
   
   export2xls(t1, file = paste0(descriptive.folder,'Table1_t90cat.xlsx'))
   
@@ -123,21 +122,21 @@ library(compareGroups)
   # ODI groups 
   t = compareGroups(odicat ~ age + Sex + smokestatus + Alkohol + BMI + educat +
                       leisurePA + placebirth + diabd + hypertension + dyslipidemia + metformin + 
-                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal + HBFormattedResult+
+                      hypermed + dyslipmed+ ppi+Fibrer+Energi_kcal + HBFormattedResult+  ESS +
                       ahi+ odi+ t90+ shannon, 
                     data = datatable1[datatable1$valid.t90=="yes",], 
                     include.miss = FALSE, chisq.test.perm = TRUE, 
                     method = c(age = 2, Alkohol = 2, BMI = 2, 
                                ahi = 2 , odi = 2, t90 = 2, 
                                shannon = 2, Fibrer = 2, Energi_kcal = 2,
-                               HBFormattedResult = 2))
+                               HBFormattedResult = 2, ESS =2))
   
   t1 <-  createTable(t, hide.no = "no", show.p.overall = FALSE, show.all=T, 
                      digits = c(age = 1, Sex = 1, Alkohol = 1, BMI = 1, educat = 1, 
                                 leisurePA = 1, placebirth = 1, diabd = 1, ahi = 1, 
                                 odi = 1, t90 = 1, shannon = 1, diabd = 1, hypertension = 1, 
                                 Fibrer = 1, Energi_kcal = 0, ppi = 1, hypermed = 1, 
-                                dyslipmed = 1))
+                                dyslipmed = 1, ESS=0))
   
   export2xls(t1, file = paste0(descriptive.folder,'Table1_odicat.xlsx'))
   
