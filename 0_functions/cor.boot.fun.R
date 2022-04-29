@@ -1,6 +1,7 @@
 # Project Sleep apnea and gut microbiota 
 
-# Function to run Spearman's correlation and estimate the SE via bootstrap
+# Function to run Spearman's correlation and estimate the 
+# the standanrd error via bootstrap
 
 
 cor.boot <- function (x, y, z, data, nrep = 1000, conf.level=0.95, ncor=16) {
@@ -21,6 +22,7 @@ cor.boot <- function (x, y, z, data, nrep = 1000, conf.level=0.95, ncor=16) {
            method = "spearman")$estimate
     }
     
+    set.seed(7)
 
     simul <- boot::boot(tab, cor.fun, R = nrep, parallel = "multicore", ncpus = ncor)
 
