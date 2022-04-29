@@ -90,7 +90,7 @@
   pheno[valid.t90=='no', c("t90","odi"):=NA]
   
   
-  # Create groups of OSA severity based on AHI 
+  message("Create groups of OSA severity based on AHI")
   pheno[valid.ahi=="yes", OSAcat:= rec(ahi, rec = "0:4.9=0; 5:14.9=1; 15:29.9=2 ; 30:max=3")]
   pheno[,OSAcat:= factor(OSAcat, levels = c(0,1,2,3), 
                          labels = c("No OSA", "Mild","Moderate", "Severe"))]
