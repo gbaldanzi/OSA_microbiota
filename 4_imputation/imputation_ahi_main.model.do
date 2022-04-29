@@ -25,6 +25,11 @@ postfile myfile str20 MGS double rho p_value N using "cor_ahi_imput_mgs.dta", re
 
 use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno.dta", clear
 
+// Imputation and analysis were peformed in a loop so that we did not have to include 
+// all species in the same imputation equatation. Therefore, for every species (1602) 
+// we performed an imputation step followed by the partial Spearman correlation
+
+
 foreach mgs of varlist HG3A*{
 
 	 
@@ -32,15 +37,12 @@ foreach mgs of varlist HG3A*{
 
 	use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno.dta", clear 
 
-	drop if Alkohol == . | smokestatus == . // drop obs with missing information on basic model vars
+	drop if Alkohol == . | smokestatus == . // drop obs with missing information on main model vars
 
 
-	** gen Miss_ahi = missing(ahi) // Flag variable for missing AHI
 	
 	// Imputation 
 
-
-*local var_to_keep Miss_ahi t90 age Sex Alkohol smokestatus* plate* shannon BMI Fibrer Energi_kcal leisurePA* educat* placebirth* visit_month* metformin ppi hypermed dyslipmed `mgs' rank*
 
 	mi set mlong 
 
@@ -61,13 +63,17 @@ foreach mgs of varlist HG3A*{
 // Partial rank correlation 
 
 
+	// Create ranks for exposure and outcome
 	mi passive: egen X_rank_imp = rank(ahi)
 	mi passive: egen Y_rank_imp = rank(`mgs')
 	
+	// Create ranks for continous covariates
 	foreach var in age Alkohol shannon BMI {
 		qui mi passive: egen rank_`var' = rank(`var')
 	}
 	
+	
+	// * is used to capture all dummy variables for that covariate
 	local main_model Sex rank_age rank_Alkohol smokestatus_* plate_* rank_shannon rank_BMI
 
 	qui mi estimate,saving(model1,replace): regress X_rank_imp `main_model'
@@ -99,6 +105,8 @@ di c(current_time)
 use cor_ahi_imput_mgs.dta, clear 
 
 gen exposure = "ahi" 
+
+// Export results back to R
 
 export delimited using "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/cor_ahi_imput_mgs.tsv", delim(tab) replace datafmt
 

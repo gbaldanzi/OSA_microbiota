@@ -3,10 +3,13 @@
 
 # Script to prepare data to be used in STATA
 
-# STATA will be used to perform analysis with the imputed data set 
-
 # Because AHI have a lower sample size than ODI and T90, we are imputing 
 # missing AHI values 
+
+# STATA will be used to conducted the multiple imputation and the analyses with the 
+# imputed data
+
+# This script will prepare the data to be used at STATA
 
   rm(list=ls())
 
@@ -25,13 +28,17 @@
   #Covariates 
   main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon","BMI")
   
-  
+  # Numeric variables (no need to create dummies)
   numeric.covari = names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.numeric)]
+  
+  # Factor variables
   factor.covari =  names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.factor)]
   factor.covari = c(factor.covari, names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.character)])
   
+  # Factor variables with more than 2 levels
   factor.covari = names(pheno[,factor.covari,with=F])[sapply(pheno[,factor.covari,with=F],function(x) ifelse(length(unique(x[!is.na(x)]))>2,T,F))]
   
+  # Create dummy variables for factor variables with more than 2 levels
   temp.dataset = dummy_cols(pheno, select_columns = factor.covari,
                             remove_most_frequent_dummy = T, 
                             remove_selected_columns = F)
@@ -44,7 +51,7 @@
   pheno <- merge(pheno, temp.dataset, by="SCAPISid")
   
 
-# Makes species names shorter 
+# Makes species names shorter (some names were too long for STATA)
 
 cutlast <- function(char,n){
   l <- nchar(char)
@@ -52,13 +59,11 @@ cutlast <- function(char,n){
   return(substr(char,a,l))
 }
 
+  mgs.names.index <- grep("HG3A",names(pheno))
+  names(pheno)[mgs.names.index] <- cutlast(names(pheno)[mgs.names.index],9)
 
-mgs.names.index <- grep("HG3A",names(pheno))
-names(pheno)[mgs.names.index] <- cutlast(names(pheno)[mgs.names.index],9)
-
-  # Exporting in STATA friendly format 
-
-
+  
+  # Selecting variables to export
   variables.export <- c("SCAPISid", "ahi", "odi", "t90", "valid.ahi",
                       "visit.month",
                       main.model, dummy.names,
@@ -66,10 +71,7 @@ names(pheno)[mgs.names.index] <- cutlast(names(pheno)[mgs.names.index],9)
 
   pheno <- pheno[valid.t90=="yes",]
 
-  pheno[,leisurePA:=factor(leisurePA, labels=c("PA1","PA2","PA3","PA4"))]
 
-  pheno[,educat:=factor(educat, labels=c("cat0", "cat1", "cat2", "cat3"))]
-
-
+  # Exporting in STATA friendly format 
   require(foreign)
   write.dta(pheno[,variables.export,with=F], paste0(work,"pheno.dta"))

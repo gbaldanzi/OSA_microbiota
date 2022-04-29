@@ -15,10 +15,10 @@
   # Import data
   pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
    
-  # Create dataset containing exclusively the MGS as columns/variables 
+  # Pass species names to an object 
   species.names <- grep("HG3A",names(pheno),value=T)
   
-  # Restricting the species matrix to participants with valid AHI and valid T90/ODI data
+  # Create a species matrix for participants with valid AHI and valid T90/ODI data
   MGSmatrix <- pheno[valid.ahi=="yes" | valid.t90 =="yes", species.names, with=F]
   rownames(MGSmatrix) <- pheno[valid.ahi=="yes" | valid.t90 =="yes", SCAPISid]
   

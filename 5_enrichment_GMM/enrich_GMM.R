@@ -1,6 +1,5 @@
-# Script 9 - Enrichment analysis using main model(with BMI) correlation coefficients 
-
-# Gabriel Baldanzi 
+# Enrichment analysis for gut metabolic modules using main model(with BMI) ranked p-values stratified by 
+# the direction of the correlation coefficients
 
 rm(list=ls())
 
@@ -26,7 +25,7 @@ rm(list=ls())
   gmm.names[,Name:=str_to_title(Name)]
   gmm.names[,Name:=gsub("Ii","II",Name)]
   
-  # Import results from main model (with BMI)
+  # Import Spearman's correlation results from main model (with BMI)
   res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
   
   res[,mgs:=cutlast(MGS,9)]
@@ -39,15 +38,16 @@ rm(list=ls())
   # List of modules ####
   load(paste0(input,'MGS_HG3A.GMMs2MGS.RData')) # object = MGS_HG3A.GMMs2MGS
   
+  # Enrichment analysis   
+  
+  ## Positive correlations ####
+  
   list.modules <-  MGS_HG3A.GMMs2MGS
   
   for(m in names(list.modules)){
     list.modules[[m]] <- list.modules[[m]][list.modules[[m]] %in% res[rho>0,mgs]]
   }
 
-  # Enrichment analysis   
-    # Positive correlations ####
-    message("Positive correlations")
     res.pos = list()[1:3]
     
     for(i in 1:3){
@@ -62,39 +62,32 @@ rm(list=ls())
       
     res.pos <- do.call(rbind,res.pos)
     
-      # Save results from enrichment analysis in the positive correlations  
-    
-        
-       # res.pos <- merge(res.pos,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
-        #fwrite(res.pos, file = paste0(results.folder,"ea_GMM_pos.tsv"))
-      
-      # Negative correlations ####
 
-        message("Negative correlations")
+      ## Negative correlations ####
 
-        list.modules <-  MGS_HG3A.GMMs2MGS
+      list.modules <-  MGS_HG3A.GMMs2MGS
         
-        for(m in names(list.modules)){
+      for(m in names(list.modules)){
           list.modules[[m]] <- list.modules[[m]][list.modules[[m]] %in% res[rho<0,mgs]]
-        }
+      }
         
-        res.neg = list()[1:3]
+      res.neg = list()[1:3]
         
-        for(i in 1:3){
+      for(i in 1:3){
           
         res.neg[[i]] <-  MGS.Enrich.Analysis(res.list[[i]],  
                            p.value.name="p.value",
                            MGS.var.name = "mgs",
                            enrich.var.list = list.modules,
                            direction = "negative")
-        }
+      }
         
-        res.neg <- do.call(rbind, res.neg)
+      res.neg <- do.call(rbind, res.neg)
         
-        # Save results 
-        res <- rbind(res.pos,res.neg)
+      # Save results 
+      res <- rbind(res.pos,res.neg)
         
-        res <- merge(res,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
+      res <- merge(res,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
         
-        fwrite(res, file = paste0(results.folder,"ea_GMM.tsv"))
+      fwrite(res, file = paste0(results.folder,"ea_GMM.tsv"))
         

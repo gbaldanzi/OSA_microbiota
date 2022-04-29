@@ -4,6 +4,11 @@
 
 # Association between T90/ODI and species stratified by the hemoglobin
 
+# In this script, we will only include the species that were FDR significant in the main model 
+
+# This sensitivity analysis is adjusted for all main model covariates
+
+
   library(data.table)
   library(dplyr)
   library(tidyr)
@@ -82,7 +87,7 @@
   res.odi <- pivot_wider(res.odi, id_cols = c(outcome,exposure), names_from = Hbgroup, 
                          values_from = c(rho,se,conf.int, p.value,N, covariates))
   
-  # Heterogeneinity test ####
+  # Heterogeneity test ####
   
   heterog.test.fun <- function(res){
   
@@ -99,11 +104,8 @@
   res.t90$heterog_p.value <- heterog.test.fun(res.t90)
   res.odi$heterog_p.value <- heterog.test.fun(res.odi)
   
-  # Multiple testing adjustment (FDR)
   res <- rbind(res.t90,res.odi)
-  
-  res$heterog_q.value <- p.adjust(res$heterog_p.value, method = "BH")
-  
+
   # Save results 
   fwrite(res, file=paste0(results.folder,"cor_hb_stratified.tsv"))
   

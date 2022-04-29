@@ -55,7 +55,7 @@ PermanovaFunction = function(outcome, group1, group2, covari, data, distance = "
 }
 
 
-# Preparing the PERMANOVA
+# Preparing the PERMANOVA in parallel
 
 
 perma.fun <- function(outcome, group1, group2, covari, data, nodes = 1, group_var= group_var){

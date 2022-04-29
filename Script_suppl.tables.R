@@ -84,9 +84,9 @@
   # Results from main model without BMI 
   res <- fread(paste0(input,"cor_all.var_mgs.tsv"))
   
-  #taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
+  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
   
-  #res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
   
   res[,MGS:=paste0(MainTax," (",mgs,")")]
   
@@ -114,6 +114,10 @@
   
   # Results from model2 
   res <- fread(paste0(input,"cor.bmi_all.var_mgs.tsv"))
+  
+
+    res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  
   
   res[,MGS:=paste0(MainTax," (",mgs,")")]
   

@@ -2,7 +2,7 @@
 # Gabriel Baldanzi 
 
 
-# This script will investigate the correlation between those species that were 
+# This script will investigate the correlation between the species that were 
 # associated with T90/ODI and the health outcomes SBP/DPB/Hb1Ac in SCAPIS-Uppsala participants
 
 # It will also investigate the association between the GMM enriched in the T90-species 
@@ -23,7 +23,7 @@
   
 
   # Import the significant species 
-  osa.mgs <- readRDS(paste0(results.folder,'mgs.m1.rds'))
+  mgs.fdr <- readRDS(paste0(results.folder,'mgs.m1.rds'))
   
   # Import pathway enrichment analysis results ####
   res.ea.gmm <- fread(paste0(results.folder,"ea_GMM.tsv"))
@@ -36,7 +36,7 @@
                   "Fibrer","Energi_kcal" ,"leisurePA", "placebirth",
                   "plate","shannon","t90","ahi")
   
-  # In the analysis with SBPD and DBP, we excluded participants that self-reported
+  # In the analysis with SBP and DBP, we excluded participants that self-reported
   # medication use for hypertension 
   # In the analysis with HbA1c, we excluded participants with self-reported 
   # medication use for diabetes 
@@ -48,7 +48,7 @@
   temp.data = pheno[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
   
   res.bp <- lapply(outcomes,spearman.function, 
-                   x1=c(osa.mgs,osa.gmm),
+                   x1=c(mgs.fdr,osa.gmm),
                    covari = covariates,
                    data = temp.data[hypermed=="no",])
   
@@ -61,7 +61,7 @@
   temp.data = pheno[!is.na(Hba1cFormattedResult),]
   
   res.hb <- lapply(outcomes,spearman.function, 
-                   x1=c(osa.mgs,osa.gmm),
+                   x1=c(mgs.fdr,osa.gmm),
                    covari = covariates,
                    data = temp.data[diabmed=="no",])
   
@@ -91,7 +91,7 @@
   temp.data = pheno[!is.na(SBP_Mean) & !is.na(DBP_Mean),]
   
   res.bp <- lapply(outcomes,spearman.function, 
-                   x1=c(osa.mgs,osa.gmm),
+                   x1=c(mgs.fdr,osa.gmm),
                    covari = covariates.bmi,
                    data = temp.data[hypermed=="no",])
   
@@ -104,7 +104,7 @@
   temp.data = pheno[!is.na(Hba1cFormattedResult),]
   
   res.hb <- lapply(outcomes,spearman.function, 
-                   x1=c(osa.mgs,osa.gmm),
+                   x1=c(mgs.fdr,osa.gmm),
                    covari = covariates.bmi,
                    data = temp.data[diabmed=="no",])
   

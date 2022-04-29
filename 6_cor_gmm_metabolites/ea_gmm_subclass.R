@@ -2,7 +2,7 @@
 # Gabriel Baldanzi 
 
 # This script will run the enrichment analysis for metabolites groups (Sub-pathways) 
-# in the metabolites associations with T90-associated GMM. 
+# in the metabolites associations with  the T90-associated gut metabolic modules (GMM). 
 
   library(data.table)
   library(fgsea)

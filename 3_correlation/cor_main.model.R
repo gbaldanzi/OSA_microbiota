@@ -2,7 +2,7 @@
 # Gabriel Baldanzi 
 
 
-# Correlations 
+# Correlations using main model covariates except BMI
   res.main.model <- lapply(exposures,spearman.function, 
                 x1=outcomes,
                 covari = main.model,
@@ -13,11 +13,6 @@
   setDT(res.main.model)
   setnames(res.main.model,"x","MGS")
   
-  # Merge with taxonomic annotation 
-  taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
-  setnames(taxonomy,"maintax_mgs","MGS")
-  
-  res.main.model <- merge(res.main.model, taxonomy, by="MGS", all.x=T)
 
   # Saving results 
   fwrite(res.main.model, file = paste0(results.folder,"cor_all.var_mgs.tsv"))

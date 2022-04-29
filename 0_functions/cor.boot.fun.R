@@ -1,7 +1,7 @@
 # Project Sleep apnea and gut microbiota 
 
 # Function to run Spearman's correlation and estimate the 
-# the standanrd error via bootstrap
+# the standard error via bootstrap
 
 
 cor.boot <- function (x, y, z, data, nrep = 1000, conf.level=0.95, ncor=16) {

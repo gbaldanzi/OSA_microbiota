@@ -1,5 +1,5 @@
 
-# Script to run the permutation analysis between OSA/AHI/T90 and BC
+# Script to run the permutation analysis between AHI/T90/ODI and BC
 
 # This script is meant to run PERMANOVA analysis in parallel in 16 cores
 
@@ -39,7 +39,7 @@
   expo = "OSAcat"
   pheno.ahi <- pheno[valid.ahi=="yes",]
   
-  # Runing PERMANOVA in parallel 
+  # Run PERMANOVA in parallel 
   
   # Main model 
   res1 <- Permanova.parallel.FUN(y = BC, exposure=expo, 
@@ -57,11 +57,11 @@
   
   
   
-  # By AHI severity groups ####
+  # By T90 severity groups ####
   expo = "t90cat"
   pheno.t90 <- pheno[valid.t90=="yes",]
   
-  # Runing PERMANOVA in parallel 
+  # Run PERMANOVA in parallel 
   
   # Main model 
   res3 <- Permanova.parallel.FUN(y = BC, exposure=expo, 

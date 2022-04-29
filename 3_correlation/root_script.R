@@ -3,8 +3,8 @@
 
 # Correlation with species abundance
 
-# This set of scripts will investigate the association between the relative 
-# abundance of gut microbiota species and four phenotypes (AHI, T90, ODI, BMI)
+# This set of scripts will investigate the association between the OSA parameters (AHI, T90, ODI)
+# and the relative abundance of gut microbiota  
 
   # Loading packages 
   library(data.table)
@@ -44,8 +44,8 @@
   message("Medication Model")
   source("3_correlation/cor_medication.model.R")
   
-  message("Sensitivity Analysis - Atb")
+  message("Sensitivity Analysis - Antibiotic")
   source("3_correlation/cor_sa_atb.R")
   
-  message("Sensitivity Analysis - Lund Disease")
+  message("Sensitivity Analysis - Lung Disease")
   source("3_correlation/cor_sa_lungdisease.R")
