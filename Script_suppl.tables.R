@@ -142,7 +142,7 @@
   
   
   
-  # Suppl Table 7 - results from the imputation analysis ####
+  # Suppl Table 8 - results from the imputation analysis ####
   message("Results from the imputation analysis")
   print(Sys.time()-t0)
   
@@ -173,12 +173,12 @@
   
   table.res <- res[,var.table,with=F]
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S7", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S8", col.names=T,
               row.names=F, append=T)
   
   
   
-  # Suppl Table 8. Sensitivity analyses ####
+  # Suppl Table 9. Sensitivity analyses ####
   message("Table for the Sensitivity anlaysis")
   print(Sys.time()-t0)
   
@@ -290,7 +290,7 @@
   
   table.res <- res[,var.table,with=F]
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S8", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S9", col.names=T,
               row.names=F, append=T)
   rm(table.res)
   rm(res.atb)
@@ -303,7 +303,7 @@
   
   
   
-  # Suppl Table 9 - Hemoglobin stratified analysis ####
+  # Suppl Table 10 - Hemoglobin stratified analysis ####
   message("HB stratified analysis")
   print(Sys.time()-t0)
   
@@ -334,11 +334,11 @@
   
   table.res <- res[,var.table,with=F]
   
-  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S9", col.names=T,
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S10", col.names=T,
               row.names=F, append=T)
   
   
-  # Suppl Table 10 - GMM enrichment analysis ####
+  # Suppl Table 11 - GMM enrichment analysis ####
   message("Table for the GMM enrichment analysis results")
   
   
@@ -354,7 +354,7 @@
   setnames(res,c("pathway","pval","q.value"),c("Gut metabolic module","p-value","q-value"))
   
   setDF(res)
-  write.xlsx2(res, "Supp.tables_GMM.xlsx", sheetName="Table S10", col.names=T,
+  write.xlsx2(res, "Supp.tables_GMM.xlsx", sheetName="Table S11", col.names=T,
               row.names=F, append=F)
 
   
@@ -362,69 +362,9 @@
   message(paste("File name = Supp.tables_GMM.xlsx, saved at",getwd()))
   
   
-  # Suppl Table 11 - GMM-metabolites Spearman correlation ####
   
-  cor_gmm_metabolites <- fread(paste0(input,"cor_gmm_metabolites.tsv"))
   
-  gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
-  
-  gmm.names[,Name:=str_to_title(Name)]
-  gmm.names[,Name:=gsub("Ii","II",Name)]
-  
-  cor_gmm_metabolites <- merge(cor_gmm_metabolites, gmm.names[,.(Module,Name)],
-                               by.x= "modules", by.y = "Module", all.x=T, all.y=F)
-  
-  input2 <- "/proj/sens2019512/SCAPIS_org/SCAPIS/metabolon_final/clean/"
-  annotation <- fread(paste0(input2, 'scapis_merged_annotations_batchnorm_clean.tsv'))
-  
-  cor_gmm_metabolites <- merge(cor_gmm_metabolites, annotation[,.(MET_ID, CHEMICAL_NAME,SUB_PATHWAY)], 
-               by.x = "metabolites", by.y = "MET_ID", all.x=T, all.y=F)
-  
-  res <- cor_gmm_metabolites[,.(modules, Name,CHEMICAL_NAME,SUB_PATHWAY,rho,p.value,q.value,N)]
-  
-  res[!is.na(p.value), p.value := round.large(p.value)]
-  res[!is.na(q.value), q.value := round.large(q.value)]
-  
-  setnames(res, c("modules", "CHEMICAL_NAME","SUB_PATHWAY", "rho", "p.value", "q.value"),
-           c("Gut metabolic module", "Metabolite","Metabolite group","Spearman's correlation",
-             "p-value","q-value" ))
-  
-  write.table(res, "Supp.tables_S11.tsv", sep = "\t", row.names = F)
-  
-  message(paste("File name = Supp.tables_S11.tsv, saved at",getwd()))
-  
-  # Suppl Table 12 - GMM-metabolites enrichment ####
-  
-  ea_gmm_subclass <- fread(paste0(input,"ea_gmm_subclass.tsv"))
-  
-  ea_gmm_subclass <- merge(ea_gmm_subclass, gmm.names[,.(Module,Name)],
-                               by.x= "modules", by.y = "Module", all.x=T, all.y=F)
-  
-  fix.subclass.name.fun <- function(char){
-    char <- gsub("__PC_", " (PC)",char)
-    char <- gsub("___","_",char)
-    char <- gsub("__","_",char)
-    char <- gsub("Drug", "Drug -", char)
-    char <- gsub("_"," ",char)
-    char <- gsub(" PI ", " (PI)",char)
-    char <- gsub(" PE ", " (PE)",char)
-    char <- gsub("Analgesics","Analgesics,", char)
-    return(char)
-  }
-  
-  res <- ea_gmm_subclass[,.(modules,Name,direction,subclass,estimate,p.value,q.value,size)]
-  
-  res[, subclass := fix.subclass.name.fun(subclass)]
-  
-  res[,c("p.value","q.value","estimate"):=lapply(.SD,round.large), .SDcols=c("p.value","q.value","estimate")]
-  
-  setnames(res,c("modules","subclass","estimate","p.value","q.value"),
-           c("Gut metabolic module","Metabolites group","NES","p-value","q-value"))
-
-  write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S12", col.names=T,
-              row.names=F, append=F)
-  
-  # Suppl Table 13 - health outcomes ####
+  # Suppl Table 12 - health outcomes ####
   
   res.mgs.bp <- fread(paste0(input, 'cor_mgs.gmm_bphb.tsv'))
   res.mgs.bp[model == "OSA model", model := "OSA adjusted"]
@@ -454,7 +394,7 @@
     
   
   
-  write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S13", col.names=T,
+  write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S12", col.names=T,
               row.names=F, append=T)
   
   message(paste("File name = Supp.tables_part2.xlsx, saved at",getwd()))
