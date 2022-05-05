@@ -62,8 +62,8 @@ Rscript 3_correlation/root_script.R
 
 echo Imputation_analysis 
 
-# Imputation analysis. This script will impute AHI values and then run the correlation of AHI with species abudance 
-#sbatch 4_imputation/imp_bash.txt
+# Imputation analysis. This script will impute AHI values and then run the correlation of AHI with species abundance 
+sbatch 4_imputation/imp_bash_0.txt
 
 echo Enrichment_GMM
 echo " " 

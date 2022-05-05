@@ -3,8 +3,8 @@
 #SBATCH -A sens2019512
 #SBATCH -p core
 #SBATCH -n 1
-#SBATCH -t 1:00:00
-#SBATCH -J Script6_bash_main
+#SBATCH -t 3:00:00
+#SBATCH -J cor_wo_shannon
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
 #SBATCH --mail-type=ALL
 
@@ -12,6 +12,6 @@ ml R_packages
 
 cd $wrf
 
-Rscript Script6_main.R
+Rscript 3_correlation/root_script.R
 
 

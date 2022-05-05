@@ -15,7 +15,7 @@
 
   library(data.table)
   library(vegan)
-  library(fastDummies)
+
 
   # Folders 
   work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
@@ -26,30 +26,44 @@
   # Create dummy variables for factor variables 
 
   #Covariates 
-  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon","BMI")
+  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","BMI")
+  extended.model <- c(main.model,"Fibrer","Energi_kcal" ,"leisurePA", 
+                      "educat","placebirth","month")
   
-  # Numeric variables (no need to create dummies)
-  numeric.covari = names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.numeric)]
+  # Complete cases for the extended model on the analysis with T90/ODI
+  pheno <- pheno[valid.t90=="yes",]
+  setnames(pheno,"visit.month","month")
   
-  # Factor variables
-  factor.covari =  names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.factor)]
-  factor.covari = c(factor.covari, names(pheno[,main.model,with=F])[sapply(pheno[,main.model,with=F],is.character)])
+  cc <- complete.cases(pheno[,extended.model,with=F])
+  pheno <- pheno[cc,]
   
-  # Factor variables with more than 2 levels
-  factor.covari = names(pheno[,factor.covari,with=F])[sapply(pheno[,factor.covari,with=F],function(x) ifelse(length(unique(x[!is.na(x)]))>2,T,F))]
+
   
-  # Create dummy variables for factor variables with more than 2 levels
-  temp.dataset = dummy_cols(pheno, select_columns = factor.covari,
-                            remove_most_frequent_dummy = T, 
-                            remove_selected_columns = F)
+  # Rename levels for better handling at STATA
+  pheno[,leisurePA := factor(leisurePA, levels(leisurePA), labels =c("PA1","PA2","PA3","PA4"))]
+  pheno[,educat := factor(educat, levels(educat), labels = c("edu1","edu2","edu3", "edu4"))]
+  pheno[month == "June.July", month := "Jun_Jul"]
   
-  dummy.names = names(temp.dataset)[!names(temp.dataset) %in% names(pheno)]
+
   
-  a <- c("SCAPISid", dummy.names)
-  temp.dataset <- temp.dataset[,a,with=F]
+  # Dummy variables
+  temp.data <- pheno[,c("SCAPISid",extended.model),with=F]
+  setDF(temp.data)
+  rownames(temp.data) <- temp.data$SCAPISid
+  temp.data <- as.data.frame(model.matrix(~.,temp.data[extended.model]))
+  temp.data <- temp.data[,-which(names(temp.data)=="(Intercept)")]
   
-  pheno <- merge(pheno, temp.dataset, by="SCAPISid")
+  names.dummy.var <- names(temp.data)
   
+  
+  # Merge dummy variables 
+  temp.data$SCAPISid <- rownames(temp.data)
+  
+  vars <- c("SCAPISid", "ahi", "t90", "odi","valid.ahi","valid.t90","shannon","WaistHip",grep("HG3A",names(pheno),value=T))
+  
+  pheno <- merge( pheno[, vars,with=F], temp.data, by="SCAPISid")
+  
+  pheno$monthJune.July <- NULL # all equal 0
 
 # Makes species names shorter (some names were too long for STATA)
 
@@ -61,17 +75,30 @@ cutlast <- function(char,n){
 
   mgs.names.index <- grep("HG3A",names(pheno))
   names(pheno)[mgs.names.index] <- cutlast(names(pheno)[mgs.names.index],9)
-
   
-  # Selecting variables to export
-  variables.export <- c("SCAPISid", "ahi", "odi", "t90", "valid.ahi",
-                      "visit.month",
-                      main.model, dummy.names,
-                      grep("HG3A",names(pheno),value=T))
-
-  pheno <- pheno[valid.t90=="yes",]
-
+  # Divide the data set in 4 equal sizes to run the imputation in parallel in STATA
+  
+  species.names <- grep("HG3A",names(pheno),value=T)
+  
+  species.data <- pheno[,c("SCAPISid",species.names),with=F]
+  setDF(species.data)
+  pheno0 <- pheno[,-which(names(pheno) %in% species.names),with=F]
+  
+  n <- round(length(species.names)/4)
+  
+  pheno_1 <- merge(pheno0, species.data[,c(1:n)],by="SCAPISid")
+  pheno_2 <- merge(pheno0, species.data[,c(1,(n+1):(2*n))],by="SCAPISid")
+  pheno_3 <- merge(pheno0, species.data[,c(1,(2*n+1):(3*n))],by="SCAPISid")
+  pheno_4 <- merge(pheno0, species.data[,c(1,(3*n+1):ncol(species.data))],by="SCAPISid")
 
   # Exporting in STATA friendly format 
   require(foreign)
-  write.dta(pheno[,variables.export,with=F], paste0(work,"pheno.dta"))
+  
+  write.dta(pheno_1, paste0(work,"pheno_1.dta"))
+  write.dta(pheno_2, paste0(work,"pheno_2.dta"))
+  write.dta(pheno_3, paste0(work,"pheno_3.dta"))
+  write.dta(pheno_4, paste0(work,"pheno_4.dta"))
+  
+  
+  
+  

@@ -11,19 +11,21 @@ cd "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/"
 
 capture log close
 
-log using imputation_ahi_mainmodel.txt, replace
+log using imputation_ahi_2.txt, replace
 
 di c(current_date)
 di c(current_time)
+
+set seed 7
 
 set more off
 clear 
 
 cap postclose myfile 
 
-postfile myfile str20 MGS double rho p_value N using "cor_ahi_imput_mgs.dta", replace
+postfile myfile str20 MGS double rho p_value N using "cor_ahi_imput_mgs_2.dta", replace
 
-use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno.dta", clear
+use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno_2.dta", clear
 
 // Imputation and analysis were peformed in a loop so that we did not have to include 
 // all species in the same imputation equatation. Therefore, for every species (1602) 
@@ -32,14 +34,14 @@ use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno.dta", c
 
 foreach mgs of varlist HG3A*{
 
-	 
+	
 	di "`mgs'"
 
-	use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno.dta", clear 
-
-	drop if Alkohol == . | smokestatus == . // drop obs with missing information on main model vars
-
-
+	use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno_2.dta", clear 
+	
+	** Flag Miss ahi observations 
+	** gen Miss_ahi = 0 if ahi !=.
+	** replace Miss_ahi =1 if ahi==.
 	
 	// Imputation 
 
@@ -50,13 +52,13 @@ foreach mgs of varlist HG3A*{
 
 	*mi register regular `var_to_keep'
 
-	mi impute pmm ahi odi age Sex i.smokestatus Alkohol shannon BMI t90 i.visit_month i.plate `mgs', add(10) knn(5)
+	mi impute pmm ahi odi t90 age Sex smokestatus* Alkohol shannon BMI  month* plate* Fibrer Energi_kcal leisurePA* educat* placebirth* WaistHip `mgs', add(10) knn(5)
 
 // Diagnostics for imputation 
 
-** mi xeq 1/2: summarize ahi if Miss_ahi==0; summarize ahi if Miss_ahi==1; summarize ahi 
+ ** mi xeq 1/2: summarize ahi if Miss_ahi==0; summarize ahi if Miss_ahi==1; summarize ahi 
 
-** qui mi xeq 1: twoway (kdensity ahi if Miss_ahi==0) || ///
+ ** qui mi xeq 1: twoway (kdensity ahi if Miss_ahi==0) || ///
 **	(kdensity ahi if Miss_ahi==1) || ///
 **	(kdensity ahi if Miss_ahi), legend(label(1 "observed") label(2 "imputed") label(3 "completed"))
 
@@ -68,13 +70,13 @@ foreach mgs of varlist HG3A*{
 	mi passive: egen Y_rank_imp = rank(`mgs')
 	
 	// Create ranks for continous covariates
-	foreach var in age Alkohol shannon BMI {
+	foreach var in age Alkohol BMI Fibrer Energi_kcal {
 		qui mi passive: egen rank_`var' = rank(`var')
 	}
 	
 	
 	// * is used to capture all dummy variables for that covariate
-	local main_model Sex rank_age rank_Alkohol smokestatus_* plate_* rank_shannon rank_BMI
+	local main_model Sex rank_* smokestatus* plate* educat* leisureaPA* month* placebirth*
 
 	qui mi estimate,saving(model1,replace): regress X_rank_imp `main_model'
 	mi predict Xxb_imp using model1
@@ -102,13 +104,13 @@ di c(current_date)
 di c(current_time)
 
 
-use cor_ahi_imput_mgs.dta, clear 
+use cor_ahi_imput_mgs_2.dta, clear 
 
 gen exposure = "ahi" 
 
 // Export results back to R
 
-export delimited using "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/cor_ahi_imput_mgs.tsv", delim(tab) replace datafmt
+export delimited using "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/cor_ahi_imput_mgs_2.tsv", delim(tab) replace datafmt
 
 di c(current_date)
 di c(current_time)

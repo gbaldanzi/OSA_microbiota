@@ -5,7 +5,6 @@
 
 spearman.function = function(x1, x2, covari=NULL, data){
   require(ppcor)
-  require(fastDummies)
   require(data.table)
   
   if(x2=="ahi"){

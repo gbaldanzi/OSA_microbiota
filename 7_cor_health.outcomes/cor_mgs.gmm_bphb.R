@@ -26,15 +26,15 @@
   mgs.fdr <- readRDS(paste0(results.folder,'mgs.m1.rds'))
   
   # Import pathway enrichment analysis results ####
-  res.ea.gmm <- fread(paste0(results.folder,"ea_GMM.tsv"))
+  # res.ea.gmm <- fread(paste0(results.folder,"ea_GMM.tsv"))
 
-  osa.gmm <- unique(res.ea.gmm[q.value<.05,pathway])
+  # osa.gmm <- unique(res.ea.gmm[q.value<.05,pathway])
   
   
   # Covariates 
   covariates <- c("age", "Sex", "Alkohol","smokestatus",
                   "Fibrer","Energi_kcal" ,"leisurePA", "placebirth",
-                  "plate","shannon","t90","ahi")
+                  "plate","t90","ahi","odi")
   
   # In the analysis with SBP and DBP, we excluded participants that self-reported
   # medication use for hypertension 

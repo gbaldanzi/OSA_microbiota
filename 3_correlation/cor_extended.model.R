@@ -5,13 +5,13 @@
 
   # This analysis only includes the species that were FDR significant in the main model 
   # Import species names identified in the main model including BMI
-  mgs.fdr  = readRDS(paste0(results.folder,'mgs.m1.rds'))
+  #mgs.fdr  = readRDS(paste0(results.folder,'mgs.m1.rds'))
   
 
 # Correlations
 
-  res.extended.model <- lapply(c("t90","odi"),spearman.function, 
-                          x1=mgs.fdr,
+  res.extended.model <- lapply( exposures , spearman.function, 
+                          x1 = outcomes,
                           covari = extended.model,
                           data = pheno)
 
@@ -23,5 +23,13 @@
 
   # Save results for the extended model
   fwrite(res.extended.model, file = paste0(results.folder,"cor2_all.var_mgs.tsv"))
+  
+  
+  # Species associated with OSA parameters after adjustment for BMI
+  mgs.m1 <- unique(res.extended.model[q.value<.05,][["MGS"]]) 
+  
+  saveRDS(mgs.m1, paste0(results.folder,'mgs.m1.rds'))
+  
+  
   
   

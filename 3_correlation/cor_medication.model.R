@@ -9,7 +9,7 @@
 
 # Correlations
 
-  res.med.model <- lapply(c("t90","odi"),spearman.function, 
+  res.med.model <- lapply(exposures, spearman.function, 
                           x1=mgs.fdr,
                           covari = medication.model,
                           data = pheno)

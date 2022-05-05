@@ -67,10 +67,36 @@
                   text_size = 3) +
   ggtitle("BMI adjusted") +
   theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
+  
+  
+  # Extended Model ####
+  
+  # Importing results 
+  res <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
+  res[q.value < 0.001, q.value := round(q.value,3)]
+  
+  res.list <- list(AHI = res[exposure=="ahi",],
+                   T90 = res[exposure=="t90",],
+                   ODI = res[exposure=="odi",])
+  
+  # filter MGS significant at the FDR p-value<0.05
+  mgs.fdr = lapply(res.list,function(x){x[x$q.value<0.05,MGS]})
+  
+  # Create VennDiagram    
+  venn.m3 <- ggvenn(mgs.fdr,
+                    fill_color = c("orange","cornflowerblue","grey83"),
+                    stroke_color = "white",
+                    stroke_size = .2, 
+                    show_percentage = F, 
+                    fill_alpha = .6, 
+                    set_name_size = 4,
+                    text_size = 3) +
+    ggtitle("Extended adjustment") +
+    theme(plot.title = element_text(size=12, face = "bold", hjust = 0.5))
 
   
   # Merge Venn diagrams
-  venn <- plot_grid(venn.m1, venn.m2, labels = c("a","b"), label_size = 12, nrow=1,
+  venn <- plot_grid(venn.m1, venn.m2, venn.m3, labels = c("a","b","c"), label_size = 12, nrow=1,
                     label_y = .7)
 
   ggsave("Fig2.pdf",plot = venn,device = "pdf", path=output.plot)

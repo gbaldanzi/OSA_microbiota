@@ -17,9 +17,6 @@
   # Saving results 
   fwrite(res.main.model, file = paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
   
-  # Species associated with OSA parameters after adjustment for BMI
-  mgs.m1 <- unique(res.main.model[q.value<.05,][["MGS"]]) 
-    
-  saveRDS(mgs.m1, paste0(results.folder,'mgs.m1.rds'))
+  
   
   

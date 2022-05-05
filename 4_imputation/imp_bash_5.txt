@@ -1,0 +1,30 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 15:00
+#SBATCH -J p.adj.after.mi
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+
+
+# Working directory 
+cd /castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512
+
+
+# load R modules  
+ml R_packages 
+
+
+# Multiple testing adjustment 
+Rscript 4_imputation/p.adjust.R
+
+
+
+
+
+
+
+ 

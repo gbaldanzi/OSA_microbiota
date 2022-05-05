@@ -24,16 +24,17 @@
   pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
 
 
-  # Species associated with T90 or ODI in the main model 
-  res.main.model <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+  # Species associated with T90 or ODI in the extended
+  res.main.model <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
   
   mgs.t90 <- res.main.model[q.value<.05 & exposure=="t90",MGS]
   mgs.odi <- res.main.model[q.value<.05 & exposure=="odi",MGS]
   
   
   # Model covariates 
-  main.model <- c("age", "Sex", "Alkohol","smokestatus",
-                  "plate","shannon","BMI")
+  extended.model <- c("age", "Sex", "Alkohol","smokestatus",
+                  "plate","BMI", "Fibrer","Energi_kcal" ,"leisurePA", 
+                  "educat","placebirth","visit.month")
   
   
   # HB groups based on Sex-specific median Hb level 
@@ -53,13 +54,13 @@
   # T90 analysis
   ## Low HB
   message("T90 analysis - low HB")
-  res.t90.hb.low <- lapply(mgs.t90, cor.boot, x = "t90", z=main.model, data=pheno[Hbgroup =="low",])
+  res.t90.hb.low <- lapply(mgs.t90, cor.boot, x = "t90", z=extended.model, data=pheno[Hbgroup =="low",])
   res.t90.hb.low <- do.call(rbind, res.t90.hb.low)
   res.t90.hb.low$Hbgroup <- "low"
   
   ## High HB
   message("T90 analysis - high HB")
-  res.t90.hb.high <- lapply(mgs.t90, cor.boot, x = "t90", z=main.model, data=pheno[Hbgroup =="high",])
+  res.t90.hb.high <- lapply(mgs.t90, cor.boot, x = "t90", z=extended.model, data=pheno[Hbgroup =="high",])
   res.t90.hb.high <- do.call(rbind, res.t90.hb.high)
   res.t90.hb.high$Hbgroup <- "high"
   
@@ -72,13 +73,13 @@
   # ODI analysis 
   ## Low HB
   message("ODI analysis - low HB")
-  res.odi.hb.low <- lapply(mgs.odi, cor.boot, x = "odi", z=main.model, data=pheno[Hbgroup =="low",])
+  res.odi.hb.low <- lapply(mgs.odi, cor.boot, x = "odi", z=extended.model, data=pheno[Hbgroup =="low",])
   res.odi.hb.low <- do.call(rbind, res.odi.hb.low)
   res.odi.hb.low$Hbgroup <- "low"
   
   ## High HB
   message("ODI analysis - high HB")
-  res.odi.hb.high <- lapply(mgs.odi, cor.boot, x = "odi", z=main.model, data=pheno[Hbgroup =="high",])
+  res.odi.hb.high <- lapply(mgs.odi, cor.boot, x = "odi", z=extended.model, data=pheno[Hbgroup =="high",])
   res.odi.hb.high <- do.call(rbind, res.odi.hb.high)
   res.odi.hb.high$Hbgroup <- "high"
   

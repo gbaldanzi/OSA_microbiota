@@ -20,7 +20,7 @@
 
   res <- lapply(exposures,spearman.function, 
                           x1=mgs.fdr,
-                          covari = main.model.BMI,
+                          covari = extended.model,
                           data = pheno.nolungdis)
   
   res  <- do.call(rbind,res)

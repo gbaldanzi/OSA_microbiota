@@ -1,0 +1,28 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 24:00:00
+#SBATCH -J imputation
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=FAIL
+
+
+# Working directory 
+cd /castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512
+
+# Directory where STATA is 
+statadir='/proj/sens2019512/stata/'
+
+
+# Imputation and correlation analysis with AHI after imputation 
+$statadir/stata-mp -b  do 4_imputation/imputation_ahi_1.do  
+
+
+
+
+
+
+
+ 

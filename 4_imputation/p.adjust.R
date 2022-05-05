@@ -9,7 +9,12 @@
 
   results.folder <- "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/"
 
-  res.impute <- fread(paste0(results.folder,"cor_ahi_imput_mgs.tsv"))
+  res_1 <- fread(paste0(results.folder,"cor_ahi_imput_mgs_1.tsv"))
+  res_2 <- fread(paste0(results.folder,"cor_ahi_imput_mgs_2.tsv"))
+  res_3 <- fread(paste0(results.folder,"cor_ahi_imput_mgs_3.tsv"))
+  res_4 <- fread(paste0(results.folder,"cor_ahi_imput_mgs_4.tsv"))
+  
+  res.impute <- rbind(res_1,res_2,res_3,res_4)
 
   res.impute[,q_value := p.adjust(p_value, method="BH")]
 

@@ -1,0 +1,31 @@
+#!/bin/bash -l
+
+#SBATCH -A sens2019512
+#SBATCH -p core
+#SBATCH -n 1
+#SBATCH -t 4:00:00
+#SBATCH -J enrich_GMM
+#SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se
+#SBATCH --mail-type=ALL
+
+
+# Project - Sleep apnea and gut microbiota 
+
+
+
+# Working directory 
+cd /castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512
+
+
+# load R modules  
+ml R_packages 
+
+# Enrichment
+Rscript 5_enrichment_GMM/enrich_GMM.R
+
+
+
+
+
+
+ 

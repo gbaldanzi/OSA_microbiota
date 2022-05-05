@@ -19,11 +19,11 @@
   pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
   
   # Models
-  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate","shannon")
+  main.model <-   c("age", "Sex", "Alkohol","smokestatus","plate")
   main.model.BMI <- c(main.model, "BMI")
   extended.model <- c(main.model.BMI,"Fibrer","Energi_kcal" ,"leisurePA", 
                   "educat","placebirth","visit.month")
-  medication.model <- c(main.model.BMI, "metformin","hypermed", "dyslipmed", "ppi")
+  medication.model <- c(extended.model, "metformin","hypermed", "dyslipmed", "ppi")
   
   # Outcomes and exposures
   outcomes  <-  grep("HG3A",names(pheno),value=T)
