@@ -172,6 +172,7 @@
   write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S7", col.names=T,
               row.names=F, append=T)
   
+  
   # Suppl Table 8 - results from the imputation analysis ####
   message("Results from the imputation analysis")
   print(Sys.time()-t0)
