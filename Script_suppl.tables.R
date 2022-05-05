@@ -142,6 +142,36 @@
   
   
   
+  # Suppl Table 7 - results from the extended model ####
+  
+  # Results from extended model 
+  res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
+  
+  
+  res <- merge(res,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
+  
+  
+  res[,MGS:=paste0(MainTax," (",mgs,")")]
+  
+  res[,exposure:=toupper(exposure)]
+  
+  res[,rho:=round(rho,3)]
+  res[,c("p.value","q.value") := lapply(.SD,round.large) , 
+      .SDcols = c("p.value","q.value")]
+  
+  
+  setnames(res,c("MGS","rho","q.value","p.value"),
+           c("Metagenomic species","Spearman's correlation","q-value","p-value"))
+  
+  var.table <- c("Metagenomic species", "exposure", "Spearman's correlation", "p-value",
+                 "q-value", "N","subspecies","species",
+                 "genus", "family", "order","class","phylum","superkingdom")
+  
+  table.res <- res[,var.table,with=F]
+  
+  write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S7", col.names=T,
+              row.names=F, append=T)
+  
   # Suppl Table 8 - results from the imputation analysis ####
   message("Results from the imputation analysis")
   print(Sys.time()-t0)
@@ -175,7 +205,6 @@
   
   write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S8", col.names=T,
               row.names=F, append=T)
-  
   
   
   # Suppl Table 9. Sensitivity analyses ####
