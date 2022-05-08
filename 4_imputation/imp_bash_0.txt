@@ -41,8 +41,7 @@ jid4=$(sbatch 4_imputation/imp_bash_4.txt|cut -c21-)
 
 
 # Multiple testing adjustment 
-sbatch --dependency=afterok:$jid1,$jid2,$jid3,$jid4 4_imputation/imp_bash_5.txt
-
+sbatch --dependency=afterok:$jid1:$jid2:$jid3:$jid4 4_imputation/imp_bash_5.txt
 
 
 

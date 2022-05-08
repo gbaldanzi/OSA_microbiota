@@ -63,7 +63,8 @@
   
   pheno <- merge( pheno[, vars,with=F], temp.data, by="SCAPISid")
   
-  pheno$monthJune.July <- NULL # all equal 0
+  pheno$monthJune <- NULL # all equal 0
+  pheno$monthJuly <- NULL # all equal 0
 
 # Makes species names shorter (some names were too long for STATA)
 

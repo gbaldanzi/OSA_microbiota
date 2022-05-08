@@ -103,7 +103,9 @@
   
   
   res.t90$heterog_p.value <- heterog.test.fun(res.t90)
+  res.t90$heterog_q.value <- p.adjust(res.t90$heterog_p.value, method = "BH")
   res.odi$heterog_p.value <- heterog.test.fun(res.odi)
+  res.odi$heterog_q.value <- p.adjust(res.odi$heterog_p.value, method = "BH")
   
   res <- rbind(res.t90,res.odi)
 

@@ -21,9 +21,9 @@ set seed 7
 set more off
 clear 
 
-cap postclose myfile 
+cap postclose myfile_4 
 
-postfile myfile str20 MGS double rho p_value N using "cor_ahi_imput_mgs_4.dta", replace
+postfile myfile_4 str20 MGS double rho p_value N using "cor_ahi_imput_mgs_4.dta", replace
 
 use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno_4.dta", clear
 
@@ -76,29 +76,29 @@ foreach mgs of varlist HG3A*{
 	
 	
 	// * is used to capture all dummy variables for that covariate
-	local main_model Sex rank_* smokestatus* plate* educat* leisureaPA* month* placebirth*
+	local main_model Sex rank_* smokestatus* plate* educat* leisurePA* month* placebirth*
 
-	qui mi estimate,saving(model1,replace): regress X_rank_imp `main_model'
-	mi predict Xxb_imp using model1
+	qui mi estimate,saving(model1_4,replace): regress X_rank_imp `main_model'
+	mi predict Xxb_imp using model1_4
 	mi passive: gen Xres_imp=X_rank_imp-Xxb_imp
-	qui mi estimate,saving(model2,replace): regress Y_rank_imp `main_model'
-	mi predict Yxb_imp using model2
+	qui mi estimate,saving(model2_4,replace): regress Y_rank_imp `main_model'
+	mi predict Yxb_imp using model2_4
 	mi passive: gen Yres_imp=Y_rank_imp-Yxb_imp
 	
 	mi passive: egen Xres_imp_std=std(Xres_imp)
 	mi passive: egen Yres_imp_std=std(Yres_imp)
 
-	mi estimate: regress Yres_imp_std Xres_imp_std,dof(3301)
+	mi estimate: regress Yres_imp_std Xres_imp_std,dof(3170)
 	
 	
 	matrix A = r(table)
 
 
-post myfile ("`mgs'") (A[1,1]) (A[4,1]) (e(N)) 
+post myfile_4 ("`mgs'") (A[1,1]) (A[4,1]) (e(N)) 
 
 }
 
-postclose myfile
+postclose myfile_4
 
 di c(current_date)
 di c(current_time)

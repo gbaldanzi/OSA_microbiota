@@ -26,9 +26,9 @@
   mgs.fdr <- readRDS(paste0(results.folder,'mgs.m1.rds'))
   
   # Import pathway enrichment analysis results ####
-  # res.ea.gmm <- fread(paste0(results.folder,"ea_GMM.tsv"))
+  res.ea.gmm <- fread(paste0(results.folder,"ea_GMM.tsv"))
 
-  # osa.gmm <- unique(res.ea.gmm[q.value<.05,pathway])
+  osa.gmm <- unique(res.ea.gmm[q.value<.05,pathway])
   
   
   # Covariates 
