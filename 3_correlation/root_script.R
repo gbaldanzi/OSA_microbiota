@@ -29,23 +29,26 @@
   outcomes  <-  grep("HG3A",names(pheno),value=T)
   exposures <- c("ahi","t90","odi")
   
-  # Functions 
+  # Function
   source("0_functions/Spearman.correlation.function.R") # Correlation function 
 
-  message("Main Model without BMI")
+  # Main model excluded of BMI
   source("3_correlation/cor_main.model.R")
   
-  message("Main Model with BMI")
+  # Complete main model 
   source("3_correlation/cor_main.model.BMI.R")
   
-  message("Extended Model")
+  # Extended model 
   source("3_correlation/cor_extended.model.R")
   
-  message("Medication Model")
+  # Species associated with AHI, T90, or ODI in the extended model are investigated 
+  # in three sensitivity analyses
+  
+  ## Sensitiviy analysis 1 - medication model 
   source("3_correlation/cor_medication.model.R")
   
-  message("Sensitivity Analysis - Antibiotic")
+  ## Sensitivity analysis 2 - removed antibiotic users 
   source("3_correlation/cor_sa_atb.R")
   
-  message("Sensitivity Analysis - Lung Disease")
+  ## Sensitivity analysis 3 - removed participants with self-reported lung disease
   source("3_correlation/cor_sa_lungdisease.R")
