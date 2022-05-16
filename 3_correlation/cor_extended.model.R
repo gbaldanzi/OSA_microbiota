@@ -1,12 +1,14 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# Correlations with gut microbiota species using the extended model
 
-  # This analysis only includes the species that were FDR significant in the main model 
-  # Import species names identified in the main model including BMI
-  #mgs.fdr  = readRDS(paste0(results.folder,'mgs.m1.rds'))
-  
+  # Import findings from main model w/o BMI
+
+  mgs.fdr.main <- readRDS(paste0(results.folder, "mgs.fdr.mainmodel.rds"))
+
+  mgs.fdr.main <- unique(mgs.fdr.main$MGS)
+
+  # Correlations with gut microbiota species using the extended model
 
 # Correlations
 
@@ -19,6 +21,14 @@
   
   setDT(res.extended.model)
   setnames(res.extended.model,"x","MGS")
+  
+  
+  # FDR-adjustment 
+  res.extended.model[, q.value := NA]
+  for(exp in c("ahi","t90","odi")) {
+  res.extended.model[MGS %in% mgs.fdr.main & exposure == exp, q.value := p.adjust(p.value,method="BH")]
+  }
+  res.extended.model[q.value>=0.001, q.value := round(q.value,3)]
   
 
   # Save results for the extended model

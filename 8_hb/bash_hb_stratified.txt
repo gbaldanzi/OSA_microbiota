@@ -2,7 +2,7 @@
 
 #SBATCH -A sens2019512
 #SBATCH -p core
-#SBATCH -n 16
+#SBATCH -n 12
 #SBATCH -t 3:00:00
 #SBATCH -J hb_stratified
 #SBATCH --mail-user=gabriel.baldanzi@medsci.uu.se

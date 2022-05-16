@@ -19,7 +19,7 @@
   # Correlations 
 
   res <- lapply(exposures,spearman.function, 
-                          x1=mgs.fdr,
+                          x1 = mgs.fdr,
                           covari = extended.model,
                           data = pheno.noatb)
   

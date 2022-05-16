@@ -25,8 +25,8 @@ rm(list=ls())
   gmm.names[,Name:=str_to_title(Name)]
   gmm.names[,Name:=gsub("Ii","II",Name)]
   
-  # Import Spearman's correlation results from main model (with BMI)
-  res <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
+  # Import Spearman's correlation results from extended model 
+  res <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
   
   res[,mgs:=cutlast(MGS,9)]
   

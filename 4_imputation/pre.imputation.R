@@ -19,9 +19,14 @@
 
   # Folders 
   work <- '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/'
+  results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
 
   # Import data
   pheno <- readRDS(paste0(work,"pheno_sleep_mgs_shannon.rds"))
+  
+  # Import findings from main model w/o BMI
+  mgs.fdr.main <- readRDS(paste0(results.folder, "mgs.fdr.mainmodel.rds"))
+  mgs.fdr.main <- unique(mgs.fdr.main$MGS)
 
   # Create dummy variables for factor variables 
 
@@ -59,7 +64,7 @@
   # Merge dummy variables 
   temp.data$SCAPISid <- rownames(temp.data)
   
-  vars <- c("SCAPISid", "ahi", "t90", "odi","valid.ahi","valid.t90","shannon","WaistHip",grep("HG3A",names(pheno),value=T))
+  vars <- c("SCAPISid", "ahi", "t90", "odi","valid.ahi","valid.t90","shannon","WaistHip",mgs.fdr.main)
   
   pheno <- merge( pheno[, vars,with=F], temp.data, by="SCAPISid")
   
@@ -80,6 +85,7 @@ cutlast <- function(char,n){
   # Divide the data set in 4 equal sizes to run the imputation in parallel in STATA
   
   species.names <- grep("HG3A",names(pheno),value=T)
+
   
   species.data <- pheno[,c("SCAPISid",species.names),with=F]
   setDF(species.data)

@@ -10,7 +10,7 @@
 # Correlations
 
   res.med.model <- lapply(exposures, spearman.function, 
-                          x1=mgs.fdr,
+                          x1 = mgs.fdr,
                           covari = medication.model,
                           data = pheno)
 

@@ -16,6 +16,9 @@
 
   # Saving results 
   fwrite(res.main.model, file = paste0(results.folder,"cor_all.var_mgs.tsv"))
+  
+  mgs.fdr.main <- res.main.model[q.value<0.05, .(MGS,exposure)]
 
+  saveRDS(mgs.fdr.main, paste0(results.folder, "mgs.fdr.mainmodel.rds"))
   
   

@@ -1,45 +1,36 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# This script will create the Heatmap (Fig 3) containing the enrichment
+# This script will create the Heatmap (Fig 4) containing the GMM enrichment
 # analysis results and the associations with health outcomes 
 
-# On the "x-axis", we display the metabolite groups and systolic blood pressure,
+# On the "x-axis", we displaysystolic blood pressure,
 # diastolic blood pressure and Hb1Ac
 
-# On the "y-axis", we display the species and the microbial pathways. 
-
-# The species enrichment analysis results are imported from the Gutsy Atlas 
-# reference: Dekkers, K. F. et al. An online atlas of human plasma metabolite 
-# signatures of gut microbiome composition. 2021.12.23.21268179 
-# https://www.medrxiv.org/content/10.1101/2021.12.23.21268179v1 (2021) 
-# doi:10.1101/2021.12.23.21268179.
-
+# On the "y-axis", we display the gut metabolic modules (microbial pathways). 
 
 rm(list=ls())
 
 
 library(RColorBrewer)
-library(ComplexHeatmap)
+suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 library(data.table)
-library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
 library(scales)
+library(cowplot)
 
 
   # Import the signature species 
   results.folder <-  '/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/'
-  output.plot <- "/home/baldanzi/Sleep_apnea/Results/Plots/"
+  #results.folder <-'/Users/gabba126/Documents/PhD_projects/1.Sleep/Results/'
+  #output.plot <- "/Users/gabba126/Documents/PhD_projects/1.Sleep/Manuscript/Figures/"
   wrf <- "/castor/project/proj_nobackup/wharf/baldanzi/baldanzi-sens2019512/"
 
-# Function to select the last characters of a string 
-  cutlast <- function(char,n){
-    l <- nchar(char)
-    a <- l-n+1
-    return(substr(char,a,l))
-  }
-
-
+# Function to fix strings
+  
   fix.species.name.fun <- function(char){
     char <- gsub("AF22_8LB","AF22-8LB",char)
     char <- gsub("AM42_11","AM42-11",char)
@@ -50,216 +41,57 @@ library(scales)
     char <- gsub('[(]HG3A.0168[)]',"",char)
     char <- gsub("_"," ",char)
   }
-  
-    fix.subclass.name.fun <- function(char){
-      char <- gsub("__PC_", " (PC)",char)
-      char <- gsub("___","_",char)
-      char <- gsub("__","_",char)
-      char <- gsub("Drug", "Drug -", char)
-      char <- gsub("_"," ",char)
-      char <- gsub(" PI ", " (PI)",char)
-      char <- gsub(" PE ", " (PE)",char)
-      char <- gsub("Analgesics","Analgesics,", char)
-      return(char)
-    }
       
 
-  # Results from the MGS-AHI/T90/ODI correlation - Full model 
+  # GMM names 
+   gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
+   #gmm.names <- fread("/Users/gabba126/Documents/PhD_projects/1.Sleep/Manuscript/Figures/GMM_reference.csv")
+  
+   setnames(gmm.names,"Module","modules")
+   gmm.names[,Name:=str_to_title(Name)]
+   gmm.names[,Name:=gsub("Ii","II",Name)]
+   gmm.names[,Name:=gsub("To ","to ",Name)]
+   gmm.names[,Name:=gsub("-Off Phase","-off phase",Name)]
 
-    res.bm <- fread(paste0(results.folder,"cor.bmi_all.var_mgs.tsv"))
     
-    Mgs.mgs <- unique(res.bm[,.(MGS,mgs)])
-
-  # Species associated with T90 or ODI 
-    
-    mgs.t90 <- res.bm[exposure=="t90" & q.value<.05, mgs]
-    mgs.odi <- res.bm[exposure=="odi" & q.value<.05, mgs]
-
-
-  # Import enrichment analysis results GUTSY Atlas 
-  ea_gutsy <- fread("/home/baldanzi/Datasets/gutsy_atlas/Supplementary_Table_6.tsv")
-  
-  names(ea_gutsy) <- gsub("-","_",names(ea_gutsy))
-  names(ea_gutsy) <- gsub(" ","_",names(ea_gutsy))
-  
-  ea_gutsy[,mgs:=paste0("HG3A.",cutlast(Metagenomic_species,4))]
-  
-  # Restrict the GUTSY Atlas table to the species of interest 
-  ea_gutsy <- ea_gutsy[mgs %in% unique(c(mgs.t90,mgs.odi)),]
-  ea_gutsy <- merge(ea_gutsy, Mgs.mgs, by ="mgs", all.x=T, all.y=F)
-  
-  # Import results on the enrichment of metabolites subclasses ####
-  ea.gmm.met <- fread(paste0(results.folder, "ea_gmm_subclass.tsv"))
-  
-  gmm.names <- fread('/home/baldanzi/Datasets/MGS/GMM_reference.csv')
-  
-  setnames(gmm.names,"Module","modules")
-  gmm.names[,Name:=str_to_title(Name)]
-  gmm.names[,Name:=gsub("Ii","II",Name)]
-  
-  ea.gmm.met <- merge(ea.gmm.met, gmm.names[,.(modules,Name)], by="modules",all.x=T)
-  ea.gmm.met[,modules := Name]
-  
-  osa.gmm <- unique(ea.gmm.met$modules)
-  
-  # Import results on the association with SBP/DBP/HbA1c 
-  res.mgs.bp <- fread(paste0(results.folder, 'cor_mgs.gmm_bphb.tsv'))
-  
-  
   # Import enrichment of GMM ####
-  res.gmm = fread(paste0(results.folder,"ea_GMM.tsv"))
-  res.gmm <- res.gmm[exposure=="t90" & q.value<.05,]
-  
-  # Positive and negative associations metabolites-species associations 
-  
-  temp.data <- res.bm[,.(MGS,mgs,exposure,rho,q.value)] %>% 
-    filter(mgs %in% c(mgs.t90,mgs.odi)) %>% 
-    filter(exposure %in% c("t90","odi")) %>%
-    pivot_wider(id_cols=c(MGS,mgs), names_from = exposure, values_from = c(rho,q.value))
-  
-  setDT(temp.data)
-  
-  # positive species 
-  pos.t90 <- temp.data[rho_t90>0 & q.value_t90<.05 & q.value_odi>=.05, MGS]
-  pos.t90.odi <- temp.data[rho_t90>0 & q.value_t90<.05 & q.value_odi<.05, MGS]
-  pos.odi <- temp.data[rho_odi>0 & q.value_t90>=.05 & q.value_odi<.05, MGS]
-  
-  pos.mgs <- c(pos.t90,pos.t90.odi,pos.odi)
-  
-  # negative species 
-  neg.t90 <- temp.data[rho_t90<0 & q.value_t90<.05 & q.value_odi>=.05, MGS]
-  neg.t90.odi <- temp.data[rho_odi<0 & q.value_t90<.05 & q.value_odi<.05, MGS] # zero
-  neg.odi <- temp.data[rho_odi<0 & q.value_t90>=.05 & q.value_odi<.05, MGS]
-  
-  neg.mgs <- c(neg.t90,neg.t90.odi,neg.odi)
-  
-  mgs.rel <- c(pos.t90,pos.t90.odi,pos.odi,neg.t90,neg.t90.odi,neg.odi)
-  
- 
-  # Enriched pathways/metabolite groups in the POSITIVE correlations ####
-  res.table <- ea_gutsy[Direction=="Positive", .(MGS, Metabolite_subclass, Estimate, q_value)]
-  
-  # append with gmm enrichment results ####
-  ea.gmm.met[,subclass := fix.subclass.name.fun(subclass)]
-  setnames(ea.gmm.met, c("modules", "subclass", "estimate", "q.value"),
-           c("MGS","Metabolite_subclass", "Estimate", "q_value"))
-  
-  res.table <- rbind(res.table, ea.gmm.met[direction=="positive",.(MGS, Metabolite_subclass, Estimate, q_value)])
-  
-  # Filter to pathways/metabolite groups that are FDR associated with at least one signature species 
-  
-  hm.pathways <- unique(res.table[q_value<.05, Metabolite_subclass])
-
-
-  # Matrix results for the heatmap 
-  hm.matrix <- res.table[,.(MGS, Metabolite_subclass, Estimate)] %>% 
-    filter(Metabolite_subclass %in% hm.pathways) %>% 
-    spread(key=Metabolite_subclass, value = Estimate)
-  
-  setDF(hm.matrix)
-  
-  rownames(hm.matrix) <- hm.matrix$MGS
-  hm.matrix$MGS <- NULL
-  
-  hm.matrix_pos <- as.matrix(hm.matrix)
-  hm.matrix_pos[is.na(hm.matrix_pos)] <- 0
- 
-  colnames(hm.matrix_pos) <- gsub("__","_", colnames(hm.matrix_pos))
-  colnames(hm.matrix_pos) <- gsub("_"," ", colnames(hm.matrix_pos))
-  colnames(hm.matrix_pos) <- gsub("Metabolism","Metab.", colnames(hm.matrix_pos))
-
-  # Positive "q-values" to produce the "*" on the heatmap ####
-  qvalues_pos <- res.table[,.(MGS, Metabolite_subclass, q_value)] %>% 
-      filter(Metabolite_subclass %in% hm.pathways) %>% 
-      spread(key=Metabolite_subclass, value = q_value)
-  
-  setDF(qvalues_pos)
-
-  rownames(qvalues_pos) <- qvalues_pos$MGS
-  qvalues_pos$MGS <- NULL
-
-  qvalues_pos <- as.matrix(qvalues_pos)
-  qvalues_pos[is.na(qvalues_pos)] <- 1
-
-
- # Enriched pathways/metabolite groups in the NEGATIVE correlations ####
- 
-  res.table <- ea_gutsy[Direction=="Negative", .(MGS, Metabolite_subclass, Estimate, q_value)]
-  
-  # append with gmm results 
-  res.table <- rbind(res.table, ea.gmm.met[direction=="negative",.(MGS, Metabolite_subclass, Estimate, q_value)])
-
-  # Filter to pathways/metabolite groups that are FDR associated with at least one signature species 
-  hm.pathways <- unique(res.table[q_value<.05, Metabolite_subclass])
-  
-  # Matrix results for the heatmap 
-    hm.matrix <- res.table[,.(MGS, Metabolite_subclass, Estimate)] %>% 
-    filter(Metabolite_subclass %in% hm.pathways) %>% 
-    spread(key=Metabolite_subclass, value = Estimate)
-
-  setDF(hm.matrix)
-  
-  rownames(hm.matrix) <- hm.matrix$MGS
-  hm.matrix$MGS <- NULL
-  
-  hm.matrix_neg <- as.matrix(hm.matrix)
-  hm.matrix_neg[is.na(hm.matrix_neg)] <- 0
-
-  colnames(hm.matrix_neg) <- gsub("__","_",colnames(hm.matrix_neg))
-  colnames(hm.matrix_neg) <- gsub("_"," ",colnames(hm.matrix_neg))
-  colnames(hm.matrix_neg) <- gsub("Metabolism","Metab.",colnames(hm.matrix_neg))
-  colnames(hm.matrix_neg) <- gsub(" (PC)","",colnames(hm.matrix_neg))
-
-  # Negative "q-values" to produce the "*" on the heatmap ####
-    qvalues_neg <- res.table[,.(MGS, Metabolite_subclass, q_value)] %>% 
-    filter(Metabolite_subclass %in% hm.pathways) %>% 
-    spread(key=Metabolite_subclass, value = q_value)
-  
-  setDF(qvalues_neg)
-
-  rownames(qvalues_neg) <- qvalues_neg$MGS
-  qvalues_neg$MGS <- NULL
-
-  qvalues_neg <- as.matrix(qvalues_neg)
-    qvalues_neg[is.na(qvalues_neg)] <- 1
-
+    res.gmm = fread(paste0(results.folder,"ea_GMM.tsv"))
+    res.gmm <- res.gmm[direction == "positive" & exposure == "t90",]
     
-    # Association with T90 and ODI 
+    res.gmm[,Name:=str_to_title(Name)]
+    res.gmm[,Name:=gsub("Ii","II",Name)]
+    res.gmm[,Name:=gsub("Iv","IV",Name)]
+    res.gmm[,Name:=gsub("To ","to ",Name)]
+    res.gmm[,Name:=gsub("Pay","pay",Name)]
+    res.gmm[,Name:=gsub("Off Phase","off phase",Name)]
     
-    res.bm[,exposure:= factor(exposure, levels = c("t90","odi","ahi"))]
+    res.gmm[q.value<.05, sig := "p.value.adj<.05"]
+    res.gmm[q.value>.05, sig := "p.value.adj>.05"]
     
-     t90.odi.cor <- res.bm[MGS %in% mgs.rel & exposure %in% c("t90","odi"), 
-                           .(MGS,exposure,rho)]
-     t90.odi.q <- res.bm[MGS %in% mgs.rel & exposure %in% c("t90","odi"), 
-                           .(MGS,exposure,q.value)]
-     
-     t90.odi.cor[,exposure := factor(toupper(exposure),levels=c("T90","ODI"))]
-     t90.odi.q[,exposure := factor(toupper(exposure),levels=c("T90","ODI"))]
-     
-     t90.odi.cor <- t90.odi.cor %>% spread(key=exposure, value = rho)
-     t90.odi.q <- t90.odi.q %>% spread(key=exposure, value = q.value)
+    res.gmm[, Name := factor(Name, levels = Name[order(NES)])]
+    
+    p1 <-  ggplot(res.gmm[pval<.20,], aes(x=NES,y=Name, fill = sig)) + 
+      geom_bar(stat='identity') + ylab("Gut metabolic modules") + 
+        labs(fill = bquote("p-value"[adj])) +
+        scale_fill_manual(labels = c("<0.05", ">0.05"), values = c("darkred","gray80")) +
+        theme_classic() + 
+      theme(legend.title = element_text(size=8), 
+            legend.text = element_text(size = 8), 
+            axis.text.x = element_text(size=8), 
+            axis.text.y = element_text(size=8.5, color = "black"))
 
-     # create empty rows for gmm 
-     empty.rows <- data.table(MGS=osa.gmm, T90 = 0 , ODI = 0 )
-     t90.odi.cor <- rbind(t90.odi.cor,empty.rows)
-     
-     empty.rows <- data.table(MGS=osa.gmm, T90 = 1 , ODI = 1 )
-     t90.odi.q <- rbind(t90.odi.q,empty.rows)
-     
-     setDT(t90.odi.cor)
-     setDT(t90.odi.q)
-     
-     mgs.t90.odi.cor <- t90.odi.cor$MGS 
-     mgs.t90.odi.q <- t90.odi.q$MGS
-     
-     t90.odi.cor$MGS <- t90.odi.q$MGS <-  NULL
-     
-     t90.odi.cor <- as.matrix(t90.odi.cor)
-     t90.odi.q <- as.matrix(t90.odi.q)
-     
-    rownames(t90.odi.cor) <- mgs.t90.odi.cor
-    rownames(t90.odi.q) <- mgs.t90.odi.q
+  # Heatmap ####
     
+  # Import results on the association with SBP/DBP/HbA1c 
+    res.mgs.bp <- fread(paste0(results.folder, 'cor_mgs.gmm_bphb.tsv'))
+    
+    res.mgs.bp <- merge(res.mgs.bp, res.gmm[,.(pathway,Name)], by.x = "MGS_features", 
+                        by.y = "pathway", all.x=T, all.y=F)
+    
+    res.mgs.bp[!is.na(Name), MGS_features := Name]
+    
+  
+
   # Association with SBP/DBP/HbA1c ####
     
     res.mgs.bp.ahi <- res.mgs.bp[model=="OSA model",]
@@ -274,13 +106,18 @@ library(scales)
     
     res.mgs.bp <- rbind(res.mgs.bp.ahi, res.mgs.bp.bmi)
     
-    res.mgs.bp <- merge(res.mgs.bp, gmm.names[,.(modules,Name)], by.x = "MGS_features", by.y="modules", all.x=T)
-    res.mgs.bp[!is.na(Name), MGS_features := Name]
+    #res.mgs.bp <- merge(res.mgs.bp, gmm.names[,.(modules,Name)], by.x = "MGS_features", by.y="modules", all.x=T)
+    #res.mgs.bp[, MGS_features := Name]
     
-    res.mgs.bp.cor <- res.mgs.bp[MGS_features %in% c(osa.gmm,mgs.rel),.(MGS_features,outcomes,rho)] %>% 
-      spread(key=outcomes, value = rho)
-    res.mgs.bp.q <- res.mgs.bp[MGS_features %in% c(osa.gmm,mgs.rel),.(MGS_features,outcomes,q.value)] %>% 
+    res.mgs.bp.cor <- res.mgs.bp[,.(MGS_features,outcomes,rho)] %>% 
+      spread(key=outcomes, value = rho) 
+    res.mgs.bp.q <- res.mgs.bp[,.(MGS_features,outcomes,q.value)] %>% 
       spread(key=outcomes, value = q.value)
+    
+    sig <- apply(res.mgs.bp.q,1,function(x) any(x<.05))
+    
+    res.mgs.bp.cor <- res.mgs.bp.cor[which(sig==T),]
+    res.mgs.bp.q <- res.mgs.bp.q[which(sig==T),]
     
     setDF(res.mgs.bp.cor)
     setDF(res.mgs.bp.q)
@@ -294,159 +131,137 @@ library(scales)
     res.mgs.bp.q$MGS_features <- NULL
     res.mgs.bp.q <- as.matrix(res.mgs.bp.q)
     rownames(res.mgs.bp.q) <- m
-  
+    
+    
+    # Associations with T90/ODI
+    # Import results in the associations with T90/ODI
+    
+    res.bm <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
+    res.bm[,exposure:=toupper(exposure)]
+    
+    res.bm.cor <- res.bm[exposure %in% c("T90","ODI") & MGS %in% m,.(MGS,exposure,rho)] %>%
+      pivot_wider(id_cols=c(MGS), names_from = exposure, values_from = c(rho))
+    
+    res.bm.q <- res.bm[exposure %in% c("T90","ODI") & MGS %in% m,.(MGS,exposure,q.value)] %>%
+      pivot_wider(id_cols=c(MGS), names_from = exposure, values_from = c(q.value))
+    
+    osa.gmm <- m[!m %in% res.bm.cor$MGS]
+    mgs.pos <- res.bm.cor$MGS[res.bm.cor$T90>0]
+    mgs.neg <- res.bm.cor$MGS[res.bm.cor$T90<0]
+    
+    order.features <- c(osa.gmm,mgs.pos,mgs.neg)
+    
+    # Create empty boxes for the osa.gmm in the res.bm.cor and res.bm.q matrix
+    
+    empty.box <- data.frame(MGS = osa.gmm, T90 = rep(0,length(osa.gmm)), ODI = rep(0,length(osa.gmm)))
+    res.bm.cor <- rbind(empty.box,res.bm.cor)
+    
+    empty.box <- data.frame(MGS = osa.gmm, T90 = rep(1,length(osa.gmm)), ODI = rep(1,length(osa.gmm)))
+    res.bm.q <- rbind(empty.box, res.bm.q)
+    
+    res.bm.cor <- res.bm.cor[match(order.features,res.bm.q$MGS ),]
+    res.bm.q <- res.bm.q[match(order.features,res.bm.q$MGS ),]
+    
+    res.bm.cor$MGS <- res.bm.q$MGS <- NULL
+    
+    res.bm.cor <- as.matrix(res.bm.cor)
+    res.bm.q <- as.matrix(res.bm.q)
+    
+    rownames(res.bm.cor) <- rownames(res.bm.q) <- order.features
+    
+    
     
   # Assert that the heatmap matrixes have the same order 
-    assert.order <- function(x){
-      return(x[match(c(osa.gmm,mgs.rel), rownames(x)),])
+   assert.order <- function(x){
+      return(x[match(order.features, rownames(x)),])
     }
-    
-  hm.matrix_pos <- assert.order(hm.matrix_pos)
-  hm.matrix_neg <- assert.order(hm.matrix_neg) 
-  
-  qvalues_pos <- qvalues_pos[match(c(osa.gmm,mgs.rel),rownames(qvalues_pos)),]
-  qvalues_neg <- qvalues_neg[match(c(osa.gmm,mgs.rel),rownames(qvalues_neg)),]
-  
-  t90.odi.cor <- t90.odi.cor[match(c(osa.gmm,mgs.rel), rownames(t90.odi.cor)),]
-  t90.odi.q <- t90.odi.q[match(c(osa.gmm,mgs.rel), rownames(t90.odi.q)),]
 
-  res.mgs.bp.cor <- assert.order(res.mgs.bp.cor)
-  res.mgs.bp.q <- assert.order(res.mgs.bp.q)
-
-  # Fix species names to better visualization in the heatmap
-  noms <- as.data.table(do.call(rbind, strsplit( split = "____" , rownames(hm.matrix_pos)) ) )
-  noms[grep("_sp.",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms[grep("_obeum",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms <- fix.species.name.fun(noms$V1) 
-  rownames(hm.matrix_pos) <- noms
-
-  noms <- as.data.table(do.call(rbind, strsplit( split = "____" , rownames(hm.matrix_neg)) ) )
-  noms[grep("_sp.",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms[grep("_obeum",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms <- fix.species.name.fun(noms$V1) 
-  rownames(hm.matrix_neg) <- noms
-
-  noms <- as.data.table(do.call(rbind, strsplit( split = "____" , rownames(t90.odi.cor)) ) )
-  noms[grep("_sp.",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms[grep("_obeum",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms <- fix.species.name.fun(noms$V1) 
-  rownames(t90.odi.cor) <- noms
-
-  noms <- as.data.table(do.call(rbind, strsplit( split = "____" , rownames(res.mgs.bp.cor)) ) )
-  noms[grep("_sp.",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms[grep("_obeum",V1),V1:=paste0(V1, " (", V2, ")" )]
-  noms <- fix.species.name.fun(noms$V1) 
-  rownames(res.mgs.bp.cor) <- noms
-  
-  # Merge hm.matrix_pos and hm.matrix_neg
-   
-  merged.matrix <- cbind(hm.matrix_pos,(hm.matrix_neg*-1))
-  merged.matrix.q <- cbind(qvalues_pos,qvalues_neg)
+   res.mgs.bp.cor <- assert.order(res.mgs.bp.cor)
+   res.mgs.bp.q <- assert.order(res.mgs.bp.q)
   
   # Legend ####
-  col_fun = circlize::colorRamp2(c(0,1.6,2.5),c("white","indianred2", muted("red3")))
-  col_fun2 = circlize::colorRamp2(c(0,1.6,2.5),c("white","dodgerblue1", muted("blue4")))
-  col_fun3 = circlize::colorRamp2(c(-0.1, 0, 0.1), c(muted("darkcyan"),"white","goldenrod2"))
+
+  #col_fun3 = circlize::colorRamp2(c(-0.1, 0, 0.1), c(muted("darkcyan"),"white","goldenrod2"))
   
-  
-  lgd = Legend(col_fun = col_fun, title = "NES", at = c(0,1,2,3), direction = "horizontal",
-               labels_gp = gpar(fontsize=7))
-  lgd2 = Legend(col_fun = col_fun2, at = c(0,1,2,3), direction = "horizontal",
-                labels_gp = gpar(fontsize=7))
-  lgd3 = Legend(col_fun = col_fun3, at = c(-.1,-0.05,0,0.05,0.1), direction = "vertical", 
-                title = expression(rho), legend_height = unit(25,"mm"), labels_gp = gpar(fontsize=7))
-  
-  pd = packLegend(lgd, lgd2, lgd3)
+
+  #lgd3 = Legend(col_fun = col_fun3, at = c(-.1,-0.05,0,0.05,0.1), direction = "vertical", 
+   #             title = expression(rho), legend_height = unit(25,"mm"), labels_gp = gpar(fontsize=7))
   
   # Annotations ####
-  
-  ha1 =  HeatmapAnnotation(foo = anno_block(gp = gpar(fill = "white", col = 0),
-                                            labels = c("positive", "negative"),
-                                            labels_gp = gpar(col = "black", fontsize = 8)))
   
   ha2 =  HeatmapAnnotation(foo = anno_block(gp = gpar(fill = "white", col = 0),
                                             labels = c("OSA adj.", "OSA+BMI adj."),
                                             labels_gp = gpar(col = "black", fontsize = 8)))
   
+    
+  # Fix names 
+    noms <- as.data.table(do.call(rbind, strsplit( split = "____" , rownames(res.bm.cor)) ) )
+    noms[grep("_sp.",V1),V1:=paste0(V1, " (", V2, ")" )]
+    noms[grep("_obeum",V1),V1:=paste0(V1, " (", V2, ")" )]
+    noms <- fix.species.name.fun(noms$V1) 
+    rownames(res.bm.cor) <- noms
+    
+    noms <- as.data.table(do.call(rbind, strsplit( split = "____" , rownames(res.mgs.bp.cor)) ) )
+    noms[grep("_sp.",V1),V1:=paste0(V1, " (", V2, ")" )]
+    noms[grep("_obeum",V1),V1:=paste0(V1, " (", V2, ")" )]
+    noms <- fix.species.name.fun(noms$V1) 
+    rownames(res.mgs.bp.cor) <- noms
+    
+    rownames(res.bm.cor)[rownames(res.bm.cor) %in% osa.gmm] <- paste0(osa.gmm,"◊")
+    rownames(res.mgs.bp.cor)[rownames(res.mgs.bp.cor) %in% osa.gmm] <- paste0(osa.gmm,"^1")
+  
 
       # Create heatmap ####
-  set.seed(10)
+  set.seed(7)
   ht_opt$TITLE_PADDING = unit(c(6, 6), "points")
-  h1 = Heatmap(t90.odi.cor, 
-               cell_fun = function(j, i, x, y, w, h, fill) {
-                 if(t90.odi.q[i, j] < 0.05) {
-                   grid.text('*', x, y)
-                 } },
-               column_names_rot=40, 
-               column_names_side = "bottom",
-               cluster_columns = FALSE, 
-               show_column_dend = F, 
-               column_names_gp = gpar(fontsize = 9),
-               
-               
-               row_split = factor(c(rep("Gut metabolic modules", length(osa.gmm)),
-                                    rep("Positively associated species",length(pos.mgs)),
-                                    rep("Negatively associated species",length(neg.mgs))), 
-                                  levels = c("Gut metabolic modules","Positively associated species", 
-                                             "Negatively associated species")),
-               cluster_row_slices = F,
-               cluster_rows = T,   
-               row_title_gp = gpar(fontsize=10, fill="white",border="black"),
-               row_gap = unit(3, "mm"),
-               
-               col = circlize::colorRamp2( c(-0.1, 0, 0.1), c(muted("darkcyan") ,"white","goldenrod2")),
-               #name = expression(rho),  "#482173FF"
-               
-              # heatmap_legend_param = list( title = expression(rho),
-                                 #         labels_gp = gpar(fontsize=7),
-                                  #         title_gp = gpar(fontsize=10),
-                                    #       grid_width = unit(3, "mm"), 
-                                    #       direction = "vertical"),
-               
-               row_names_side = "left",
-               row_names_gp = gpar(fontsize = 8),
-               show_row_dend = F, 
-               width = unit(5*ncol(t90.odi.cor),"mm")) +
-    
-        Heatmap(merged.matrix, 
-             cell_fun = function(j, i, x, y, w, h, fill) {
-               if(merged.matrix.q[i, j] < 0.05) {
-                 grid.text('*', x, y)
-               } },
-             column_names_rot =  40, 
-             column_names_side = "bottom",
-             cluster_columns = T,
-             show_column_dend = F,
-             
-             column_split = factor(c(rep("positive", ncol(hm.matrix_pos)),
-                                     rep("negative",ncol(hm.matrix_neg))), 
-                                   levels = c("positive","negative")),
-             column_gap = unit(2, "mm"),
-             top_annotation = ha1,
-
-             #row_title = c("Positive T90/ODI-associated species",
-                         #  "Negative T90/ODI-associated species"),
-             row_title_gp = gpar(fontsize=10, fill="white",border="black"),
-             row_gap = unit(3, "mm"),
-             
-             row_names_side = "left",
-
-             col = circlize::colorRamp2(c(-2.5,-1.6,0,1.6,2.5),c(muted("blue4"), "dodgerblue1", "white",
-                                                             "indianred2",muted("red3"))),
-             name="NES (pos)",
-             column_labels = colnames(merged.matrix),
-             column_names_gp = gpar(fontsize = 8),
-             row_names_gp = gpar(fontsize = 8),
-             column_title = "Metabolites associations",
-             column_title_gp = gpar(fontsize = 10,fontface='bold'),
-             #heatmap_legend_param = list( title = "NES",
-                                        # labels_gp = gpar(fontsize=7),
-                                        # title_gp = gpar(fontsize=9, fontface="bold"),
-                                        # grid_width = unit(2, "mm"), 
-                                        # direction = "horizontal")  ,
-             width = unit(5*ncol(merged.matrix),"mm"))  + 
-    
-    Heatmap(res.mgs.bp.cor, 
+  
+  h1 <-  Heatmap(res.bm.cor, 
+                 cell_fun = function(j, i, x, y, w, h, fill) {
+                   if(res.bm.q[i, j] < 0.05) {
+                     grid.text('*', x, y)
+                   } },
+                 column_names_rot =  40,
+                 column_names_side = "bottom",
+                 cluster_columns = T,
+                 show_column_dend = F,
+                 cluster_rows = F,
+                 row_labels = c(expression("Lysine Degradation II"^1),
+                                expression("Threonine Degradation I"^1),
+                                rownames(res.bm.cor)[3:nrow(res.bm.cor)]),
+                 
+                 #column_labels = colnames(res.mgs.bp.cor),
+                 column_names_gp = gpar(fontsize = 8),
+                 row_names_gp = gpar(fontsize = 8),
+                 row_names_side = "left",
+                 
+                 row_split = factor(c(rep("gmm",length(osa.gmm)),
+                                      rep("pos",length(mgs.pos)),
+                                      rep("neg",length(mgs.neg))),
+                                    levels = c("gmm","pos","neg")),
+                 row_title = NULL,
+                 
+                 row_gap = unit(3,"mm"),
+                 
+                 
+                 #column_gap = unit(3, "mm"),
+                 #cluster_column_slices = F,
+                 
+                 #column_labels = rep(c("SBP", "DBP", "Hb1Ac"),2),
+                 
+                 #top_annotation = ha2,
+                 #left_annotation = bar,
+                 
+                 col = circlize::colorRamp2( c(-0.1, 0, 0.1), c(muted("darkcyan") ,"white","goldenrod2")),
+                 
+                 heatmap_legend_param = list( title = expression(rho),
+                                             labels_gp = gpar(fontsize=7),
+                                            title_gp = gpar(fontsize=10),
+                                           grid_width = unit(3, "mm"), 
+                                          direction = "vertical"),
+                 show_row_dend = F, 
+                 width = unit(5*ncol(res.bm.cor),"mm")) +
+  
+   Heatmap(res.mgs.bp.cor, 
             cell_fun = function(j, i, x, y, w, h, fill) {
               if(res.mgs.bp.q[i, j] < 0.05) {
                 grid.text('*', x, y)
@@ -472,6 +287,7 @@ library(scales)
             column_labels = rep(c("SBP", "DBP", "Hb1Ac"),2),
             
             top_annotation = ha2,
+            #left_annotation = bar,
             
             col = circlize::colorRamp2( c(-0.1, 0, 0.1), c(muted("darkcyan") ,"white","goldenrod2")),
             
@@ -480,57 +296,19 @@ library(scales)
               #                           title_gp = gpar(fontsize=10),
                #                          grid_width = unit(3, "mm"), 
                 #                         direction = "vertical"),
-            
+            show_heatmap_legend = F,
+            show_row_dend = F, 
             width = unit(5*ncol(res.mgs.bp.cor),"mm")) 
 
   
-  # Bar plot of NES ####
-  set.seed(10)
-  ht_list <- draw(h1)
-  row.order <- row_order(ht_list)[[1]]
-  row.order <- rownames(t90.odi.cor)[row.order]
+
+  p2 = grid.grabExpr(draw(h1))
   
-  barplot.NES <- as.numeric(res.gmm[match(row.order,Name),NES])
-  names(barplot.NES) <- res.gmm[match(row.order,Name),Name]
+  pfinal <- plot_grid(p1,p2, labels = c("a","b"))
   
-  bar = HeatmapAnnotation("NES (T90)" = anno_barplot(barplot.NES,
-                                             gp = gpar(fill = "gray60", 
-                                                       col="white", 
-                                                       lwd = .05),
-                                             axis_param = list(gp=gpar(fontsize=7))),
-                          annotation_name_side = "left",
-                          annotation_name_gp = gpar(fontsize=8),
-                          annotation_name_rot = 90,
-                          name = "NES (T90)")
-                          #show_annotation_name = FALSE)
-  
+  save_plot("Fig3.pdf", pfinal, base_height = 7.0, base_asp = 1.6)
 
   message("Saving plots")
-  dev.off()
-  
-  # Draw ####
-  pdf(file = paste0(wrf, "mgs_subpathway_ea_heatmap_gutsy.pdf"), 
-      width = 11, height = 9)
-  set.seed(10)
-  draw(h1, heatmap_legend_side = "right", show_heatmap_legend=F, ht_gap = unit(c(3, 6), "mm"))
-  draw(pd, x = unit(.98, "npc"), y = unit(.5, "npc"), just = c("right"))
-  draw(bar, x= unit(.371, "npc"), y= unit(.826, "npc"), width = unit(.163, "npc"), height = unit(.18, "npc"),
-       angle=270, gp = gpar(lwd=.01, col="black"))
-  dev.off()
-  
 
-  message("Plots saved")
-  
-  message("Save row order")
-  
-  set.seed(10)
-  ht_list <- draw(h1)
-  row.order <- row_order(ht_list)
-  
-  row.names.order <- list(
-    positive = row.names(hm.matrix_pos)[row.order[[1]]], 
-    negative = row.names(hm.matrix_neg)[row.order[[2]]]
-  )
-  
-  saveRDS(row.names.order, file=paste0(results.folder,"row_names_order_hm.rds"))
 
+ 

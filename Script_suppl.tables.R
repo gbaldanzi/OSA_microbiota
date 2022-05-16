@@ -18,7 +18,8 @@
   print(t0)
   
   if(file.exists('Supp.tables.xlsx')){file.remove('Supp.tables.xlsx')}
-
+  if(file.exists('Supp.tables_part2.xlsx')){file.remove('Supp.tables_part2.xlsx')}
+  
   # Function for rounding small values into scientific format 
   round.large <- function(x){
     x[x>=0.001] <- round(x[x>=0.001],3)
@@ -110,9 +111,9 @@
   write.xlsx2(table.res, "Supp.tables.xlsx", sheetName="Table S5", col.names=T,
               row.names=F, append=T)
   
-  # Suppl Table 6 - results from the main model with BMI for all 3 phenotypes  ####
+  # Suppl Table 6 - results from the main model with BMI for all 3 OSA parameters  ####
   
-  # Results from model2 
+  # Results from main model with BMI 
   res <- fread(paste0(input,"cor.bmi_all.var_mgs.tsv"))
   
 
@@ -142,7 +143,7 @@
   
   
   
-  # Suppl Table 7 - results from the extended model ####
+  # Suppl Table 7 - results from the extended model for all 3 OSA parameters ####
   
   # Results from extended model 
   res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
@@ -156,8 +157,9 @@
   res[,exposure:=toupper(exposure)]
   
   res[,rho:=round(rho,3)]
-  res[,c("p.value","q.value") := lapply(.SD,round.large) , 
-      .SDcols = c("p.value","q.value")]
+  res[,p.value := round.large(p.value)]
+  res[!is.na(q.value),q.value := round.large(q.value)]
+  
   
   
   setnames(res,c("MGS","rho","q.value","p.value"),
@@ -212,33 +214,16 @@
   message("Table for the Sensitivity anlaysis")
   print(Sys.time()-t0)
   
-  # Main model results 
-  res.bmi <- fread(paste0(input,"cor.bmi_all.var_mgs.tsv"))
+  # Extended model results 
+  res.bmi <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
   mgs.t90 <- res.bmi[q.value<.05 & exposure =="t90",MGS]
   mgs.odi <- res.bmi[q.value<.05 & exposure =="odi",MGS]
   
-  # Extended model results 
-  res <- fread(paste0(input,"cor2_all.var_mgs.tsv"))
-  
-  res1 <- res[MGS %in% mgs.t90 & exposure %in% c("t90")]
-  res2 <- res[MGS %in% mgs.odi & exposure %in% c("odi")]
-  res <- rbind(res1,res2)
-  
-  res[,MGS:=paste0(MainTax," (",mgs,")")]
-  
-  res[,exposure:=toupper(exposure)]
-  
-  # rounding 
-  res[,rho:=round(rho,3)]
-  res[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
-  
-  # change names for the final table
-  setnames(res,c("rho","p.value","N"), c("extend.model_correlation","extend.model_p-value",
-                                         "extend.model_N"))
-  
-  
+
   # Medication model results 
   res.med <- fread(paste0(input,"cor.med_all.var_mgs.tsv"))
+  
+  res.med <- merge(res.med,taxonomy, by.x="MGS", by.y="maintax_mgs", all.x=T, all.y=F)
   
   res1 <- res.med[MGS %in% mgs.t90 & exposure %in% c("t90")]
   res2 <- res.med[MGS %in% mgs.odi & exposure %in% c("odi")]
@@ -298,21 +283,19 @@
   res.lungdisease[,c("p.value","q.value") := lapply(.SD,round.large) , .SDcols = c("p.value","q.value")]
   
   # change names for the final table
-  res.lungdisease <- res.lungdisease[,.(MGS,exposure,rho,p.value,N)]
+  #res.lungdisease <- res.lungdisease[,.(MGS,exposure,rho,p.value,N)]
   setnames(res.lungdisease,c("rho","p.value","N"), c("lung_correlation","lung_p-value","lung_N"))
   
   
   
   # Merge all sensitivity analysis results 
-  res <- merge(res,res.med, by =c("MGS","exposure"))
-  res <- merge(res,res.atb, by = c("MGS","exposure"))
+  res <- merge(res.med,res.atb, by = c("MGS","exposure"))
   res <- merge(res,res.lungdisease, by = c("MGS","exposure"))
   
   
   # selecting variables for the final table
   setnames(res,"MGS","Metagenomic species")
-  var.table <- c("Metagenomic species", "exposure", "extend.model_correlation", 
-                 "extend.model_p-value","extend.model_N","medication_correlation",
+  var.table <- c("Metagenomic species", "exposure", "medication_correlation",
                  "medication_p-value","medication_N", "antibiotic_correlation","antibiotic_p-value",
                  "antibiotic_N","lung_correlation","lung_p-value",
                  "lung_N",
@@ -351,16 +334,16 @@
   
   
   setnames(res,c("MGS","rho_low","rho_high", "se_low", "se_high", "p.value_low",
-                 "p.value_high", "N_low","N_high", "heterog_p.value"),
+                 "p.value_high", "N_low","N_high", "heterog_p.value", "heterog_q.value"),
            c("Metagenomic species","HBlow_correlation", "HBhigh_correlation",
              "HBlow_se", "HBhigh_se", 
              "HBlow_p-value", "HBhigh_p-value", "HBlow_N","HBhigh_N",
-             "Heterogeneity_p-value"))
+             "Heterogeneity_p-value", "Heterogeneity_q-value"))
   
   var.table <- c("Metagenomic species","exposure", "HBlow_correlation", "HBhigh_correlation",
                  "HBlow_se", "HBhigh_se", 
                  "HBlow_p-value", "HBhigh_p-value", "HBlow_N","HBhigh_N",
-                 "Heterogeneity_p-value")
+                 "Heterogeneity_p-value","Heterogeneity_q-value")
   
   table.res <- res[,var.table,with=F]
   
@@ -402,7 +385,7 @@
   
   res1 <- merge(res.mgs.bp[!grep("MF",MGS_features),], taxonomy, by.x="MGS_features", by.y="maintax_mgs",
                all.x=T, all.y=F)
-  res2 <- merge(res.mgs.bp[grep("MF",MGS_features),], gmm.names[,.(Module,Name)], by.x = "MGS_features", by.y="Module",
+  res2 <- merge(res.mgs.bp[grep("MF",MGS_features),], res[,c("Gut metabolic module","Name")], by.x = "MGS_features", by.y="Gut metabolic module",
                all.x=T, all.y=F)
   
   res1[, microbiota := paste0(MainTax," (",mgs,")")]
@@ -425,7 +408,7 @@
   
   
   write.xlsx2(res, "Supp.tables_part2.xlsx", sheetName="Table S12", col.names=T,
-              row.names=F, append=T)
+              row.names=F, append=F)
   
   message(paste("File name = Supp.tables_part2.xlsx, saved at",getwd()))
   

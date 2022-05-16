@@ -1,10 +1,17 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
+# Import findings from main model w/o BMI
+
+  mgs.fdr.main <- readRDS(paste0(results.folder, "mgs.fdr.mainmodel.rds"))
+
+  mgs.fdr.main <- unique(mgs.fdr.main$MGS)
+  
 # Correlations with all main model covariates, including BMI
+
   
   res.main.model <- lapply(exposures,spearman.function, 
-                x1=outcomes,
+                x1 = mgs.fdr.main,
                 covari = main.model.BMI,
                 data = pheno)
   
