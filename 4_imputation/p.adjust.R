@@ -2,7 +2,10 @@
 # Gabriel Baldanzi 
 
 # Multiple comparison adjustment after imputation of AHI and 
-# correlation with gut species using the basic model STATA 
+# Spearman's correlation with gut species using STATA 
+
+# Since the gut microbiota species were analysed in 4 parallel scripts, here we merge 
+# the results and perform the multiple comparison adjustment using BH. 
 
 
   library(data.table)

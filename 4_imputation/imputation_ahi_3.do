@@ -1,6 +1,6 @@
 // Project Sleep apnea and gut microbiota // 
 
-// The aim of this script is to imput AHI values for the participants that have
+// The aim of this script is to impute AHI values for the participants that have
 // information on T90 and ODI, but not on AHI
 
 // Imputation is performed using multiple imputation and the pmm method 
@@ -28,7 +28,7 @@ postfile myfile_3 str20 MGS double rho p_value N using "cor_ahi_imput_mgs_3.dta"
 use "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/work/pheno_3.dta", clear
 
 // Imputation and analysis were peformed in a loop so that we did not have to include 
-// all species in the same imputation equatation. Therefore, for every species (1602) 
+// all species in the same imputation equatation. Therefore, for every species
 // we performed an imputation step followed by the partial Spearman correlation
 
 
@@ -70,19 +70,19 @@ foreach mgs of varlist HG3A*{
 	mi passive: egen Y_rank_imp = rank(`mgs')
 	
 	di "Create ranks for continuous covariates"
-	// Create ranks for continous covariates
+	// Create ranks for continuous covariates
 	foreach var in age Alkohol BMI Fibrer Energi_kcal {
 		qui mi passive: egen rank_`var' = rank(`var')
 	}
 	
 	
 	// * is used to capture all dummy variables for that covariate
-	local main_model Sex rank_* smokestatus* plate* educat* leisurePA* month* placebirth*
+	local ext_model Sex rank_* smokestatus* plate* educat* leisurePA* month* placebirth*
 
-	qui mi estimate,saving(model1_3,replace): regress X_rank_imp `main_model'
+	qui mi estimate,saving(model1_3,replace): regress X_rank_imp `ext_model'
 	mi predict Xxb_imp using model1_3
 	mi passive: gen Xres_imp=X_rank_imp-Xxb_imp
-	qui mi estimate,saving(model2_3,replace): regress Y_rank_imp `main_model'
+	qui mi estimate,saving(model2_3,replace): regress Y_rank_imp `ext_model'
 	mi predict Yxb_imp using model2_3
 	mi passive: gen Yres_imp=Y_rank_imp-Yxb_imp
 	
@@ -111,7 +111,7 @@ gen exposure = "ahi"
 
 // Export results back to R
 
-export delimited using "/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/results/cor_ahi_imput_mgs_3.tsv", delim(tab) replace datafmt
+export delimited using "cor_ahi_imput_mgs_3.tsv", delim(tab) replace datafmt
 
 di c(current_date)
 di c(current_time)

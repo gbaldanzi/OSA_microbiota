@@ -4,12 +4,20 @@
 # Script to prepare data to be used in STATA
 
 # Because AHI have a lower sample size than ODI and T90, we are imputing 
-# missing AHI values 
+# missing AHI values in participans with valid ODI and T90 values
 
 # STATA will be used to conducted the multiple imputation and the analyses with the 
 # imputed data
 
 # This script will prepare the data to be used at STATA
+
+# The dataset is divided in 4 based on the number of gut microbiota species. 
+# By creating 4 separate dataset, we can conduct the associations between AHI and gut microbiota
+# in 4 paralallel pipelines. Each pipeline investigates 1/4 of the number of species
+
+# Only the species identified in the model not adjusted for BMI will be included in this analysis 
+
+# The Spearman's correlation in adjusted for the extended model covariates
 
   rm(list=ls())
 

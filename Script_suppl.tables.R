@@ -355,7 +355,18 @@
   message("Table for the GMM enrichment analysis results")
   
   
-  res <- fread(paste0(input,"ea_GMM.tsv"))
+  # Import pathways/modules names 
+  gmm.names <- fread(paste0(input,'GMM_reference.csv'))
+  
+  gmm.names[,Name:=str_to_title(Name)]
+  gmm.names[,Name:=gsub("Ii","II",Name)]
+  gmm.names[,Name:=gsub("To ","to ",Name)]
+  gmm.names[,Name:=gsub("-Off Phase","-off phase",Name)]
+  
+  
+  res <- fread('/proj/nobackup/sens2019512/users/baldanzi/sleepapnea_gut/data_processed/ea_GMM.tsv')
+  
+  res <- merge(res,gmm.names,by.x="pathway",by.y="Module",all.x=T,all.y=F)
   
   res[,exposure:=toupper(exposure)]
   
