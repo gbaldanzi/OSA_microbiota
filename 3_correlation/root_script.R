@@ -4,7 +4,7 @@
 # Correlation with species abundance
 
 # This set of scripts will investigate the association between the OSA parameters (AHI, T90, ODI)
-# and the relative abundance of gut microbiota  
+# and the relative abundance of gut microbiota species 
 
   # Loading packages 
   library(data.table)
