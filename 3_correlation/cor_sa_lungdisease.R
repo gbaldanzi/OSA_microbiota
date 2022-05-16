@@ -1,22 +1,21 @@
 # Project: Sleep apnea and gut microbiota
 # Gabriel Baldanzi 
 
-# This script carries out the sensitivity analysis comparing the results 
+# This script performs the sensitivity analysis comparing the results 
 # after exclusion of participants who have self-reported CPOD, emphysema or chronic 
 # bronchitis 
 
-  # In this script, we will only include the species that were FDR significant in the main model 
+# This analysis only includes the species that were FDR significant in the extended model 
 
-  # This sensitivity analysis is adjusted for all main model covariates
-
-
-  # Import species names identified in the main model including BMI
+  # Import species names identified in the extended model 
   mgs.fdr  = readRDS(paste0(results.folder,'mgs.m1.rds'))
 
   # Remove participants that have used antibiotic in the last 6 months
   pheno.nolungdis <- pheno[-which(lungdisease=="yes"),]
   
   # Correlations 
+  
+  # This sensitivity analysis is adjusted for the extended model covariates
 
   res <- lapply(exposures,spearman.function, 
                           x1=mgs.fdr,

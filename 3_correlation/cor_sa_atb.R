@@ -5,18 +5,18 @@
 # This script performs the sensitivity analysis comparing the results 
 # after exclusion of participants who have used antibiotic 
 
-# This sensitivity analysis is adjusted for all main model covariates
-
-# This analysis only includes the species that were FDR significant in the main model 
+# This analysis only includes the species that were FDR significant in the extended model 
 
   # Remove participants that have used antibiotic in the last 6 months
   pheno.noatb <- pheno[atb6m=="no",]
   
-  # Import species names identified in the main model including BMI
+  # Import species names identified in the extended model 
   mgs.fdr  = readRDS(paste0(results.folder,'mgs.m1.rds'))
   
   
   # Correlations 
+  
+  # This sensitivity analysis is adjusted for the extended model covariates
 
   res <- lapply(exposures,spearman.function, 
                           x1 = mgs.fdr,
