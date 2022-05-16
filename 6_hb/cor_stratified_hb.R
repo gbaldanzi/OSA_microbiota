@@ -4,9 +4,9 @@
 
 # Association between T90/ODI and species stratified by the hemoglobin
 
-# In this script, we will only include the species that were FDR significant in the main model 
+# In this script, we will only include the species that were FDR significant in the extended model 
 
-# This sensitivity analysis is adjusted for all main model covariates
+# This sensitivity analysis is adjusted for the extended model covariates
 
 
   library(data.table)
@@ -25,10 +25,10 @@
 
 
   # Species associated with T90 or ODI in the extended
-  res.main.model <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
+  res.ext.model <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
   
-  mgs.t90 <- res.main.model[q.value<.05 & exposure=="t90",MGS]
-  mgs.odi <- res.main.model[q.value<.05 & exposure=="odi",MGS]
+  mgs.t90 <- res.ext.model[q.value<.05 & exposure=="t90",MGS]
+  mgs.odi <- res.ext.model[q.value<.05 & exposure=="odi",MGS]
   
   
   # Model covariates 
@@ -89,6 +89,8 @@
                          values_from = c(rho,se,conf.int, p.value,N, covariates))
   
   # Heterogeneity test ####
+  
+  # This test is used to compare two estimates (Spearman's correlation) from different populations
   
   heterog.test.fun <- function(res){
   
