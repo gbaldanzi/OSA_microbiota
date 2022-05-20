@@ -50,7 +50,7 @@ library(cowplot)
   }
   
     fix.subclass.name.fun <- function(char){
-      char <- gsub("__PC_", " (PC)",char)
+      char <- gsub("__PC_", "",char)
       char <- gsub("___","_",char)
       char <- gsub("__","_",char)
       char <- gsub("Drug", "Drug -", char)
@@ -61,10 +61,14 @@ library(cowplot)
       return(char)
     }
       
+  # Taxonomy 
+    taxonomy = fread("/home/baldanzi/Datasets/MGS/taxonomy")
 
   # Results from the MGS-AHI/T90/ODI correlation - extended model 
 
     res.bm <- fread(paste0(results.folder,"cor2_all.var_mgs.tsv"))
+    
+    #res.bm <- merge(res.bm,taxonomy,by.x="MGS", by.y = "maintax_mgs", all.x = T, all.y = F)
     
     res.bm[,mgs := cutlast(MGS,9)]
     
@@ -214,6 +218,12 @@ library(cowplot)
   noms <- fix.species.name.fun(noms$V1) 
   rownames(merged.matrix.q) <- noms
   
+  noms <- as.data.table(do.call(rbind, strsplit( split = "____" , taxonomy$maintax_mgs)))
+  noms[grep("_sp.",V1),V1:=paste0(V1, " (", V2, ")" )]
+  noms[grep("_obeum",V1),V1:=paste0(V1, " (", V2, ")" )]
+  noms <- fix.species.name.fun(noms$V1) 
+  taxonomy$name <- noms
+  
 
   # Only include species with at least one FDR sig association
   species.sig <- merged.matrix.q<0.05
@@ -222,7 +232,23 @@ library(cowplot)
   
   merged.matrix2 <- merged.matrix[rownames(merged.matrix) %in% species.sig,]
   merged.matrix.q2 <- merged.matrix.q[rownames(merged.matrix.q) %in% species.sig,]
- 
+  
+  
+  # Annotation #### 
+  
+  taxa <- taxonomy[name %in% rownames(merged.matrix2), .(name,family,order,class,phylum)]
+  order2 <- taxa[match(rownames(merged.matrix2),name ), order]
+  ha2 <- HeatmapAnnotation(which = "column",  Order = order2, simple_anno_size = unit(2,"mm"),
+                           col= list(Order = c("Bacteroidales" = "#1B9E77" ,
+                                     "Candidatus Borkfalkiales" = "#D95F02", 
+                                     "Eubacteriales" = "#66A61E",   
+                                     "Eggerthellales" = "#E7298A", 
+                                     "Erysipelotrichales" = "#7570B3",
+                                     "Victivallales" = "#E6AB02", 
+                                     "unclassified" = "gray80")), 
+                           show_legend = F, 
+                           annotation_name_side = "left", 
+                           annotation_name_gp = gpar(fontsize=8))
   
   
 
@@ -247,6 +273,7 @@ library(cowplot)
              show_row_dend = FALSE,
              cluster_rows = TRUE,
              cluster_row_slices = F,
+             top_annotation = ha2,
              
              row_split = factor(c(rep("pos", ncol(hm.matrix_pos2)),
                                   rep("neg",ncol(hm.matrix_neg2))), 
@@ -279,20 +306,6 @@ library(cowplot)
                                         # direction = "horizontal")  ,
              width = unit(1.4*nrow(merged.matrix2),"mm"), 
              height = unit(3.5*ncol(merged.matrix2),"mm"))  
-
-  
-  
-  
-
-  # Draw ####
-  #dev.off()
-  #message("Saving plots")
-  #pdf(file = paste0(results.folder, "mgs_subpathway_ea_heatmap_gutsy_neg_simp.pdf"), 
-  #    width = 8, height = 5)
-  #set.seed(10)
-  #draw(h2, row_title = "Species-metabolite associations       ", 
-  #     show_heatmap_legend=F, row_title_gp = gpar(fontsize=8))
-  #dev.off()
   
 
   
@@ -422,8 +435,22 @@ library(cowplot)
   noms <- fix.species.name.fun(noms$V1) 
   rownames(merged.matrix.q1) <- noms
   
-
   
+  # Annotation ####
+  
+  taxa <- taxonomy[name %in% rownames(merged.matrix1), .(name,family,order,class,phylum)]
+  order1 <- taxa[match(rownames(merged.matrix1),name ), order]
+  ha1 <- HeatmapAnnotation(which = "column", Order = order1, simple_anno_size = unit(2,"mm"),
+            col= list( Order = c("Coriobacteriales" = "#A6761D" ,
+            "Bacillales" = "#666666", 
+            "Eubacteriales" = "#66A61E",
+            "Erysipelotrichales" = "#7570B3",  
+            "Lactobacillales" = "#386CB0")) , 
+            show_legend = F, 
+            annotation_name_side = "left", 
+            annotation_name_gp = gpar(fontsize = 8))
+  
+
  
   # Create heatmap ####
   set.seed(10)
@@ -454,6 +481,8 @@ library(cowplot)
 
                 row_names_side = "left",
                 
+                top_annotation = ha1, 
+                
                 col = circlize::colorRamp2(c(-2.5,-1.6,0,1.6,2.5),c(muted("blue4"), "dodgerblue1", "white",
                                                                     "indianred2",muted("red3"))),
                 # name="NES (pos)",
@@ -483,32 +512,45 @@ library(cowplot)
   
   
   lgd = Legend(col_fun = col_fun, title = "NES", at = c(0,1,2,3), direction = "horizontal",
-               labels_gp = gpar(fontsize=6))
+               labels_gp = gpar(fontsize=6), title_gp = gpar(fontsize=8), 
+               grid_height = unit(2.5,"mm"))
   lgd2 = Legend(col_fun = col_fun2, at = c(0,1,2,3), direction = "horizontal",
-                labels_gp = gpar(fontsize=6))
+                labels_gp = gpar(fontsize=6), 
+                grid_height = unit(2.5,"mm"))
+  
+  orders <- unique(c(order1,order2))
+  orders <- orders[order(orders)]
+  
+  lgd3 = Legend(labels = orders, title = "Order", labels_gp = gpar(fontsize = 6.5), title_gp = gpar(fontsize=8),
+                legend_gp = gpar(fill = c( '#666666', '#1B9E77' , "#D95F02", "#A6761D",  "#E7298A" , 
+                                            "#7570B3" ,"#66A61E", '#386CB0' , "gray80" , "#E6AB02")),
+                grid_height = unit(2.5,"mm") , grid_width = unit(2.5,"mm"))
+ 
+  
   #lgd3 = Legend(col_fun = col_fun3, at = c(-.1,-0.05,0,0.05,0.1), direction = "horizontal", 
   #           title = expression(rho), legend_height = unit(20,"mm"), labels_gp = gpar(fontsize=7))
   
-  pd = packLegend(lgd, lgd2, direction = "vertical")
+  pd1 = packLegend(lgd, lgd2, direction = "vertical")
+  pd2 = packLegend(pd1, lgd3, direction = "horizontal", column_gap = unit(7, "mm"))
   
   w = convertWidth(unit(1, "npc")*(9/10), "mm", valueOnly = TRUE)
   h = convertHeight(unit(1, "npc")*(4/5), "mm", valueOnly = TRUE)
   
-  p1 = grid.grabExpr(draw(h1, show_heatmap_legend = F, row_title = "Species-metabolite associations       ", 
+  p1 = grid.grabExpr(draw(h1, show_heatmap_legend = F, row_title = "Species-metabolite associations         ", 
                           row_title_gp = gpar(fontsize=8), 
                           padding = unit(c(3,.1,.1,32),"mm")), 
                      width = w, height = h)
   
-  p2 = grid.grabExpr(draw(h2, show_heatmap_legend=F, row_title = "Species-metabolite associations       ", 
-                     row_title_gp = gpar(fontsize=8)),
+  p2 = grid.grabExpr(draw(h2, show_heatmap_legend=F, row_title = "Species-metabolite associations           ", 
+                     row_title_gp = gpar(fontsize=8), padding = unit(c(2,.15,.1,.1),"mm")),
                      width = unit(10,"mm"), height = unit(6,"mm"))
   
-  p3 = grid.grabExpr(draw(pd, x = unit(-.7, "npc"), y = unit(.5, "npc"), just = c("left")))
+  p3 = grid.grabExpr(draw(pd2, x = unit(-.35, "npc"), y = unit(.5, "npc"), just = c("left")))
                      #padding = unit(c(3,.1,.1,5),"mm")))
   
   pfinal <- plot_grid(p2,plot_grid(p1,p3,nrow=1, rel_widths = c(1,.2), labels = c("b","")),
-                      ncol=1, labels = c("a",""))
+                      ncol=1, labels = c("a",""), label_y = .94)
   
   
-  save_plot("Fig4.pdf", pfinal, base_height = 4.55)
+  save_plot("Fig4.pdf", pfinal, base_height = 4.67)
  
